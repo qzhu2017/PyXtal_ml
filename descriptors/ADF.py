@@ -1,3 +1,4 @@
+from pymatgen.core.periodic_table import Element
 from pymatgen.core.structure import Structure
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from scipy.spatial.distance import cdist
@@ -5,6 +6,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.ndimage.filters import gaussian_filter1d
 from optparse import OptionParser
+def get_metals():
+    metals = []
+    for m in dir(Element)[:102]:
+        ele = Element[m]
+        if ele.is_transition_metal or ele.is_post_transition_metal \
+            or ele.is_alkali or ele.is_alkaline:
+            metals.append(m)
+    return metals
+
+def get_radii(ele):
+    if ele.value in get_metals():
+        return ele.metallic_radius
+    else:
+        return ele.atomic_radius
 
 
 class ADF(object):
@@ -43,14 +58,17 @@ class ADF(object):
         neighbors = struc.get_all_neighbors(r=R_max, include_index=True, include_image=True)
         angles = []
         for i, site in enumerate(struc.sites):
-            rad1 = site.specie.atomic_radius
+            rad1 = get_radii(site.specie) #.atomic_radius
             newlist = []
-            dist = []
-            for table in neighbors[i]:
-                dist.append(table[1])
-            cutoff = min(dist) + 0.5
+            #dist = []
+            #for table in neighbors[i]:
+            #    dist.append(table[1])
+            #cutoff = min(dist) + 0.5
             # todo: change the cutoff distance by playing with the sets of atomic_radius/metallic_radius       
             for table in neighbors[i]:
+                rad2 = get_radii(table[0].specie)
+                #print(rad1, rad2)
+                cutoff = 1.2*(rad1+rad2)
                 if table[1] < cutoff: 
                     newlist.append(table)
 
@@ -73,7 +91,7 @@ class ADF(object):
                 for j in range(i+1, len(table)):
                     p3 = table[j][0].coords
                     angles = np.hstack((angles, self.single_angle(p1, p2, p3)))
-                    #print(table[i][0].specie, site.specie, table[j][0].specie, single_angle(p1, p2, p3) )
+                    #print(table[i][0].specie, site.specie, table[j][0].specie, self.single_angle(p1, p2, p3) )
         return angles
 
     def plot_ADF(self, filename=None):
