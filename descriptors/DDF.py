@@ -7,7 +7,7 @@ import itertools
 class DDF(object):
     '''
     A class representing the Covalent and Metallic
-    Bond Angle Distribution functions
+    Dihedral bond Angle Distribution functions
 
     Attributes:
         self:  The dihedral distribution function
@@ -52,7 +52,7 @@ class DDF(object):
         bins = np.arange(0, 181, 1)
 
         ang_hist, _ = np.histogram(bond_angles, bins=bins)
-        
+
         nbins = np.arange(1, 181, 1)
         self.DDF = np.vstack((nbins, ang_hist))
 
