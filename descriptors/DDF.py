@@ -9,13 +9,23 @@ class DDF(object):
     '''
     A class representing the Covalent and Metallic
     Dihedral bond Angle Distribution functions
-
-    Attributes:
-        self:  The dihedral distribution function
+    
+    Args:
         crystal:  a pymatgen structure
         R_max: the maximum distance in angstroms for the find all neighbors
                function
         Span:  decision factor for determining if a bond exists.
+        bin_width: the width of the bins in the distribution
+    Attributes:
+        label_list: the label list containing the cartesian coordinates,
+                    atomic/metallic radii of each element
+                    struc_array: the looping array for angle computation
+        angles: dihedral angles
+        bins:  angle bins
+        DDF: the dihedral angle distribution
+
+        
+
 
     '''
 
@@ -242,7 +252,12 @@ class DDF(object):
         self.angles = bond_angles
 
     def plot_DDF(self, filename=None):
-        plt.hist(self.angles, bins=np.arange(self.Width, 181, self.Width),
+        '''
+        Plots the dihedral angle distribution function
+
+        Args:
+            filename: the path to safe the file'''
+        plt.hist(self.angles, self.bins,
                  density=True)
         plt.grid()
         plt.xlabel("Angle (degree)", fontsize=16)
