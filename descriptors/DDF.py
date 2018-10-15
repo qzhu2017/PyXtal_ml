@@ -2,6 +2,7 @@ import numpy as np
 from scipy.spatial.distance import cdist
 import pymatgen.core.periodic_table as per
 import itertools
+import matplotlib.pyplot as plt
 
 
 class DDF(object):
@@ -18,12 +19,13 @@ class DDF(object):
 
     '''
 
-    def __init__(self, crystal, R_max=12, Span=0.18):
+    def __init__(self, crystal, R_max=4, Span=0.18, bin_width=1.0):
         '''DDF Object
 
         Computes the dihedral distribution function '''
         self.R_max = R_max
         self.Span = Span
+        self.Width = bin_width
 
         self.compute_DDF(crystal)
 
@@ -38,23 +40,13 @@ class DDF(object):
             the dihedral distribution function
         '''
 
-        R_max = self.R_max  # maximal radius
-
-        Span = self.Span  # bond determinant, will change later
-
-        # see structure array method
-        struc_array = self.structure_array(crystal, R_max)
-
         # see compute_bond_angles method
-        bond_angles = self.compute_bond_angles(struc_array, Span)
+        self.compute_bond_angles(crystal)
 
-        # count the number of occurances of each angle in 1 degree incriments
-        bins = np.arange(0, 181, 1)
+        bins = np.arange(self.Width, 181, self.Width)
 
-        ang_hist, _ = np.histogram(bond_angles, bins=bins)
-
-        nbins = np.arange(1, 181, 1)
-        self.DDF = np.vstack((nbins, ang_hist))
+        self.DDF, self.bins = np.histogram(self.angles, bins=bins,
+                                           density=True)
 
     def create_label_list(self, crystal):
         '''
@@ -80,10 +72,9 @@ class DDF(object):
         # populate the dictionary with element labels
         for element in constituents:
             label_list[element] = [[], [], []]
+        self.label_list = label_list
 
-        return label_list
-
-    def structure_array(self, crystal, R_max):
+    def structure_array(self, crystal):
         '''
         Populates the label list with cartesian coordinates and bond radii,
         then organizes that information into an array for computation
@@ -99,10 +90,12 @@ class DDF(object):
                 '''
 
         # create label list
-        elements_dict = self.create_label_list(crystal)
+        self.create_label_list(crystal)
+
+        elements_dict = self.label_list
 
         # get all neighbors out to R_max
-        neighbor = crystal.get_all_neighbors(r=R_max, include_index=True,
+        neighbor = crystal.get_all_neighbors(r=self.R_max, include_index=True,
                                              include_image=True)
 
         # loop over all neighbors to each atom
@@ -124,6 +117,8 @@ class DDF(object):
                     elements_dict[element][2].append(ele.metallic_radius)
                 else:
                     elements_dict[element][2].append(np.nan)
+
+        self.label_list = elements_dict
 
         #  structure label list into array
         for i, element in enumerate(elements_dict):
@@ -149,10 +144,10 @@ class DDF(object):
                                                            element][2]
                                                    )[:, np.newaxis]))
 
-        return np.hstack((coord_array, covalent_radius_array,
-                          metallic_radius_array))
+        self.struc_array = np.hstack((coord_array, covalent_radius_array,
+                                      metallic_radius_array))
 
-    def compute_bond_angles(self, struc_array, Span):
+    def compute_bond_angles(self, crystal):
         '''
         Computes the dihedral bond angles in a crystal
 
@@ -162,6 +157,10 @@ class DDF(object):
 
         Returns:  a list of dihedral angles for covalent and metallic bonds.'''
 
+        Span = self.Span
+
+        self.structure_array(crystal)
+        struc_array = self.struc_array
         # compute the distances between each atomic pair
         distance_array = cdist(struc_array[:, 0:3], struc_array[:, 0:3])
 
@@ -240,4 +239,16 @@ class DDF(object):
                             metallic_angle > 1e-2):
                         bond_angles.append(metallic_angle)
 
-        return bond_angles
+        self.angles = bond_angles
+
+    def plot_DDF(self, filename=None):
+        plt.hist(self.angles, bins=np.arange(self.Width, 181, self.Width),
+                 density=True)
+        plt.grid()
+        plt.xlabel("Angle (degree)", fontsize=16)
+        plt.ylabel("DDF", fontsize=16)
+        if filename is None:
+            plt.show()
+        else:
+            plt.savefig(filename)
+            plt.close()
