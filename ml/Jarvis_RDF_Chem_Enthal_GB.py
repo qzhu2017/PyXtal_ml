@@ -16,8 +16,8 @@ from sklearn.metrics import mean_absolute_error
 import numpy as np
 import sys
 sys.path.append('../')
-from Descriptors.RDF import *
-from Descriptors.chem import *
+from descriptors.RDF import *
+from descriptors.chem import *
 
 # Functions
 def isfloat(value):
@@ -46,7 +46,7 @@ def get_features(data):
     return X, Y
 
 # Import data
-data = loadfn('../Datasets/jdft_3d-7-7-2018.json',cls=MontyDecoder)
+data = loadfn('../datasets/jdft_3d-7-7-2018.json',cls=MontyDecoder)
 
 # Split to train and test sets
 X, Y = get_features(data[:5])
