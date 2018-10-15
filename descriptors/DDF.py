@@ -9,7 +9,7 @@ class DDF(object):
     '''
     A class representing the Covalent and Metallic
     Dihedral bond Angle Distribution functions
-    
+
     Args:
         crystal:  a pymatgen structure
         R_max: the maximum distance in angstroms for the find all neighbors
@@ -23,10 +23,6 @@ class DDF(object):
         angles: dihedral angles
         bins:  angle bins
         DDF: the dihedral angle distribution
-
-        
-
-
     '''
 
     def __init__(self, crystal, R_max=4, Span=0.18, bin_width=1.0):
