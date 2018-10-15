@@ -1,6 +1,7 @@
 from descriptors.RDF import RDF
 from descriptors.ADF import ADF
 from descriptors.chem import Chem
+from descriptors.DDF import DDF
 from optparse import OptionParser
 import numpy as np
 from pymatgen.core.structure import Structure
@@ -20,7 +21,7 @@ class descriptor:
         self.libs = libs
         self.struc = crystal
         self.descriptor = {}
-        options = ['RDF', 'ADF', 'Chem']
+        options = ['RDF', 'ADF', 'DDF', 'Chem']
         self.libs = []
         if libs == 'all':
             self.libs = options
@@ -33,6 +34,8 @@ class descriptor:
                 self.descriptor['RDF'] = RDF(self.struc).RDF[1,:]
             elif lib == 'ADF':
                 self.descriptor['ADF'] = ADF(self.struc).ADF
+            elif lib == 'DDF':
+                self.descriptor['DDF'] = DDF(self.struc).DDF
             elif lib == 'Chem':
                 self.descriptor['Chem'] = Chem(self.struc).mean_chem
 
