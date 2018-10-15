@@ -2,8 +2,10 @@ from monty.serialization import loadfn
 from pymatgen.core.structure import Structure
 import numpy as np
 from optparse import OptionParser
+import os.path as op
 
-ele_data = loadfn('Elements.json')
+filename = op.join(op.dirname(__file__), 'Elements.json')
+ele_data = loadfn(filename)
 
 class Chem(object):
     """a class of crystal structure.
@@ -26,6 +28,9 @@ class Chem(object):
 
     def get_descrp_arr(self, elm):
         arr = []
+        # the current json file doesn't have info for Pa, maybe some others
+        if elm in ['Pa']: 
+            elm = 'Th' 
         d = ele_data[elm]
         arr = []
         for k, v in d.items():
