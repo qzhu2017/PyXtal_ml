@@ -203,7 +203,7 @@ class DDF(object):
             if covalent_bond_sum > 2:
                 # iterate over position vector triples to find dihedral angles
                 for bonds in itertools.combinations(covalent_bond_vectors, 3):
-                    # create two places using cross product of
+                    # create two planes using cross product of
                     # position vectors
                     plane_1 = np.cross(bonds[0], bonds[1])
                     plane_2 = np.cross(bonds[0], bonds[2])
@@ -226,7 +226,7 @@ class DDF(object):
             if metallic_bond_sum > 2:
                 # iterate over position vector triples to find dihedral angles
                 for bonds in itertools.combinations(metallic_bond_vectors, 3):
-                    # create two places using cross product of
+                    # create two planes using cross product of
                     # position vectors
                     plane_1 = np.cross(bonds[0], bonds[1])
                     plane_2 = np.cross(bonds[0], bonds[2])
