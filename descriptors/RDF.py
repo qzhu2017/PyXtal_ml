@@ -2,6 +2,8 @@ from pymatgen.core.structure import Structure
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from scipy.spatial.distance import cdist
 import numpy as np
+import matplotlib as mpl
+mpl.use('Agg')
 import matplotlib.pyplot as plt
 from scipy.ndimage.filters import gaussian_filter1d
 from optparse import OptionParser
@@ -153,7 +155,8 @@ class RDF(object):
         plt.xlabel(r"$r (\AA)$", fontsize=16)
         plt.ylabel(r"$g(r)$", fontsize=16)
         if filename is None:
-            plt.show()
+            #plt.show()
+            pass
         else:
             plt.savefig(filename)
             plt.close()

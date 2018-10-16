@@ -1,7 +1,7 @@
 import numpy as np
 from descriptors.descriptors import descriptor
 from datasets.collection import Collection
-#from ml.method import method
+from ml.ML import *
 from time import time
 import warnings
 warnings.filterwarnings("ignore")
@@ -9,7 +9,9 @@ warnings.filterwarnings("ignore")
 
 file = 'datasets/sp_metal_aflow_844.json'
 prop = 'form_energy_cell'
-feature = 'all'  # 'RDF', 'RDF+ADF', 'all'
+feature = 'RDF'  # 'RDF', 'RDF+ADF', 'all'
+algorithm = 'KRR'
+Kernel = 'laplacian'
 
 # obtain the struc/prop data from source 
 start = time()
@@ -21,19 +23,29 @@ print('The chosen feature is: {0}'.format(feature))
 
 # convert the structures to descriptors in the format of 1D array
 start = time()
-X = []
+x = []
 for struc in strucs:
     des = descriptor(struc, feature).merge()
-    if len(X) == 0:
-        X = des
+    if len(x) == 0:
+        x = des
     else:
-        X = np.vstack((X, des))
+        x = np.vstack((x, des))
 
-Y = np.array(props)
+# Y has None values
+y = np.array(props)
+X = []
+Y = []
+for i in range(len(y)):
+    if y[i] != None:
+        Y.append(y[i])
+        X.append(x[i])
+
 end = time()
 print('Time elapsed for creating the descriptors: {:.3f} seconds'.format(end-start))
 print('Each material has {:d} descriptors'.format(np.shape(X)[1]))
 #print(np.shape(Y))
 
 # build machine learning model
-
+ML = Machinelearning(algo = algorithm, feature = X, prop = Y)
+r2, MAE = ML.KRR(Kernel)
+print(r2,MAE)

@@ -20,8 +20,11 @@ class Collection:
         struc = []
         prop = []
         for dct in self._data:
-            struc.append(Structure(dct['lattice'], dct['atom_array'], dct['coordinates']))
-            prop.append(dct[self.prop])
+            try:
+                prop.append(dct[self.prop])
+                struc.append(Structure(dct['lattice'], dct['atom_array'], dct['coordinates']))
+            except:
+                pass
         return struc, prop
 
 if __name__ == "__main__":
