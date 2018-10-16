@@ -23,7 +23,8 @@ def read_struc(entry):
             'coords': coords,
             'lattice': lattice,
             'elements': name_array,
-            'formation_energy': entry['formation_energy_per_atom']
+            'formation_energy': entry['formation_energy_per_atom'],
+            'band_gap': entry['band_gap'],
             }
     return struc
 
@@ -42,24 +43,25 @@ def read_json(json_file):
     return entry, E_form
 
 m = MPRester('ZkyR13aTi9z5hLbX')
-entries = m.query(criteria = {"elements": {"$in": ['Li']},
+entries = m.query(criteria = {#"elements": {"$in": ['Li']},
                               "icsd_ids.0": {'$exists': True},
-                              "nsites":{"$lte": 6},
-                              "band_gap": {"$lt": 0.2},
+                              "nsites":{"$lte": 20},
+                              "band_gap": {"$gt": 0.1},
                              }, 
                   properties = ["formula", 
                                 "structure",
                                 "formation_energy_per_atom",
+                                "band_gap",
                              ]
                  )
 
 struc_info = []
-for entry in entries[:4]:
+for entry in entries:
     struc_info.append(read_struc(entry))
-json_file = 'sp.json'
+json_file = 'nonmetal_MP_' + str(len(entry)) + '.json'
 
 with open(json_file, "w") as f:
     json.dump(struc_info, f, cls=NumpyEncoder, indent=1)
 
 entry, E_form = read_json(json_file)
-print(entry, E_form)
+print(len(E_form))
