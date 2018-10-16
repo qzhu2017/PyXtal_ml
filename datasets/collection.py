@@ -21,10 +21,18 @@ class Collection:
         struc = []
         prop = []
         for dct in self._data:
+<<<<<<< HEAD
+            try:
+                prop.append(dct[self.prop])
+                struc.append(Structure(dct['lattice'], dct['atom_array'], dct['coordinates']))
+            except:
+                pass
+=======
             # QZ: sometime the property returns None
             if dct[self.prop] is not None:
                 struc.append(Structure(dct['lattice'], dct['elements'], dct['coords']))
                 prop.append(dct[self.prop])
+>>>>>>> 16037eac8747e1fd9739b2fadc379beda46269fa
         return struc, prop
 
 if __name__ == "__main__":
