@@ -79,7 +79,7 @@ class method:
         self.r2 = best_estimator.score(X_test, Y_test, sample_weight=None)
         self.mae = mean_absolute_error(self.y_predicted, self.Y_test)
 
-        return print('r$^2$ = {1:.4f}, mean absolute error = {1:.4f}'.format(self.r2, self.mae))
+        return self.r2, self.mae
     
 def plot(self, figname=None, figsize=(12,8)):
     """
