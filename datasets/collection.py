@@ -7,7 +7,7 @@ class Collection:
     Used for obtaining pymatgen objects from a small database file.
     """
 
-    def __init__(self, file='sp_metal_aflow_844.json', prop='form_energy_cell'):
+    def __init__(self, file='MP-gap-3459.json', prop='formation_energy'):
         """Create a collection lazily.
         Will read data from json file when needed.
         """
@@ -20,8 +20,10 @@ class Collection:
         struc = []
         prop = []
         for dct in self._data:
-            struc.append(Structure(dct['lattice'], dct['atom_array'], dct['coordinates']))
-            prop.append(dct[self.prop])
+            # QZ: sometime the property returns None
+            if dct[self.prop] is not None:
+                struc.append(Structure(dct['lattice'], dct['elements'], dct['coords']))
+                prop.append(dct[self.prop])
         return struc, prop
 
 if __name__ == "__main__":
