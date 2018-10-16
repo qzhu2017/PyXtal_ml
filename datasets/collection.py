@@ -7,9 +7,10 @@ class Collection:
     Used for obtaining pymatgen objects from a small database file.
     """
 
-    def __init__(self, file='MP-gap-3459.json', prop='formation_energy'):
-        """Create a collection lazily.
-        Will read data from json file when needed.
+    def __init__(self, file, prop='formation_energy'):
+        """
+        1, read the data from json file
+        2, extract the structure and property info
         """
 
         self.file = file
@@ -39,3 +40,4 @@ if __name__ == "__main__":
     print('Reading file from : ', options.file)
     print('The target property is ', options.prop)
     print('Returning {:d} structure'.format(len(struc)))
+
