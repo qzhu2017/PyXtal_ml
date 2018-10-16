@@ -28,9 +28,19 @@ class Chem(object):
 
     def get_descrp_arr(self, elm):
         arr = []
-        # the current json file doesn't have info for Pa, maybe some others
-        if elm in ['Pa']: 
+        # the current json file has only 82 elements, some are missing
+        if elm in ['Pa','Ac','Pu','Np','Am','Bk','Cf','Cm','Es','Fm','Lr','Md','No']: 
             elm = 'Th' 
+        elif elm in ['Eu','Pm']:
+            elm = 'La' 
+        elif elm in ['Xe','Rn']:
+            elm = 'Kr'
+        elif elm in ['At']:
+            elm = 'I'
+        elif elm in ['Fr']:
+            elm = 'Cs'
+        elif elm in ['Ra']:
+            elm = 'Ba'
         d = ele_data[elm]
         arr = []
         for k, v in d.items():

@@ -117,12 +117,14 @@ class DDF(object):
                 elements_dict[element][1].append(ele.atomic_radius)
 
                 # check if the element is a transition metal
+                '''
                 if (ele.is_post_transition_metal or
                         ele.is_transition_metal) is True:
 
                     elements_dict[element][2].append(ele.metallic_radius)
                 else:
                     elements_dict[element][2].append(np.nan)
+                '''
 
         self.label_list = elements_dict
 
@@ -133,8 +135,10 @@ class DDF(object):
                 coord_array = np.array(elements_dict[element][0])
                 covalent_radius_array = np.array(elements_dict[element][1]
                                                  )[:, np.newaxis]
+                '''
                 metallic_radius_array = np.array(elements_dict[element][2]
                                                  )[:, np.newaxis]
+                '''
 
             else:  # stack the array with succeeding elements
                 coord_array = np.vstack((coord_array,
@@ -144,14 +148,14 @@ class DDF(object):
                                                        elements_dict[
                                                            element][1]
                                                    )[:, np.newaxis]))
+                '''
                 metallic_radius_array = np.vstack((metallic_radius_array,
                                                    np.array(
                                                        elements_dict[
                                                            element][2]
                                                    )[:, np.newaxis]))
-
-        self.struc_array = np.hstack((coord_array, covalent_radius_array,
-                                      metallic_radius_array))
+                '''
+        self.struc_array = np.hstack((coord_array, covalent_radius_array))
 
     def compute_bond_angles(self, crystal):
         '''
@@ -187,13 +191,14 @@ class DDF(object):
 
                     # append covalent bond position vectors
                     covalent_bond_vectors.append(coord1[0:3]-coord0[0:3])
-
+                '''
                 # check if a metallic bond exists
                 if (coord0[4] + coord1[4] - Span) < distance_array[i][j] < (
                         coord0[4] + coord1[4] + Span):
 
                     # append metallic bond position vectors
                     metallic_bond_vectors.append(coord1[0:3]-coord0[0:3])
+                '''
 
             # sum the number of bonds
             covalent_bond_sum = len(covalent_bond_vectors)
@@ -221,7 +226,7 @@ class DDF(object):
                     if (np.isnan(covalent_angle) == False and
                             covalent_angle > 1e-2):
                         bond_angles.append(covalent_angle)
-
+            '''
             # can only create dihedral planes if there are 3 bonds or more
             if metallic_bond_sum > 2:
                 # iterate over position vector triples to find dihedral angles
@@ -244,7 +249,7 @@ class DDF(object):
                     if (np.isnan(metallic_angle) == False and
                             metallic_angle > 1e-2):
                         bond_angles.append(metallic_angle)
-
+            '''
         self.angles = bond_angles
 
     def plot_DDF(self, filename=None):
