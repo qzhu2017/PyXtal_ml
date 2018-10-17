@@ -1,9 +1,11 @@
 import numpy as np
+from pymatgen.core.structure import Structure
 from scipy.spatial.distance import cdist
 import pymatgen.core.periodic_table as per
 import itertools
 import matplotlib.pyplot as plt
 from pymatgen.core.periodic_table import Element
+from optparse import OptionParser
 
 
 class DDF(object):
@@ -229,3 +231,31 @@ class DDF(object):
         else:
             plt.savefig(filename)
             plt.close()
+
+
+if __name__ == "__main__":
+   # -------------------------------- Options -------------------------
+   parser = OptionParser()
+   parser.add_option("-c", "--crystal", dest="structure", default='',
+                     help="crystal from file, cif or poscar, REQUIRED",
+                     metavar="crystal")
+   parser.add_option("-d", "--delta", dest="delta", default=1.0,
+                     type='float', help="step length, default: 0.08",
+                     metavar="R_bin")
+   parser.add_option("-o", "--output", dest="mstyle",
+                     default='bmh',
+                     help="matplotlib style, fivethirtyeight, bmh, grayscale, dark_background, ggplot",
+                     metavar="mstyle")
+
+   (options, args) = parser.parse_args()
+   if options.structure.find('cif') > 0:
+       fileformat = 'cif'
+   else:
+       fileformat = 'poscar'
+
+   plt.style.use(options.mstyle)
+   test = Structure.from_file(options.structure)
+   adf = DDF(test)
+   print('-----ADF value-----')
+   print(adf.DDF)
+   adf.plot_DDF()           

@@ -4,8 +4,9 @@ from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from scipy.spatial.distance import cdist
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.ndimage.filters import gaussian_filter1d
 from optparse import OptionParser
+
+
 def get_metals():
     metals = []
     for m in dir(Element)[:102]:
