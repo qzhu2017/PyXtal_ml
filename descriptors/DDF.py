@@ -148,6 +148,10 @@ class DDF(object):
                                          np.array(elements_dict[element][0])))
                 radius_array = np.vstack((radius_array, np.array(
                     elements_dict[element][1])[:, np.newaxis]))
+
+        # When an empty array is passed or the indeces do not match
+        # an exception is raised and the class will return a DDF of
+        # 0 values
         try:
             self.struc_array = np.hstack((coord_array, radius_array))
         except ValueError:
