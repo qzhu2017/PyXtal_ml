@@ -8,18 +8,17 @@ from sklearn.pipeline import Pipeline
 import numpy as np
 from sklearn.metrics import mean_absolute_error
 from matplotlib import rcParams
+import matplotlib.pyplot as plt
 rcParams.update({'figure.autolayout': True})
 plt.style.use("bmh")
-from pymatgen.core.structure import Structure
 sys.path.append('../')
-from descriptors.RDF import *
 
 class method:
     """
-
+    the class of ml model training
     """
 
-    def __init__(self, algo = 'KRR', feature, prop, test_size = 0.3):
+    def __init__(self, algo, feature, prop, test_size = 0.3):
         """
 
         """
@@ -28,13 +27,14 @@ class method:
         self.prop = prop
         self.test_size = test_size
         options = ['KNN', 'KRR', 'GradientBoosting']
-
+        
         if self.algo in options:
             # Split data into training and test sets
             self.X_train, self.X_test, self.Y_train, self.Y_test = train_test_split(self.feature, self.prop, test_size = self.test_size, random_state = 0)
             
         else:
             print('Warning: The Machine Learning algorithm is not available.')
+        self.ml()
 
     def ml(self):
         """
@@ -83,18 +83,31 @@ class method:
 
         return self.r2, self.mae
     
-def plot(self, figname=None, figsize=(12,8)):
-    """
-    
-    """
-    plt.figure(figsize=figsize)
-    plt.scatter(self.y_predicted, self.Y_test, c='green', label='test')
-    plt.scatter(self.y_predicted0, self.Y_train, c='blue', label='train')
-    plt.title('{0:d} materials, r$^2$ = {1:.4f}, Algo: {2:s}'.format(len(self.Y), self.r2, self.algo))
-    plt.xlabel('Prediction')
-    plt.ylabel('Reference')
-    plt.legend()
-    if figname is None:
-        plt.show()
-    else:
-        plt.savefig(figname)
+    def plot_correlation(self, figname=None, figsize=(12,8)):
+        """
+        plot the correlation between prediction and target values
+        """
+        plt.figure(figsize=figsize)
+        plt.scatter(self.y_predicted, self.Y_test, c='green', label='test')
+        plt.scatter(self.y_predicted0, self.Y_train, c='blue', label='train')
+        plt.title('{0:d} materials, r$^2$ = {1:.4f}, Algo: {2:s}'.format(len(self.Y), self.r2, self.algo))
+        plt.xlabel('Prediction')
+        plt.ylabel('Reference')
+        plt.legend()
+        if figname is None:
+            plt.show()
+        else:
+            plt.savefig(figname)
+            plt.close()
+            
+    def plot_distribution(self, figname=None, figsize=(12,8)):
+        """
+        some other plots to facilate the results
+        """
+
+    def print_summary(self):
+        """
+        print the paramters and performances
+        """
+        print("-----------------------------------------")
+        print("-----------------------------------------")
