@@ -9,10 +9,10 @@ warnings.filterwarnings("ignore")
 
 file = 'datasets/nonmetal_MP_8049.json'
 prop = 'band_gap' #'formation_energy'
-feature = 'Chem'  # 'RDF', 'RDF+ADF', 'all'
-algo = 'KRR'
-figname = 'res.png'
-N_sample = 100
+feature = 'RDF'  # 'RDF', 'RDF+ADF', 'all'
+algo = 'GradientBoosting'
+figname = 'test_plot.png'
+N_sample = 200
 
 # obtain the struc/prop data from source 
 start = time()
@@ -52,7 +52,7 @@ print('Each material has {:d} descriptors'.format(np.shape(X)[1]))
 # build machine learning model for X/Y set
 # to complete soon
 start = time()
-ml = method(feature=X, prop=Y, algo=algo)
+ml = method(feature=X, prop=Y, algo=algo, parameter = 'light')
 end = time()
 print('Time elapsed for machine learning: {:.3f} seconds'.format(end-start))
 ml.plot_correlation(figname=figname)

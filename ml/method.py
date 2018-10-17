@@ -18,7 +18,7 @@ class method:
     the class of ml model training
     """
 
-    def __init__(self, algo, feature, prop, test_size = 0.3):
+    def __init__(self, algo, feature, prop, test_size = 0.3, **kwargs):
         """
 
         """
@@ -27,6 +27,8 @@ class method:
         self.prop = prop
         self.test_size = test_size
         options = ['KNN', 'KRR', 'GradientBoosting']
+        self.parameters_level = ['light', 'medium', 'tight']
+        self.dict = kwargs
         
         if self.algo in options:
             # Split data into training and test sets
@@ -36,44 +38,82 @@ class method:
             print('Warning: The Machine Learning algorithm is not available.')
         self.ml()
 
+    def read_dict(self):
+        """
+        reading dictionary
+        """
+        for key, value in self.dict.items():
+            if value in self.parameters_level:
+                self.level = value # using light medium tight
+                break
+            else:
+                self.level = None # using user's defined parameters
+                break
+
     def ml(self):
         """
 
         """
         if self.algo == 'KNN':
-            self.KNN_grid = {"n_neighbors": [list(range(2,10))], "p": [1,2], "leaf_size": [10,30,50,100]}
-            search = GridSearchCV(KNeighborsRegressor(weights='distance', algorith='kd_tree'), cv=10, param_grid=self.KNN_grid)
+            grid = {'light': {"n_neighbors": [5], "p": [2], "leaf_size": [30]}, 
+                    'medium': {"n_neighbors":[list(range(4,7))], "p":[1.0,2.0]},
+                    'tight': {"n_neighbors":[list(range(3,11))], "p":[0.5,1.0,1.5,2.0], "leaf_size":[10,30,60,100,150]}}
+            self.read_dict()
+            if self.level in self.parameters_level:
+                self.KNN_grid = grid[self.level]
+            else:
+                self.KNN_grid = self.dict
+
+            search = GridSearchCV(KNeighborsRegressor(weights='distance'), cv=10, param_grid=self.KNN_grid)
             search.fit(self.X_train, self.Y_train)
             
             best_n_neighbors = search.best_params_['n_neighbors']
             best_p = search.best_params_['p']
             best_leaf_size = search.best_params_['leaf_size']
             
-            best_estimator = KNeighborsRegressor(best_n_neighbors, weights='distance', algorithm='kd_tree',leaf_size=best_leaf_size, p=best_p)
+            best_estimator = KNeighborsRegressor(best_n_neighbors, weights='distance', algorithm='auto',leaf_size=best_leaf_size, p=best_p)
             
         elif self.algo == 'KRR':
-            self.KRR_grid = {"alpha": [1e3, 100, 10, 1e0, 0.1, 1e-2, 1e-3], "gamma": np.logspace(-2,2)}
-            search = GridSearchCV(KernelRidge(kernel = 'rbf'), cv=10, param_grid = self.KRR_grid)
+            grid = {'light': {"alpha": [0.1], "gamma": [1], "kernel": ['rbf']}, 
+                    'medium': {"alpha": [100, 10, 1, 0.1, 1e-2], "gamma": np.logspace(-2,2), "kernel": ['rbf', 'laplacian']},
+                    'tight': {"alpha": [1e4, 1e3, 100, 10, 1, 0.1, 1e-2, 1e-3, 1e-4], "gamma": np.logspace(-5,5), "kernel": ['rbf', 'laplacian', 'linear']}}
+            self.read_dict()
+            if self.level in self.parameters_level:
+                self.KRR_grid = grid[self.level]
+            else:
+                self.KRR_grid = self.dict
+
+            search = GridSearchCV(KernelRidge(), cv=10, param_grid = self.KRR_grid)
             search.fit(self.X_train, self.Y_train)
             
             best_alpha = search.best_params_['alpha']
             best_gamma = search.best_params_['gamma']
+            best_kernel = search.best_params_['kernel']
             
-            best_estimator = KernelRidge(alpha = best_alpha, gamma = best_gamma, kernel = 'rbf', kernel_params = None)
+            best_estimator = KernelRidge(alpha = best_alpha, gamma = best_gamma, kernel = best_kernel, kernel_params = None)
             
         elif self.algo == 'GradientBoosting':
-            self.GB_grid = {'est__learning_rate': [0.1], 'est__n_estimators': [2000,3000]}
+            grid = {'light': {"est__learning_rate": [0.1], "est__n_estimators": [1000], "fs__threshold": [0.0]}, 
+                    'medium': {"est__learning_rate": [0.1], "est__n_estimators": [100, 1500, 3000], "fs__threshold": [0.0]},
+                    'tight': {"est__learning_rate": [0.01, 0.1, 1, 10], "est__n_estimators": [100, 500, 1000, 1500, 2500, 3000, 4000, 5000], "fs__threshold": [0.0, 0.05, 0.1, 0.5]}}
+            self.read_dict()
+            if self.level in self.parameters_level:
+                self.GB_grid = grid[self.level]
+            else:
+                self.GB_grid = self.dict
+
             est= GradientBoostingRegressor(loss = 'huber')
-            varthres = VarianceThreshold(0.01)
+            varthres = VarianceThreshold()
             pipe = Pipeline([("fs", varthres),("est", est)])
             search = GridSearchCV(pipe, self.GB_grid, cv=10,iid=False, return_train_score=False)
-            search.fit(X_train,Y_train)
+            search.fit(self.X_train,self.Y_train)
             
             best_learning = search.best_params_['est__learning_rate']
             best_estimators = search.best_params_['est__n_estimators']
+            best_threshold = search.best_params_['fs__threshold']
             
             best_est = GradientBoostingRegressor(loss='huber', learning_rate = best_learning, n_estimators = best_estimators)
-            best_estimator = Pipeline([("fs", VarianceThreshold(threshold = 0.01)),("est", best_est)])
+            best_estimator = Pipeline([("fs", VarianceThreshold(threshold = best_threshold)),("est", best_est)])
         
         best_estimator.fit(self.X_train, self.Y_train)
         self.y_predicted = best_estimator.predict(self.X_test)
