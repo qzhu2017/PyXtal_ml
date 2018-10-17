@@ -28,7 +28,7 @@ class DDF(object):
         DDF: the dihedral angle distribution
     '''
 
-    def __init__(self, crystal, R_max=4, Span=0.18, bin_width=1.0):
+    def __init__(self, crystal, R_max=5, Span=0.18, bin_width=1.0):
         '''DDF Object
 
         Computes the dihedral distribution function '''
@@ -48,14 +48,17 @@ class DDF(object):
         Returns:
             the dihedral distribution function
         '''
+        self.bins = np.arange(self.Width, 181, self.Width)
 
         # see compute_bond_angles method
         self.compute_bond_angles(crystal)
 
-        bins = np.arange(self.Width, 181, self.Width)
+        self.DDF, _ = np.histogram(self.angles, bins=self.bins,
+                                   density=True)
 
-        self.DDF, self.bins = np.histogram(self.angles, bins=bins,
-                                           density=True)
+        for i, count in enumerate(self.DDF):
+            if np.isnan(count):
+                self.DDF[i] = 0
 
     def create_label_list(self, crystal):
         '''
@@ -71,7 +74,6 @@ class DDF(object):
         # Use a set intersection from the specii to determine the elements
         # in the crystal
         elements = list(set(crystal.species).intersection(crystal.species))
-
         # convert the specie set to a string list
         constituents = [str(element) for element in elements]
 
@@ -120,7 +122,6 @@ class DDF(object):
         # get all neighbors out to R_max
         neighbor = crystal.get_all_neighbors(r=self.R_max, include_index=True,
                                              include_image=True)
-
         # loop over all neighbors to each atom
         for i, _ in enumerate(neighbor):  # origin atom
             for j, _ in enumerate(neighbor[i]):  # neighbors
@@ -139,19 +140,18 @@ class DDF(object):
             # first loop populate the array with the first element
             if i == 0:
                 coord_array = np.array(elements_dict[element][0])
-                covalent_radius_array = np.array(elements_dict[element][1]
-                                                 )[:, np.newaxis]
+                radius_array = np.array(elements_dict[element][1]
+                                        )[:, np.newaxis]
 
             else:  # stack the array with succeeding elements
                 coord_array = np.vstack((coord_array,
                                          np.array(elements_dict[element][0])))
-                covalent_radius_array = np.vstack((covalent_radius_array,
-                                                   np.array(
-                                                       elements_dict[
-                                                           element][1]
-                                                   )[:, np.newaxis]))
-
-        self.struc_array = np.hstack((coord_array, covalent_radius_array))
+                radius_array = np.vstack((radius_array, np.array(
+                    elements_dict[element][1])[:, np.newaxis]))
+        try:
+            self.struc_array = np.hstack((coord_array, radius_array))
+        except ValueError:
+            self.struc_array = np.array([0, 0, 0, 0])[np.newaxis, :]
 
     def compute_bond_angles(self, crystal):
         '''
@@ -176,8 +176,8 @@ class DDF(object):
 
         for i, coord0 in enumerate(struc_array):  # origin atom
             # allocate initial values for position vectors and bond sums
-            covalent_bond_vectors = []
-            covalent_bond_sum = 0
+            bond_vectors = []
+            bond_sum = 0
 
             for j, coord1 in enumerate(struc_array):  # neighbors
                 # check if a covalent bond exists
@@ -185,33 +185,30 @@ class DDF(object):
                        coord0[3] + coord1[3] + Span):
 
                     # append covalent bond position vectors
-                    covalent_bond_vectors.append(coord1[0:3]-coord0[0:3])
+                    bond_vectors.append(coord1[0:3]-coord0[0:3])
 
             # sum the number of bonds
-            covalent_bond_sum = len(covalent_bond_vectors)
+            bond_sum = len(bond_vectors)
 
             # can only create dihedral planes if there are 3 bonds or more
-            if covalent_bond_sum > 2:
+            if bond_sum > 2:
                 # iterate over position vector triples to find dihedral angles
-                for bonds in itertools.combinations(covalent_bond_vectors, 3):
+                for bonds in itertools.combinations(bond_vectors, 3):
                     # create two planes using cross product of
                     # position vectors
                     plane_1 = np.cross(bonds[0], bonds[1])
                     plane_2 = np.cross(bonds[0], bonds[2])
 
                     # find the angle between the two planes
-                    covalent_angle = np.degrees(
-                                                np.arccos((np.dot(plane_1,
-                                                                  plane_2) /
-                                                           np.linalg.norm(
-                                                               plane_1) /
-                                                           np.linalg.norm(
-                                                               plane_2))))
+                    bond_angle = np.degrees(
+                                            np.arccos((np.dot(plane_1, plane_2)
+                                                       /np.linalg.norm(plane_1)
+                                                       /np.linalg.norm(plane_2))))
 
                     # only append bond if it is certainly not zero
-                    if (np.isnan(covalent_angle) == False and
-                            covalent_angle > 1e-2):
-                        bond_angles.append(covalent_angle)
+                    if (not np.isnan(bond_angle) and
+                            bond_angle > 1e-2):
+                        bond_angles.append(bond_angle)
 
         self.angles = bond_angles
 
@@ -234,28 +231,28 @@ class DDF(object):
 
 
 if __name__ == "__main__":
-   # -------------------------------- Options -------------------------
-   parser = OptionParser()
-   parser.add_option("-c", "--crystal", dest="structure", default='',
-                     help="crystal from file, cif or poscar, REQUIRED",
-                     metavar="crystal")
-   parser.add_option("-d", "--delta", dest="delta", default=1.0,
-                     type='float', help="step length, default: 0.08",
-                     metavar="R_bin")
-   parser.add_option("-o", "--output", dest="mstyle",
-                     default='bmh',
-                     help="matplotlib style, fivethirtyeight, bmh, grayscale, dark_background, ggplot",
-                     metavar="mstyle")
+    # -------------------------------- Options -------------------------
+    parser = OptionParser()
+    parser.add_option("-c", "--crystal", dest="structure", default='',
+                      help="crystal from file, cif or poscar, REQUIRED",
+                      metavar="crystal")
+    parser.add_option("-d", "--delta", dest="delta", default=1.0,
+                      type='float', help="step length, default: 0.08",
+                      metavar="R_bin")
+    parser.add_option("-o", "--output", dest="mstyle",
+                      default='bmh',
+                      help="matplotlib style, fivethirtyeight, bmh, grayscale, dark_background, ggplot",
+                      metavar="mstyle")
 
-   (options, args) = parser.parse_args()
-   if options.structure.find('cif') > 0:
-       fileformat = 'cif'
-   else:
-       fileformat = 'poscar'
+    (options, args) = parser.parse_args()
+    if options.structure.find('cif') > 0:
+        fileformat = 'cif'
+    else:
+        fileformat = 'poscar'
 
-   plt.style.use(options.mstyle)
-   test = Structure.from_file(options.structure)
-   adf = DDF(test)
-   print('-----ADF value-----')
-   print(adf.DDF)
-   adf.plot_DDF()           
+    plt.style.use(options.mstyle)
+    test = Structure.from_file(options.structure)
+    adf = DDF(test)
+    print('-----ADF value-----')
+    print(adf.DDF)
+    adf.plot_DDF()
