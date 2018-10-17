@@ -11,6 +11,7 @@ file = 'datasets/nonmetal_MP_8049.json'
 prop = 'band_gap' #'formation_energy'
 feature = 'RDF'  # 'RDF', 'RDF+ADF', 'all'
 algo = 'GradientBoosting'
+parameters = 'light'
 figname = 'test_plot.png'
 N_sample = 200
 
@@ -52,7 +53,7 @@ print('Each material has {:d} descriptors'.format(np.shape(X)[1]))
 # build machine learning model for X/Y set
 # to complete soon
 start = time()
-ml = method(feature=X, prop=Y, algo=algo, parameter = 'light')
+ml = method(feature=X, prop=Y, algo=algo, params = parameters)
 end = time()
 print('Time elapsed for machine learning: {:.3f} seconds'.format(end-start))
 ml.plot_correlation(figname=figname)
