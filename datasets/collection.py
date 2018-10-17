@@ -7,7 +7,7 @@ class Collection:
     Used for obtaining pymatgen objects from a small database file.
     """
 
-    def __init__(self, file, prop='formation_energy'):
+    def __init__(self, file, prop='formation_energy', N_sample=None):
         """
         1, read the data from json file
         2, extract the structure and property info
@@ -16,13 +16,17 @@ class Collection:
         self.file = file
         self.prop = prop
         self._data = loadfn(file)
+        if N_sample is None:
+            self.N_sample = len(self._data)
+        else:
+            self.N_sample = min([N_sample, len(self._data)])
         
     def extract_struc_prop(self):
         struc = []
         prop = []
-        for dct in self._data:
+        for i, dct in enumerate(self._data):
             # QZ: sometime the property returns None
-            if dct[self.prop] is not None:
+            if i<self.N_sample and dct[self.prop] is not None:
                 struc.append(Structure(dct['lattice'], dct['elements'], dct['coords']))
                 prop.append(dct[self.prop])
         return struc, prop
