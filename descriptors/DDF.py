@@ -3,6 +3,7 @@ from scipy.spatial.distance import cdist
 import pymatgen.core.periodic_table as per
 import itertools
 import matplotlib.pyplot as plt
+from pymatgen.core.periodic_table import Element
 
 
 class DDF(object):
@@ -12,7 +13,7 @@ class DDF(object):
 
     Args:
         crystal:  a pymatgen structure
-        R_max: the maximum distance in angstroms for the find all neighbors
+        R_max: the maximum distnce in angstroms for the find all neighbors
                function
         Span:  decision factor for determining if a bond exists.
         bin_width: the width of the bins in the distribution
@@ -77,7 +78,7 @@ class DDF(object):
 
         # populate the dictionary with element labels
         for element in constituents:
-            label_list[element] = [[], [], []]
+            label_list[element] = [[], []]
         self.label_list = label_list
 
     def structure_array(self, crystal):
@@ -94,6 +95,20 @@ class DDF(object):
             coordinates and the last two columns correspond to the
             atomic and metallic radii
                 '''
+        def get_metals():
+            metals = []
+            for m in dir(Element)[:102]:
+                ele = Element[m]
+                if ele.is_transition_metal or ele.is_post_transition_metal \
+                        or ele.is_alkali or ele.is_alkaline:
+                    metals.append(m)
+            return metals
+
+        def get_radii(ele):
+            if ele.value in get_metals():
+                return ele.metallic_radius
+            else:
+                return ele.atomic_radius
 
         # create label list
         self.create_label_list(crystal)
@@ -107,24 +122,13 @@ class DDF(object):
         # loop over all neighbors to each atom
         for i, _ in enumerate(neighbor):  # origin atom
             for j, _ in enumerate(neighbor[i]):  # neighbors
-                # call string to index dictionary
                 element = neighbor[i][j][0].species_string
                 # call element object for atomic and metallic radii
-                ele = per.Element(element)
+                ele = per.Element(neighbor[i][j][0].specie)
                 # input the cartesian coords, atomic radii, and metallic
                 # radii information into the label list
                 elements_dict[element][0].append(neighbor[i][j][0].coords)
-                elements_dict[element][1].append(ele.atomic_radius)
-
-                # check if the element is a transition metal
-                '''
-                if (ele.is_post_transition_metal or
-                        ele.is_transition_metal) is True:
-
-                    elements_dict[element][2].append(ele.metallic_radius)
-                else:
-                    elements_dict[element][2].append(np.nan)
-                '''
+                elements_dict[element][1].append(get_radii(ele))
 
         self.label_list = elements_dict
 
@@ -135,10 +139,6 @@ class DDF(object):
                 coord_array = np.array(elements_dict[element][0])
                 covalent_radius_array = np.array(elements_dict[element][1]
                                                  )[:, np.newaxis]
-                '''
-                metallic_radius_array = np.array(elements_dict[element][2]
-                                                 )[:, np.newaxis]
-                '''
 
             else:  # stack the array with succeeding elements
                 coord_array = np.vstack((coord_array,
@@ -148,13 +148,7 @@ class DDF(object):
                                                        elements_dict[
                                                            element][1]
                                                    )[:, np.newaxis]))
-                '''
-                metallic_radius_array = np.vstack((metallic_radius_array,
-                                                   np.array(
-                                                       elements_dict[
-                                                           element][2]
-                                                   )[:, np.newaxis]))
-                '''
+
         self.struc_array = np.hstack((coord_array, covalent_radius_array))
 
     def compute_bond_angles(self, crystal):
@@ -170,6 +164,7 @@ class DDF(object):
         Span = self.Span
 
         self.structure_array(crystal)
+
         struc_array = self.struc_array
         # compute the distances between each atomic pair
         distance_array = cdist(struc_array[:, 0:3], struc_array[:, 0:3])
@@ -180,9 +175,7 @@ class DDF(object):
         for i, coord0 in enumerate(struc_array):  # origin atom
             # allocate initial values for position vectors and bond sums
             covalent_bond_vectors = []
-            metallic_bond_vectors = []
             covalent_bond_sum = 0
-            metallic_bond_sum = 0
 
             for j, coord1 in enumerate(struc_array):  # neighbors
                 # check if a covalent bond exists
@@ -191,18 +184,9 @@ class DDF(object):
 
                     # append covalent bond position vectors
                     covalent_bond_vectors.append(coord1[0:3]-coord0[0:3])
-                '''
-                # check if a metallic bond exists
-                if (coord0[4] + coord1[4] - Span) < distance_array[i][j] < (
-                        coord0[4] + coord1[4] + Span):
-
-                    # append metallic bond position vectors
-                    metallic_bond_vectors.append(coord1[0:3]-coord0[0:3])
-                '''
 
             # sum the number of bonds
             covalent_bond_sum = len(covalent_bond_vectors)
-            metallic_bond_sum = len(metallic_bond_vectors)
 
             # can only create dihedral planes if there are 3 bonds or more
             if covalent_bond_sum > 2:
@@ -226,30 +210,7 @@ class DDF(object):
                     if (np.isnan(covalent_angle) == False and
                             covalent_angle > 1e-2):
                         bond_angles.append(covalent_angle)
-            '''
-            # can only create dihedral planes if there are 3 bonds or more
-            if metallic_bond_sum > 2:
-                # iterate over position vector triples to find dihedral angles
-                for bonds in itertools.combinations(metallic_bond_vectors, 3):
-                    # create two planes using cross product of
-                    # position vectors
-                    plane_1 = np.cross(bonds[0], bonds[1])
-                    plane_2 = np.cross(bonds[0], bonds[2])
 
-                    # find the angle between the two planes
-                    metallic_angle = np.degrees(
-                                                np.arccos((np.dot(plane_1,
-                                                                  plane_2) /
-                                                           np.linalg.norm(
-                                                               plane_1) /
-                                                           np.linalg.norm(
-                                                               plane_2))))
-
-                    # only append bond if it is certainly not zero
-                    if (np.isnan(metallic_angle) == False and
-                            metallic_angle > 1e-2):
-                        bond_angles.append(metallic_angle)
-            '''
         self.angles = bond_angles
 
     def plot_DDF(self, filename=None):
