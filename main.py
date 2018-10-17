@@ -25,7 +25,7 @@ print('The chosen feature is: {0}'.format(feature))
 # convert the structures to descriptors in the format of 1D array
 start = time()
 x = []
-for struc in strucs:
+for i, struc in enumerate(strucs):
     #print(help(struc.to))
     struc.to(filename='1.vasp', fmt='poscar')
     des = descriptor(struc, feature).merge()
@@ -33,6 +33,8 @@ for struc in strucs:
         x = des
     else:
         x = np.vstack((x, des))
+    if i%500 == 0:
+        print('{} materials have been processed'.format(i))
 
 # Y has None values
 y = np.array(props)
