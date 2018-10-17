@@ -12,10 +12,11 @@ prop = 'band_gap' #'formation_energy'
 feature = 'Chem'  # 'RDF', 'RDF+ADF', 'all'
 algo = 'KRR'
 figname = 'res.png'
+N_sample = 100
 
 # obtain the struc/prop data from source 
 start = time()
-strucs, props = Collection(file, prop).extract_struc_prop()
+strucs, props = Collection(file, prop, N_sample).extract_struc_prop()
 end = time()
 print('Time elapsed for reading the json files: {:.3f} seconds'.format(end-start))
 print('Total number of materials: {:d}'.format(len(strucs)))

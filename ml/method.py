@@ -56,8 +56,8 @@ class method:
             search = GridSearchCV(KernelRidge(kernel = 'rbf'), cv=10, param_grid = self.KRR_grid)
             search.fit(self.X_train, self.Y_train)
             
-            best_alpha = estimator.best_params_['alpha']
-            best_gamma = estimator.best_params_['gamma']
+            best_alpha = search.best_params_['alpha']
+            best_gamma = search.best_params_['gamma']
             
             best_estimator = KernelRidge(alpha = best_alpha, gamma = best_gamma, kernel = 'rbf', kernel_params = None)
             
@@ -75,14 +75,12 @@ class method:
             best_est = GradientBoostingRegressor(loss='huber', learning_rate = best_learning, n_estimators = best_estimators)
             best_estimator = Pipeline([("fs", VarianceThreshold(threshold = 0.01)),("est", best_est)])
         
-        best_estimator.fit(X_train, Y_train)
-        self.y_predicted = best_estimator.predict(X_test)
-        self.y_predicted0 = best_estimator.predict(X_train)
-        self.r2 = best_estimator.score(X_test, Y_test, sample_weight=None)
+        best_estimator.fit(self.X_train, self.Y_train)
+        self.y_predicted = best_estimator.predict(self.X_test)
+        self.y_predicted0 = best_estimator.predict(self.X_train)
+        self.r2 = best_estimator.score(self.X_test, self.Y_test, sample_weight=None)
         self.mae = mean_absolute_error(self.y_predicted, self.Y_test)
 
-        return self.r2, self.mae
-    
     def plot_correlation(self, figname=None, figsize=(12,8)):
         """
         plot the correlation between prediction and target values
@@ -90,7 +88,7 @@ class method:
         plt.figure(figsize=figsize)
         plt.scatter(self.y_predicted, self.Y_test, c='green', label='test')
         plt.scatter(self.y_predicted0, self.Y_train, c='blue', label='train')
-        plt.title('{0:d} materials, r$^2$ = {1:.4f}, Algo: {2:s}'.format(len(self.Y), self.r2, self.algo))
+        plt.title('{0:d} materials, r$^2$ = {1:.4f}, Algo: {2:s}'.format(len(self.prop), self.r2, self.algo))
         plt.xlabel('Prediction')
         plt.ylabel('Reference')
         plt.legend()
