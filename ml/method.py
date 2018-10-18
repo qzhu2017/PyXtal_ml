@@ -186,6 +186,15 @@ class method:
         """
         some other plots to facilate the results
         """
+        plt.figure(figsize=figsize)
+        plt.hist(self.Y, bins = 100)
+        plt.xlabel(self.tag['prop'])
+        if figname is None:
+            plt.show()
+        else:
+            plt.savefig(figname)
+            plt.close()
+       
 
     def print_summary(self):
         """
@@ -201,3 +210,4 @@ class method:
         print("Property:           {:^32}".format(self.tag['prop']))
         print("r^2:              {:22.4f}".format(self.r2))
         print("MAE:              {:22.4f}".format(self.mae))
+        # to do, also export the best_parameters used in ML training.
