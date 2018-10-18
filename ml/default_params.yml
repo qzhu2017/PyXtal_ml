@@ -1,0 +1,229 @@
+GradientBoosting:
+  light:
+    GBR__learning_rate:
+    - 0.1
+    GBR__n_estimators:
+    - 100
+    fs__threshold:
+    - 0.0
+  medium:
+    GBR__learning_rate:
+    - 0.1
+    GBR__n_estimators:
+    - 100
+    - 1500
+    - 3000
+    fs__threshold:
+    - 0.01
+  tight:
+    GBR__learning_rate:
+    - 0.01
+    - 0.1
+    - 1
+    - 10
+    GBR__n_estimators:
+    - 100
+    - 500
+    - 1000
+    - 1500
+    - 2500
+    - 3000
+    - 4000
+    - 5000
+    fs__threshold:
+    - 0.0
+    - 0.05
+    - 0.1
+    - 0.5
+KNN:
+  light:
+    leaf_size:
+    - 30
+    n_neighbors:
+    - 5
+    p:
+    - 2
+  medium:
+    n_neighbors:
+    - - 4
+      - 5
+      - 6
+    p:
+    - 1.0
+    - 2.0
+  tight:
+    leaf_size:
+    - 10
+    - 30
+    - 60
+    - 100
+    - 150
+    n_neighbors:
+    - - 3
+      - 4
+      - 5
+      - 6
+      - 7
+      - 8
+      - 9
+      - 10
+    p:
+    - 0.5
+    - 1.0
+    - 1.5
+    - 2.0
+KRR:
+  light:
+    alpha:
+    - 1
+    gamma:
+    - 1
+    kernel:
+    - rbf
+  medium:
+    alpha:
+    - 100
+    - 10
+    - 1
+    - 0.1
+    - 0.01
+    gamma: !!python/object/apply:numpy.core.multiarray._reconstruct
+      args:
+      - &id001 !!python/name:numpy.ndarray ''
+      - !!python/tuple
+        - 0
+      - !!binary |
+        Yg==
+      state: !!python/tuple
+      - 1
+      - !!python/tuple
+        - 10
+      - &id002 !!python/object/apply:numpy.dtype
+        args:
+        - f8
+        - 0
+        - 1
+        state: !!python/tuple
+        - 3
+        - <
+        - null
+        - null
+        - null
+        - -1
+        - -1
+        - 0
+      - false
+      - !!binary |
+        exSuR+F6hD+wKkQBUH6cP7JBj+c20rM/sLPAzqaTyz8fyDKY+S7jP7dtWzCKsPo/9mHHqfyQEkA5
+        +Rf6u9QpQEbLgdwU+EFAAAAAAAAAWUA=
+    kernel:
+    - rbf
+    - laplacian
+  tight:
+    alpha:
+    - 10000.0
+    - 1000.0
+    - 100
+    - 10
+    - 1
+    - 0.1
+    - 0.01
+    - 0.001
+    - 0.0001
+    gamma: !!python/object/apply:numpy.core.multiarray._reconstruct
+      args:
+      - *id001
+      - !!python/tuple
+        - 0
+      - !!binary |
+        Yg==
+      state: !!python/tuple
+      - 1
+      - !!python/tuple
+        - 50
+      - *id002
+      - false
+      - !!binary |
+        8WjjiLX45D7+oWaKlsbwPsEQdfC71vo+akARGhp4BT+lz2FKfiwRP3KHSqfEeRs/0k5fhoT6JT9I
+        0BES0ZQxP2lXd7qrIDw/+P2jKgeARj9PKc2Rnf9RP+/u/amIy1w/i0FB07QIZz8OyiTT8mxyP7xe
+        oYRzen0/ei3KvqCUhz90EQI74NySP8qCSOuELZ4/gqC4oN4jqD8/sNGLdU+zP56+dRTW5L4/dWQz
+        pIK2yD/5tbvnwsTTPyDK08+AoN8/ESjlbqFM6T+CGOnS2Dz0P5YH7MRPMABA9bjkI1DmCUBYCNc1
+        yLcUQHGNvaemkiBAiOauZqSDKkDWZLhfojU1QPzTA+lS90BA2HgyXrQkS0D6puUIebZVQFlmgLVi
+        XmFAv6nut5bJa0A+mltVXjp2QAHsD5Dkx4FA0Y8kq2JyjEDyPEnXZMGWQAY3tVPnM6JAQu8b/C8f
+        rUAFJa2Rn0u3QOG7sDV6osJANuZ7/xbQzUAsxwL7IdnXQF+9pMesE+NA9Ou3nTCF7kAAAAAAAGr4
+        QA==
+    kernel:
+    - rbf
+    - laplacian
+    - linear
+RF:
+  light:
+    RFR__n_estimators:
+    - 10
+    fs__threshold:
+    - 0.0
+  medium:
+    RFR__n_estimators:
+    - 10
+    - 50
+    - 100
+    - 1000
+    fs_threshold:
+    - 0.01
+  tight:
+    RFR__n_estimators:
+    - 10
+    - 30
+    - 60
+    - 90
+    - 150
+    - 250
+    - 500
+    - 750
+    - 1000
+    - 2000
+    fs_threshold:
+    - 0.0
+    - 0.05
+    - 0.1
+    - 0.5
+StochasticGD:
+  light:
+    alpha:
+    - 0.1
+    learning_rate:
+    - optimal
+    penalty:
+    - l2
+  medium:
+    alpha:
+    - 100
+    - 10
+    - 1
+    - 0.1
+    - 0.01
+    learning_rate:
+    - optimal
+    penalty:
+    - l2
+  tight:
+    alpha:
+    - 100000.0
+    - 10000.0
+    - 1000.0
+    - 100
+    - 10
+    - 1
+    - 0.1
+    - 0.01
+    - 0.001
+    - 0.0001
+    - 1.0e-05
+    learning_rate:
+    - optimal
+    - constant
+    - invscaling
+    - adaptive
+    penalty:
+    - l2
+    - elasticnet
