@@ -10,7 +10,7 @@ warnings.filterwarnings("ignore")
 file = 'datasets/nonmetal_MP_8049.json'
 prop = 'band_gap' #'formation_energy'
 feature = 'RDF'  # 'RDF', 'RDF+ADF', 'all'
-algo = 'GradientBoosting'
+algo = 'StochasticGD'
 parameters = 'light'
 figname = 'test_plot.png'
 N_sample = 200
