@@ -207,9 +207,9 @@ class method:
         print("----------------------------------------")
         print("Number of samples:  {:20d}".format(len(self.prop)))
         print("Number of features: {:20d}".format(len(self.feature[0])))
-        print("Algorithm:          {:^25}".format(self.algo))
-        print("Feature:            {:^32}".format(self.tag['feature']))
-        print("Property:           {:^32}".format(self.tag['prop']))
+        print("Algorithm:          {:>20}".format(self.algo))
+        print("Feature:            {:>20}".format(self.tag['feature']))
+        print("Property:           {:>20}".format(self.tag['prop']))
         print("r^2:              {:22.4f}".format(self.r2))
         print("MAE:              {:22.4f}".format(self.mae))
         # to do, also export the best_parameters used in ML training.
