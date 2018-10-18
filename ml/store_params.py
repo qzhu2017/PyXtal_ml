@@ -2,7 +2,7 @@ import yaml
 import numpy as np
 
 
-ml_params = {
+default_params = {
         'KNN':
         {'light': {"n_neighbors": [5], "p": [2], "leaf_size": [30]},
             'medium': {"n_neighbors":[list(range(4,7))], "p":[1.0,2.0]},
@@ -26,10 +26,10 @@ ml_params = {
         }
 
 
-with open('ml_params.yml', 'w') as outfile:
+with open('default_params.yml', 'w') as outfile:
     yaml.dump(ml_params, outfile, default_flow_style=False)
 
-with open('ml_params.yml', 'r') as stream:
+with open('default_params.yml', 'r') as stream:
     try:
         data = yaml.load(stream)
     except yaml.YAMLError as exc:
