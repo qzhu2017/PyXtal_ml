@@ -15,6 +15,8 @@ parameters = 'light'
 figname = 'test_plot.png'
 N_sample = 200
 
+
+
 # obtain the struc/prop data from source 
 start = time()
 strucs, props = Collection(file, prop, N_sample).extract_struc_prop()
@@ -52,8 +54,9 @@ print('Each material has {:d} descriptors'.format(np.shape(X)[1]))
 
 # build machine learning model for X/Y set
 # to complete soon
+tag = {'prop': prop, 'feature':feature}
 start = time()
-ml = method(feature=X, prop=Y, algo=algo, params = parameters)
+ml = method(feature=X, prop=Y, algo=algo, params=parameters, tag=tag)
 end = time()
 print('Time elapsed for machine learning: {:.3f} seconds'.format(end-start))
 ml.plot_correlation(figname=figname)

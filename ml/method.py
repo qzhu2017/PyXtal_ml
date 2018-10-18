@@ -19,13 +19,14 @@ class method:
     the class of ml model training
     """
 
-    def __init__(self, algo, feature, prop, test_size = 0.3, **kwargs):
+    def __init__(self, algo, feature, prop, tag, test_size = 0.3, **kwargs):
         """
 
         """
         self.algo = algo
         self.feature = feature
         self.prop = prop
+        self.tag = tag
         self.test_size = test_size
         options = ['KNN', 'KRR', 'GradientBoosting', 'RF', 'StochasticGD']
         self.parameters_level = ['light', 'medium', 'tight']
@@ -173,7 +174,7 @@ class method:
         plt.scatter(self.y_predicted0, self.Y_train, c='blue', label='train')
         plt.title('{0:d} materials, r$^2$ = {1:.4f}, Algo: {2:s}'.format(len(self.prop), self.r2, self.algo))
         plt.xlabel('Prediction')
-        plt.ylabel('Reference')
+        plt.ylabel(self.tag['prop'])
         plt.legend()
         if figname is None:
             plt.show()
@@ -196,5 +197,7 @@ class method:
         print("Number of samples:  {:20d}".format(len(self.prop)))
         print("Number of features: {:20d}".format(len(self.feature[0])))
         print("Algorithm:          {:^25}".format(self.algo))
+        print("Feature:            {:^32}".format(self.tag['feature']))
+        print("Property:           {:^32}".format(self.tag['prop']))
         print("r^2:              {:22.4f}".format(self.r2))
         print("MAE:              {:22.4f}".format(self.mae))
