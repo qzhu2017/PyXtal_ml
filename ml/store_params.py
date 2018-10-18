@@ -2,7 +2,8 @@ import yaml
 import numpy as np
 
 
-ml_params = {'KNN':
+ml_params = {
+        'KNN':
         {'light': {"n_neighbors": [5], "p": [2], "leaf_size": [30]},
             'medium': {"n_neighbors":[list(range(4,7))], "p":[1.0,2.0]},
             'tight': {"n_neighbors":[list(range(3,11))], "p":[0.5,1.0,1.5,2.0], "leaf_size":[10,30,60,100,150]}},
