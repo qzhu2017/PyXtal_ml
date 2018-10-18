@@ -1,11 +1,12 @@
 We provide the interface to many ML algorithms.
-- KNN
-- KRR
-- Random Forest
+- Nearest Neighbor: 'KNN'
+- Kernel Ridge Regression: 'KRR'
+- Random Forest: 'RF'
 - SVM
-- Gradient Boosting
+- Gradient Boosting: 'GradientBoosting'
 - LASSO
-- KNN
+- Stochastic gradient descent: 'StochasticGD'
+- Artificial Neural Network: 'ANN'
 
 Typically, one needs to explore the parameter space for each algorithm in order to achieve the best performance. 
 Therefore, we provide three sets of trainings to different algorithm.
