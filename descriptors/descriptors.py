@@ -23,7 +23,7 @@ class descriptor:
         self.libs = libs
         self.struc = crystal
         self.descriptor = {}
-        options = ['RDF', 'ADF', 'DDF', 'Chem']
+        options = ['RDF', 'ADF', 'DDF', 'Chem', 'Charge']
         self.libs = []
         if libs == 'all':
             self.libs = options

@@ -49,5 +49,5 @@ if __name__ == "__main__":
 
     test = Structure.from_file(options.structure)
     charge = Charge(test)
-    print(Charge.mean_chg)
-    print('shape of this descriptor: ', np.shape(Charge.mean_chg))
+    print(charge.mean_chg)
+    print('shape of this descriptor: ', np.shape(charge.mean_chg))
