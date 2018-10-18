@@ -1,10 +1,12 @@
 from descriptors.RDF import RDF
 from descriptors.ADF import ADF
 from descriptors.chem import Chem
+from descriptors.charge import Charge
 from descriptors.DDF import DDF
 from optparse import OptionParser
 import numpy as np
 from pymatgen.core.structure import Structure
+
 
 class descriptor:
     """Collection of molecular data.
@@ -31,13 +33,15 @@ class descriptor:
 
         for lib in self.libs:
             if lib == 'RDF':
-                self.descriptor['RDF'] = RDF(self.struc).RDF[1,:]
+                self.descriptor['RDF'] = RDF(self.struc).RDF[1, :]
             elif lib == 'ADF':
                 self.descriptor['ADF'] = ADF(self.struc).ADF
             elif lib == 'DDF':
                 self.descriptor['DDF'] = DDF(self.struc).DDF
             elif lib == 'Chem':
                 self.descriptor['Chem'] = Chem(self.struc).mean_chem
+            elif lib == 'Charge':
+                self.descriptor['Charge'] = Charge(self.struc).mean_chg
 
     def merge(self):
         arr = []
@@ -47,6 +51,7 @@ class descriptor:
             else:
                 arr = np.hstack((arr, self.descriptor[key]))
         return arr
+
 
 if __name__ == "__main__":
     # -------------------------------- Options -------------------------

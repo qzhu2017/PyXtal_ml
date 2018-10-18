@@ -9,11 +9,13 @@ warnings.filterwarnings("ignore")
 
 file = 'datasets/nonmetal_MP_8049.json'
 prop = 'band_gap' #'formation_energy'
-feature = 'RDF'  # 'RDF', 'RDF+ADF', 'all'
-algo = 'StochasticGD'
+feature = 'RDF+Chem'  # 'RDF', 'RDF+ADF', 'all'
+algo = 'GradientBoosting'
 parameters = 'light'
 figname = 'test_plot.png'
 N_sample = 200
+
+
 
 # obtain the struc/prop data from source 
 start = time()
@@ -28,7 +30,7 @@ start = time()
 x = []
 for i, struc in enumerate(strucs):
     #print(help(struc.to))
-    struc.to(filename='1.vasp', fmt='poscar')
+    #struc.to(filename='1.vasp', fmt='poscar')
     des = descriptor(struc, feature).merge()
     if len(x) == 0:
         x = des
@@ -52,8 +54,10 @@ print('Each material has {:d} descriptors'.format(np.shape(X)[1]))
 
 # build machine learning model for X/Y set
 # to complete soon
+tag = {'prop': prop, 'feature':feature}
 start = time()
-ml = method(feature=X, prop=Y, algo=algo, params = parameters)
+ml = method(feature=X, prop=Y, algo=algo, params=parameters, tag=tag)
 end = time()
 print('Time elapsed for machine learning: {:.3f} seconds'.format(end-start))
 ml.plot_correlation(figname=figname)
+ml.print_summary()
