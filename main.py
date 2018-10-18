@@ -9,8 +9,8 @@ warnings.filterwarnings("ignore")
 
 file = 'datasets/nonmetal_MP_8049.json'
 prop = 'band_gap' #'formation_energy'
-feature = 'RDF'  # 'RDF', 'RDF+ADF', 'all'
-algo = 'StochasticGD'
+feature = 'RDF+Chem'  # 'RDF', 'RDF+ADF', 'all'
+algo = 'GradientBoosting'
 parameters = 'light'
 figname = 'test_plot.png'
 N_sample = 200
@@ -28,7 +28,7 @@ start = time()
 x = []
 for i, struc in enumerate(strucs):
     #print(help(struc.to))
-    struc.to(filename='1.vasp', fmt='poscar')
+    #struc.to(filename='1.vasp', fmt='poscar')
     des = descriptor(struc, feature).merge()
     if len(x) == 0:
         x = des
@@ -57,3 +57,4 @@ ml = method(feature=X, prop=Y, algo=algo, params = parameters)
 end = time()
 print('Time elapsed for machine learning: {:.3f} seconds'.format(end-start))
 ml.plot_correlation(figname=figname)
+ml.print_summary()

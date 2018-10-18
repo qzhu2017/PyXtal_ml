@@ -190,5 +190,11 @@ class method:
         """
         print the paramters and performances
         """
-        print("-----------------------------------------")
-        print("-----------------------------------------")
+        print("----------------------------------------")
+        print("-------------SUMMARY of ML--------------")
+        print("----------------------------------------")
+        print("Number of samples:  {:20d}".format(len(self.prop)))
+        print("Number of features: {:20d}".format(len(self.feature[0])))
+        print("Algorithm:          {:^25}".format(self.algo))
+        print("r^2:              {:22.4f}".format(self.r2))
+        print("MAE:              {:22.4f}".format(self.mae))
