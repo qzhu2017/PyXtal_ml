@@ -1,6 +1,7 @@
 import yaml
 import numpy as np
 
+arr = np.logspace(-5,5)
 
 default_params = {
         'KNN':
