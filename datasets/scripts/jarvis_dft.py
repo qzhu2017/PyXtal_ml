@@ -21,7 +21,7 @@ for dat in dat_3d:
            'band_gap': gap,
            }
     struc_info.append(dic)
-
+print(len(struc_info))
 json_file = 'jarvis_' + str(len(dat_3d)) + '.json'
 with open(json_file, "w") as f:
     json.dump(struc_info, f, cls=MontyEncoder, indent=1)
