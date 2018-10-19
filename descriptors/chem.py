@@ -7,12 +7,13 @@ import os.path as op
 filename = op.join(op.dirname(__file__), 'Elements.json')
 ele_data = loadfn(filename)
 
+
 class Chem(object):
     """a class of crystal structure.
     Args:
         crystal: crystal class from pymatgen
     Attributes:
-        crystal: crystal class 
+        crystal: crystal class
         mean_chem: chemical descriptor for the given structure
     """
 
@@ -27,13 +28,13 @@ class Chem(object):
         self.mean_chem = np.mean(arr, axis=0)
 
     def get_descrp_arr(self, elm):
-        arr = []
         # the current json file has only 82 elements, some are missing
-        if elm in ['Pa','Ac','Pu','Np','Am','Bk','Cf','Cm','Es','Fm','Lr','Md','No']: 
-            elm = 'Th' 
-        elif elm in ['Eu','Pm']:
-            elm = 'La' 
-        elif elm in ['Xe','Rn']:
+        if elm in ['Pa', 'Ac', 'Pu', 'Np', 'Am', 'Bk', 'Cf', 'Cm', 'Es',
+                   'Fm', 'Lr', 'Md', 'No']:
+            elm = 'Th'
+        elif elm in ['Eu', 'Pm']:
+            elm = 'La'
+        elif elm in ['Xe', 'Rn']:
             elm = 'Kr'
         elif elm in ['At']:
             elm = 'I'

@@ -2,9 +2,10 @@ from pymatgen.core.structure import Structure
 import numpy as np
 from optparse import OptionParser
 import os.path as op
-import json
+from monty.serialization import loadfn
 
 filename = op.join(op.dirname(__file__), 'element_charge.json')
+ele_data = loadfn(filename)
 
 
 class Charge(object):
@@ -20,16 +21,11 @@ class Charge(object):
             arr.append(des)
         self.mean_chg = np.mean(arr, axis=0)
 
-    def get_chgdescrp_arr(self, elm=''):
+    def get_chgdescrp_arr(self, elm):
         arr = []
-        try:
-            f = open(filename, 'r')
-            emdat = json.load(f)
-            f.close()
-            arr = emdat[elm][0][1]
-        except:
-            pass
-
+        d = ele_data[elm]
+        for k, v in d.items():
+            arr.append(v)
         arr = np.array(arr).astype(float)
         return arr
 
