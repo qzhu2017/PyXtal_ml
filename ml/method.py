@@ -42,7 +42,7 @@ class method:
                     self.ml_params = yaml.load(stream)
                 except yaml.YAMLError as exc:
                     print(exc)
-            
+
         else:
             print('Warning: The Machine Learning algorithm is not available.')
 
@@ -66,8 +66,8 @@ class method:
         """
         if self.algo == 'KNN':
             grid = self.ml_params[self.algo]
-            
             self.read_dict()
+            
             if self.level in self.parameters_level:
                 self.KNN_grid = grid[self.level]
             else:
@@ -84,8 +84,8 @@ class method:
             
         elif self.algo == 'KRR':
             grid = self.ml_params[self.algo]
-
             self.read_dict()
+
             if self.level in self.parameters_level:
                 self.KRR_grid = grid[self.level]
             else:
@@ -102,18 +102,14 @@ class method:
             
         elif self.algo == 'GradientBoosting':
             grid = self.ml_params[self.algo]
-            
             self.read_dict()
-            if self.level in self.parameters_level:
-                self.GB_grid = grid[self.level]
-            else:
-                self.GB_grid = self.dict
-
+            
             if self.level == 'light':
                 best_estimator = GradientBoostingRegressor()
-            if self.level == 'medium':
+            elif self.level == 'medium':
                 best_estimator = GridSearchCV(GradientBoostingRegressor(), param_grid = {}, cv = 5, iid = False, return_train_score = False)
-            if self.level == 'tight':
+            else: # tight or user-defined parameters
+                self.GB_grid = self.dict
                 best_estimator = GridSearchCV(GradientBoostingRegressor(), param_grid = self.GB_grid, cv = 5, iid = False, return_train_score = False)
 
         best_estimator.fit(self.X_train, self.Y_train)
@@ -122,8 +118,10 @@ class method:
         self.r2 = best_estimator.score(self.X_test, self.Y_test, sample_weight=None)
         self.mae = mean_absolute_error(self.y_predicted, self.Y_test)
 
-        if self.level == 'tight':
+        if self.level == 'tight' or self.level == None:
             self.best_parameters = best_estimator.best_params_
+        else:
+            pass
 
     def plot_correlation(self, figname=None, figsize=(12,8)):
         """
