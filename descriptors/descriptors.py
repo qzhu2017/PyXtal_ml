@@ -6,7 +6,7 @@ from descriptors.DDF import DDF
 from optparse import OptionParser
 import numpy as np
 from pymatgen.core.structure import Structure
-
+import sys
 
 class descriptor:
     """Collection of molecular data.
@@ -46,14 +46,21 @@ class descriptor:
     def merge(self):
         arr = []
         for key in self.descriptor.keys():
-            if len(self.descriptor[key]) == 0:
-                print(key, np.shape(self.descriptor[key]))
             if len(arr) == 0:
                 arr = self.descriptor[key]
             else:
                 arr = np.hstack((arr, self.descriptor[key]))
         return arr
 
+    def check_valid(self):
+        for key in self.descriptor.keys():
+            if np.isnan(self.descriptor[key]).any():
+                print('Something is wrong in calculating the descriptor: {}'.format(key))
+                print(self.struc)
+                print('Saving the structure to {} in vasp format'.format('error.vvasp'))
+                struc.to(filename='error.vasp', fmt='poscar')
+                return False
+        return True
 
 if __name__ == "__main__":
     # -------------------------------- Options -------------------------
