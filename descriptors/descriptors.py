@@ -35,7 +35,7 @@ class descriptor:
             if lib == 'RDF':
                 self.descriptor['RDF'] = RDF(self.struc).RDF[1, :]
             elif lib == 'ADF':
-                self.descriptor['ADF'] = ADF(self.struc).ADF
+                self.descriptor['ADF'] = ADF(self.struc).all
             elif lib == 'DDF':
                 self.descriptor['DDF'] = DDF(self.struc).DDF
             elif lib == 'Chem':
@@ -46,6 +46,8 @@ class descriptor:
     def merge(self):
         arr = []
         for key in self.descriptor.keys():
+            if len(self.descriptor[key]) == 0:
+                print(key, np.shape(self.descriptor[key]))
             if len(arr) == 0:
                 arr = self.descriptor[key]
             else:
