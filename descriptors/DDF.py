@@ -222,9 +222,7 @@ class DDF(object):
 
         Args:
             filename: the path to safe the file'''
-        plt.hist(self.angles, self.bins,
-                 density=True)
-        plt.grid()
+        plt.hist(self.angles, self.bins, density=True)
         plt.xlabel("Angle (degree)", fontsize=16)
         plt.ylabel("DDF", fontsize=16)
         if filename is None:
@@ -256,7 +254,12 @@ if __name__ == "__main__":
 
     plt.style.use(options.mstyle)
     test = Structure.from_file(options.structure)
-    adf = DDF(test)
-    print('-----ADF value-----')
+    adf = DDF(crystal=test)
     print(adf.DDF)
-    adf.plot_DDF()
+    test.make_supercell([1, 1, 2])
+    adf = DDF(crystal=test)
+    print(adf.DDF)
+    #test.make_supercell([2, 2, 2])
+    #adf = DDF(crystal=test)
+    #print(adf.DDF)
+
