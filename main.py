@@ -8,10 +8,10 @@ warnings.filterwarnings("ignore")
 
 
 file = 'datasets/nonmetal_MP_8049.json'
-prop = 'band_gap' #'formation_energy'
-feature = 'RDF+Chem+Charge'  # 'RDF', 'RDF+ADF', 'all'
-algo = 'GradientBoosting'
-parameters = 'light'
+prop = 'formation_energy' #'band_gap'
+feature = 'RDF'  # 'RDF', 'RDF+ADF', 'all'
+algo = 'KNN'
+parameters = 'tight'
 figname = 'test_plot.png'
 N_sample = 200
 
@@ -57,6 +57,7 @@ print('Each material has {:d} descriptors'.format(np.shape(X)[1]))
 tag = {'prop': prop, 'feature':feature}
 start = time()
 ml = method(feature=X, prop=Y, algo=algo, params=parameters, tag=tag)
+print(ml.best_parameters)
 end = time()
 print('Time elapsed for machine learning: {:.3f} seconds'.format(end-start))
 ml.plot_correlation(figname=figname)
