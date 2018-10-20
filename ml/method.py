@@ -8,7 +8,7 @@ from sklearn.feature_selection import VarianceThreshold
 from sklearn.pipeline import Pipeline
 import yaml
 import numpy as np
-from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_absolute_error, r2_score
 from matplotlib import rcParams
 import matplotlib.pyplot as plt
 rcParams.update({'figure.autolayout': True})
@@ -66,56 +66,56 @@ class method:
         """
         if self.algo == 'KNN':
             grid = self.ml_params[self.algo]
-            self.read_dict()
-            
-            if self.level in self.parameters_level:
-                self.KNN_grid = grid[self.level]
-            else:
-                self.KNN_grid = self.dict
-
-            search = GridSearchCV(KNeighborsRegressor(weights='distance'), cv=10, param_grid=self.KNN_grid)
-            search.fit(self.X_train, self.Y_train)
-            
-            best_n_neighbors = search.best_params_['n_neighbors']
-            best_p = search.best_params_['p']
-            best_leaf_size = search.best_params_['leaf_size']
-            
-            best_estimator = KNeighborsRegressor(best_n_neighbors, weights='distance', algorithm='auto',leaf_size=best_leaf_size, p=best_p)
-            
-        elif self.algo == 'KRR':
-            grid = self.ml_params[self.algo]
-            self.read_dict()
-
-            if self.level in self.parameters_level:
-                self.KRR_grid = grid[self.level]
-            else:
-                self.KRR_grid = self.dict
-
-            search = GridSearchCV(KernelRidge(), cv=10, param_grid = self.KRR_grid)
-            search.fit(self.X_train, self.Y_train)
-            
-            best_alpha = search.best_params_['alpha']
-            best_gamma = search.best_params_['gamma']
-            best_kernel = search.best_params_['kernel']
-            
-            best_estimator = KernelRidge(alpha = best_alpha, gamma = best_gamma, kernel = best_kernel, kernel_params = None)
-            
-        elif self.algo == 'GradientBoosting':
-            grid = self.ml_params[self.algo]
+            self.KNN_grid = grid['params']
+            self.CV = grid['cv']
             self.read_dict()
             
             if self.level == 'light':
+                best_estimator = KNeighborsRegressor()
+            elif self.level == 'medium':
+                best_estimator = GridSearchCV(KNeighborsRegressor(), param_grid = {}, cv = self.CV)
+            elif self.level == 'tight':
+                best_estimator = GridSearchCV(KNeighborsRegressor(), param_grid = self.KNN_grid, cv = self.CV)
+            else: # user-defined parameters
+                self.KNN_grid = self.dict
+                best_estimator = GridSearchCV(KNeighborsRegressor(), param_grid = self.KNN_grid, cv = self.CV)
+            
+        elif self.algo == 'KRR':
+            grid = self.ml_params[self.algo]
+            self.KRR_grid = grid['params']
+            self.CV = grid['cv']
+            self.read_dict()
+
+            if self.level == 'light':
+                best_estimator = KernelRidge()
+            elif self.level == 'medium':
+                best_estimator = GridSearchCV(KernelRidge(), param_grid = {}, cv = self.CV)
+            elif self.level == 'tight':
+                best_estimator = GridSearchCV(KernelRidge(), param_grid = self.KRR_grid, cv = self.CV)
+            else:
+                self.KRR_grid = self.dict
+                best_estimator = GridSearchCV(KernelRidge(), param_grid = self.KRR_grid, cv = self.CV)
+
+        elif self.algo == 'GradientBoosting':
+            grid = self.ml_params[self.algo]
+            self.GB_grid = grid['params']
+            self.CV = grid['params']
+            self.read_dict()
+
+            if self.level == 'light':
                 best_estimator = GradientBoostingRegressor()
             elif self.level == 'medium':
-                best_estimator = GridSearchCV(GradientBoostingRegressor(), param_grid = {}, cv = 5, iid = False, return_train_score = False)
-            else: # tight or user-defined parameters
+                best_estimator = GridSearchCV(GradientBoostingRegressor(), param_grid = {}, cv = self.CV)
+            elif self.level == 'tight':
+                best_estimator = GridSearchCV(GradientBoostingRegressor(), param_grid = self.GB_grid, cv = self.CV)
+            else: #user-defined parameters
                 self.GB_grid = self.dict
-                best_estimator = GridSearchCV(GradientBoostingRegressor(), param_grid = self.GB_grid, cv = 5, iid = False, return_train_score = False)
+                best_estimator = GridSearchCV(GradientBoostingRegressor(), param_grid = self.GB_grid, cv = self.CV)
 
         best_estimator.fit(self.X_train, self.Y_train)
         self.y_predicted = best_estimator.predict(self.X_test)
         self.y_predicted0 = best_estimator.predict(self.X_train)
-        self.r2 = best_estimator.score(self.X_test, self.Y_test, sample_weight=None)
+        self.r2 = r2_score(self.Y_test, self.y_predicted, sample_weight=None)
         self.mae = mean_absolute_error(self.y_predicted, self.Y_test)
 
         if self.level == 'tight' or self.level == None:
