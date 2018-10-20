@@ -22,10 +22,10 @@ default_params = {
         }
 
 
-with open('default_params.yml', 'w') as outfile:
+with open('default_params.yaml', 'w') as outfile:
     yaml.dump(default_params, outfile, default_flow_style=False)
 
-with open('default_params.yml', 'r') as stream:
+with open('default_params.yaml', 'r') as stream:
     try:
         data = yaml.load(stream)
     except yaml.YAMLError as exc:
