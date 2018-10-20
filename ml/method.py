@@ -37,7 +37,7 @@ class method:
             # Split data into training and test sets
             self.X_train, self.X_test, self.Y_train, self.Y_test = train_test_split(self.feature, self.prop, test_size = self.test_size, random_state = 0)
             
-            with open('ml/default_params.yml', 'r') as stream:
+            with open('ml/default_params.yaml', 'r') as stream:
                 try:
                     self.ml_params = yaml.load(stream)
                 except yaml.YAMLError as exc:
