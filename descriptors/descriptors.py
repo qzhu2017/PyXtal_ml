@@ -57,8 +57,8 @@ class descriptor:
             if np.isnan(self.descriptor[key]).any():
                 print('Something is wrong in calculating the descriptor: {}'.format(key))
                 print(self.struc)
-                print('Saving the structure to {} in vasp format'.format('error.vvasp'))
-                struc.to(filename='error.vasp', fmt='poscar')
+                print('Saving the structure to {} in vasp format'.format('error.vasp'))
+                self.struc.to(filename='error.vasp', fmt='poscar')
                 return False
         return True
 
