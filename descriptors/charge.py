@@ -17,14 +17,13 @@ class Charge(object):
         el_dict = comp.get_el_amt_dict()
         arr = []
         for k, v in el_dict.items():
-            print(k)
             des = self.get_chgdescrp_arr(k)
             arr.append(des)
         self.mean_chg = np.mean(arr, axis=0)
 
     def get_chgdescrp_arr(self, elm):
         d = ele_data[elm]
-        arr = np.array(d).astype(float)
+        arr = np.ndarray.flatten(np.array(d).astype(float))
         return arr
 
 
