@@ -109,63 +109,21 @@ class method:
             else:
                 self.GB_grid = self.dict
 
-            GBR = GradientBoostingRegressor(loss = 'huber')
-            varthres = VarianceThreshold()
-            pipe = Pipeline([("fs", varthres),("GBR", GBR)])
-            search = GridSearchCV(pipe, self.GB_grid, cv=10,iid=False, return_train_score=False)
-            search.fit(self.X_train,self.Y_train)
-            
-            best_learning = search.best_params_['GBR__learning_rate']
-            best_estimators = search.best_params_['GBR__n_estimators']
-            best_threshold = search.best_params_['fs__threshold']
-            
-            best_GBR = GradientBoostingRegressor(loss='huber', learning_rate = best_learning, n_estimators = best_estimators)
-            best_estimator = Pipeline([("fs", VarianceThreshold(threshold = best_threshold)),("GBR", best_GBR)])
-        
-        elif self.algo == 'RF':
-            grid = self.ml_params[self.algo]
-
-            self.read_dict()
-            if self.level in self.parameters_level:
-                self.RF_grid = grid[self.level]
-            else:
-                self.RF_grid = self.dict
-
-            RFR = RandomForestRegressor()
-            varthres = VarianceThreshold()
-            pipe = Pipeline([("fs", varthres),("RFR", RFR)])
-            search = GridSearchCV(pipe, self.RF_grid, cv=10,iid=False, return_train_score=False)
-            search.fit(self.X_train,self.Y_train)
-            
-            best_n_estimators = search.best_params_['RFR__n_estimators']
-            best_threshold = search.best_params_['fs__threshold']
-            
-            best_RFR = RandomForestRegressor(n_estimators = best_n_estimators)
-            best_estimator = Pipeline([("fs", VarianceThreshold(threshold = best_threshold)),("RFR", best_RFR)])
-
-        elif self.algo == 'StochasticGD':
-            grid = self.ml_params[self.algo]
-
-            self.read_dict()
-            if self.level in self.parameters_level:
-                self.SGD_grid = grid[self.level]
-            else:
-                self.SGD_grid = self.dict
-
-            search = GridSearchCV(SGDRegressor(tol = 1e-5), param_grid = self.SGD_grid, cv=10)
-            search.fit(self.X_train,self.Y_train)
-
-            best_penalty = search.best_params_['penalty']
-            best_alpha = search.best_params_['alpha']
-            best_learning_rate = search.best_params_['learning_rate']
-
-            best_estimator = SGDRegressor(tol = 1e-5, penalty = best_penalty, alpha = best_alpha, learning_rate = best_learning_rate)
+            if self.level == 'light':
+                best_estimator = GradientBoostingRegressor()
+            if self.level == 'medium':
+                best_estimator = GridSearchCV(GradientBoostingRegressor(), param_grid = {}, cv = 5, iid = False, return_train_score = False)
+            if self.level == 'tight':
+                best_estimator = GridSearchCV(GradientBoostingRegressor(), param_grid = self.GB_grid, cv = 5, iid = False, return_train_score = False)
 
         best_estimator.fit(self.X_train, self.Y_train)
         self.y_predicted = best_estimator.predict(self.X_test)
         self.y_predicted0 = best_estimator.predict(self.X_train)
         self.r2 = best_estimator.score(self.X_test, self.Y_test, sample_weight=None)
         self.mae = mean_absolute_error(self.y_predicted, self.Y_test)
+
+        if self.level == 'tight':
+            self.best_parameters = best_estimator.best_params_
 
     def plot_correlation(self, figname=None, figsize=(12,8)):
         """
@@ -212,4 +170,42 @@ class method:
         print("Property:           {:>20}".format(self.tag['prop']))
         print("r^2:              {:22.4f}".format(self.r2))
         print("MAE:              {:22.4f}".format(self.mae))
-        # to do, also export the best_parameters used in ML training.
+
+#        elif self.algo == 'RF':
+#            grid = self.ml_params[self.algo]
+#
+#            self.read_dict()
+#            if self.level in self.parameters_level:
+#                self.RF_grid = grid[self.level]
+#            else:
+#                self.RF_grid = self.dict
+#
+#            RFR = RandomForestRegressor()
+#            varthres = VarianceThreshold()
+#            pipe = Pipeline([("fs", varthres),("RFR", RFR)])
+#            search = GridSearchCV(pipe, self.RF_grid, cv=10,iid=False, return_train_score=False)
+#            search.fit(self.X_train,self.Y_train)
+#            
+#            best_n_estimators = search.best_params_['RFR__n_estimators']
+#            best_threshold = search.best_params_['fs__threshold']
+#            
+#            best_RFR = RandomForestRegressor(n_estimators = best_n_estimators)
+#            best_estimator = Pipeline([("fs", VarianceThreshold(threshold = best_threshold)),("RFR", best_RFR)])
+#
+#        elif self.algo == 'StochasticGD':
+#            grid = self.ml_params[self.algo]
+#
+#            self.read_dict()
+#            if self.level in self.parameters_level:
+#                self.SGD_grid = grid[self.level]
+#            else:
+#                self.SGD_grid = self.dict
+#
+#            search = GridSearchCV(SGDRegressor(tol = 1e-5), param_grid = self.SGD_grid, cv=10)
+#            search.fit(self.X_train,self.Y_train)
+#
+#            best_penalty = search.best_params_['penalty']
+#            best_alpha = search.best_params_['alpha']
+#            best_learning_rate = search.best_params_['learning_rate']
+#
+#            best_estimator = SGDRegressor(tol = 1e-5, penalty = best_penalty, alpha = best_alpha, learning_rate = best_learning_rate)
