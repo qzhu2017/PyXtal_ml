@@ -26,4 +26,4 @@ However, the accuracy/efficiency of ML training is really proceedure and paramet
 
 - **`tight`**: `grid search` + `cross_validation`. This allows an exhaustive exploration to achieve the best performance. But it will require a significant amount of computation time. One has to be very patient!
 
-The default parameter sets are defined in [`default_params.yml`](https://github.com/qzhu2017/ML-Materials/blob/master/ml/default_params.yml). It is **human readable and editable**. One can simply modify this set of parameter if needed. On the other hand, one can pass the parameters as the dictionary when calling `ml.method`, these parameters will **override** the parameters used in the existing set if there exists a match. 
+The default parameter sets are defined in [`default_params.yaml`](https://github.com/qzhu2017/ML-Materials/blob/master/ml/default_params.yaml). It is **human readable and editable**. One can simply modify this set of parameter if needed. On the other hand, one can pass the parameters as the dictionary when calling `ml.method`, these parameters will **override** the parameters used in the existing set if there exists a match. 
