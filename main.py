@@ -6,16 +6,21 @@ from time import time
 import warnings
 warnings.filterwarnings("ignore")
 
+#file = 'datasets/nonmetal_MP_8049.json'
+#prop = 'formation_energy' #'band_gap'
+#feature = 'Chem+ADF+Charge'  # 'RDF', 'RDF+ADF', 'all'
+#algo = 'GradientBoosting'
+#parameters = 'light'
+#figname = 'test_plot.png'
+#N_sample = None #5000
 
 file = 'datasets/nonmetal_MP_8049.json'
 prop = 'formation_energy' #'band_gap'
-feature = 'RDF'  # 'RDF', 'RDF+ADF', 'all'
+feature = 'RDF+ADF+Chem+Charge'  # 'RDF', 'RDF+ADF', 'all'
 algo = 'KNN'
 parameters = 'tight'
 figname = 'test_plot.png'
 N_sample = 200
-
-
 
 # obtain the struc/prop data from source 
 start = time()
@@ -61,3 +66,27 @@ end = time()
 print('Time elapsed for machine learning: {:.3f} seconds'.format(end-start))
 ml.plot_correlation(figname=figname)
 ml.print_summary()
+
+# print outliers
+from tabulate import tabulate
+import pandas as pd
+import collections
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+col_name = collections.OrderedDict(
+                                   {'Formula': [],
+                                   'Space group': [],
+                                   'Nsites': [],
+                                   'dY': [],
+                                   }
+                                  )
+for id, diff in enumerate(ml.estimator.predict(X)-Y):
+    if abs(diff) > 3*ml.mae:
+        col_name['Formula'].append(strucs[id].composition.get_reduced_formula_and_factor()[0])
+        col_name['Space group'].append(SpacegroupAnalyzer(strucs[id]).get_space_group_symbol())
+        col_name['Nsites'].append(len(strucs[id].species))
+        col_name['dY'].append(diff)
+
+df = pd.DataFrame(col_name)
+df = df.sort_values(['dY','Space group','Nsites'], ascending=[True, True, True])
+print(tabulate(df, headers='keys', tablefmt='psql'))
+

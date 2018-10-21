@@ -117,6 +117,7 @@ class method:
         self.y_predicted0 = best_estimator.predict(self.X_train)
         self.r2 = r2_score(self.Y_test, self.y_predicted, sample_weight=None)
         self.mae = mean_absolute_error(self.y_predicted, self.Y_test)
+        self.estimator = best_estimator
 
         if self.level == 'tight' or self.level == None:
             self.best_parameters = best_estimator.best_params_
