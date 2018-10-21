@@ -13,7 +13,12 @@ def angle_from_ijk(p1, p2, p3):
     """
     v1, v2 = p1-p2, p3-p2
     angle = np.degrees(np.arccos(np.dot(v1, v2)/np.linalg.norm(v1)/np.linalg.norm(v2)))
-    if abs(angle) < 5e-1: angle = 180
+    if abs(angle) < 5e-1 or np.isnan(angle): 
+        angle = 180
+    #if np.isnan(angle):  #QZ: sometimes, it returns nan due to numerical error
+    #    print('Warning! return NaN value --')
+    #    print('INPUT:', p1, p2, p3)
+    #    print('cosine values:', np.dot(v1, v2)/np.linalg.norm(v1)/np.linalg.norm(v2))
 
     return angle
 
@@ -46,7 +51,18 @@ def get_radii(ele):
     if ele.value in get_metals():
         return ele.metallic_radius
     else:
-        return ele.atomic_radius
+        if ele.atomic_radius is None: #['He', 'Ne', 'Ar', 'Kr', 'Xe']
+            rad = {'He': 0.28, 
+                   'Ne': 0.58, 
+                   'Ar': 1.06, 
+                   'Kr': 1.16, 
+                   'Xe': 1.40,
+                   'At': 1.50,
+                   'Rn': 1.50,
+                  }
+            return rad[ele.value]
+        else:
+            return ele.atomic_radius
 
 
 class ADF(object):
@@ -90,6 +106,7 @@ class ADF(object):
             self.DDF = DDF
 
         self.merge()
+        #print(crystal.formula, self.angles)
 
     def merge(self):
         self.all = self.ADF
@@ -216,6 +233,7 @@ if __name__ == "__main__":
     #print(adf.angles)
     #print(adf.torsion_angles)
     print(adf.ADF)
+    print(adf.all)
     print(adf.DDF)
     test.make_supercell([2, 2, 2])
     adf = ADF(crystal=test, calc_dihedral=True, symmetrize=False)

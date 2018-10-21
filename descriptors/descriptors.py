@@ -6,7 +6,6 @@ from descriptors.DDF import DDF
 from optparse import OptionParser
 import numpy as np
 from pymatgen.core.structure import Structure
-import sys
 
 class descriptor:
     """Collection of molecular data.
@@ -57,6 +56,8 @@ class descriptor:
             if np.isnan(self.descriptor[key]).any():
                 print('Something is wrong in calculating the descriptor: {}'.format(key))
                 print(self.struc)
+                print('Values:')
+                print(self.descriptor)
                 print('Saving the structure to {} in vasp format'.format('error.vasp'))
                 self.struc.to(filename='error.vasp', fmt='poscar')
                 return False
@@ -80,6 +81,8 @@ if __name__ == "__main__":
     test = Structure.from_file(options.structure)
     des = descriptor(test)
     print(des.libs)
+    print(des.descriptor)
+    print(des.check_valid())
     print(des.merge())
     print('length of the descriptors: ', np.shape(des.merge()))
 
