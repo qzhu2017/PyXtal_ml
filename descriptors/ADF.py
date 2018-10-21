@@ -50,7 +50,10 @@ def get_metals():
 
 def get_radii(ele):
     if ele.value in get_metals():
-        return ele.metallic_radius
+        if ele.value in ['Fr']:
+            return 2.8
+        else:
+            return ele.metallic_radius
     else:
         if ele.atomic_radius is None: #['He', 'Ne', 'Ar', 'Kr', 'Xe']
             rad = {'He': 0.28, 
