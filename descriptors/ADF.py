@@ -13,9 +13,10 @@ def angle_from_ijk(p1, p2, p3):
     """
     v1, v2 = p1-p2, p3-p2
     angle = np.degrees(np.arccos(np.dot(v1, v2)/np.linalg.norm(v1)/np.linalg.norm(v2)))
+    #QZ: sometimes, it returns nan due to numerical error (with cos value slightly > 1))
     if abs(angle) < 5e-1 or np.isnan(angle): 
         angle = 180
-    #if np.isnan(angle):  #QZ: sometimes, it returns nan due to numerical error
+    #if np.isnan(angle):  
     #    print('Warning! return NaN value --')
     #    print('INPUT:', p1, p2, p3)
     #    print('cosine values:', np.dot(v1, v2)/np.linalg.norm(v1)/np.linalg.norm(v2))
