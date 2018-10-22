@@ -10,8 +10,8 @@ warnings.filterwarnings("ignore")
 
 #file = 'datasets/nonmetal_MP_8049.json'
 #prop = 'formation_energy' #'band_gap'
-#feature = 'Chem+ADF+Charge'  # 'RDF', 'RDF+ADF', 'all'
-#algo = 'GradientBoosting'
+#feature = 'Chem+Charge'  # 'RDF', 'RDF+ADF', 'all'
+#algo = 'KRR' #'GradientBoosting'
 #parameters = 'light'
 #figname = 'test_plot.png'
 #N_sample = None #5000
@@ -20,7 +20,7 @@ file = 'datasets/nonmetal_MP_8049.json'
 prop = 'formation_energy' #'band_gap'
 feature = 'RDF+ADF+Chem+Charge'  # 'RDF', 'RDF+ADF', 'all'
 algo = 'KNN'
-parameters = 'tight'
+parameters = 'medium' #'tight'
 figname = 'test_plot.png'
 N_sample = 200
 

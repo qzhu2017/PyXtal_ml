@@ -202,3 +202,7 @@ class method:
         print("Property:           {:>20}".format(self.tag['prop']))
         print("r^2:              {:22.4f}".format(self.r2))
         print("MAE:              {:22.4f}".format(self.mae))
+        if self.level in ['tight', 'medium']:
+            for score, std in zip(self.cv_result['mean_train_score'], self.cv_result['std_train_score']):
+                print("Mean train_score: {:22.4f}".format(score))
+                print("Std train_score:  {:22.4f}".format(std))
