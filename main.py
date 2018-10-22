@@ -1,4 +1,6 @@
 import numpy as np
+import pandas as pd
+from tabulate import tabulate
 from descriptors.descriptors import descriptor
 from datasets.collection import Collection
 from ml.method import method
@@ -67,9 +69,12 @@ print('Time elapsed for machine learning: {:.3f} seconds'.format(end-start))
 ml.plot_correlation(figname=figname)
 ml.print_summary()
 
+# save cross-val results
+
+cv = pd.DataFrame.from_dict(ml.cv_result)
+cv.to_csv('results/CV_result.csv')
+
 # print outliers
-from tabulate import tabulate
-import pandas as pd
 import collections
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 col_name = collections.OrderedDict(
@@ -89,4 +94,3 @@ for id, diff in enumerate(ml.estimator.predict(X)-Y):
 df = pd.DataFrame(col_name)
 df = df.sort_values(['dY','Space group','Nsites'], ascending=[True, True, True])
 print(tabulate(df, headers='keys', tablefmt='psql'))
-
