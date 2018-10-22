@@ -99,7 +99,7 @@ class method:
         elif self.algo == 'GradientBoosting':
             grid = self.ml_params[self.algo]
             self.GB_grid = grid['params']
-            self.CV = grid['params']
+            self.CV = grid['cv']
             self.read_dict()
 
             if self.level == 'light':
@@ -111,6 +111,38 @@ class method:
             else: #user-defined parameters
                 self.GB_grid = self.dict
                 best_estimator = GridSearchCV(GradientBoostingRegressor(), param_grid = self.GB_grid, cv = self.CV)
+
+        elif self.algo == 'RF':
+            grid = self.ml_params[self.algo]
+            self.RF_grid = grid['params']
+            self.CV = grid['cv']
+            self.read_dict()
+
+            if self.level == 'light':
+                best_estimator = RandomForestRegressor()
+            elif self.level == 'medium':
+                best_estimator = GridSearchCV(RandomForestRegressor(), param_grid = {}, cv = self.CV)
+            elif self.level == 'tight':
+                best_estimator = GridSearchCV(RandomForestRegressor(), param_grid = self.RF_grid, cv = self.CV)
+            else:
+                self.RF_grid = self.dict
+                best_estimator = GridSearchCV(RandomForestRegressor(), param_grid = self.RF_grid, cv = self.CV)
+
+        elif self.algo == 'StochasticGD':
+            grid = self.ml_params[self.algo]
+            self.SGD_grid = grid['params']
+            self.CV = grid['cv']
+            self.read_dict()
+
+            if self.level == 'light':
+                best_estimator = SGDRegressor()
+            elif self.level == 'medium':
+                best_estimator = GridSearchCV(SGDRegressor(), param_grid = {}, cv = self.CV)
+            elif self.level == 'tight':
+                best_estimator = GridSearchCV(SGDRegressor(), param_grid = self.SGD_grid, cv = self.CV)
+            else:
+                self.SGD_grid = self.dict
+                best_estimator = GridSearchCV(SGDRegressor(), param_grid = self.SGD_grid, cv = self.CV)
 
         best_estimator.fit(self.X_train, self.Y_train)
         self.y_predicted = best_estimator.predict(self.X_test)
@@ -170,42 +202,3 @@ class method:
         print("Property:           {:>20}".format(self.tag['prop']))
         print("r^2:              {:22.4f}".format(self.r2))
         print("MAE:              {:22.4f}".format(self.mae))
-
-#        elif self.algo == 'RF':
-#            grid = self.ml_params[self.algo]
-#
-#            self.read_dict()
-#            if self.level in self.parameters_level:
-#                self.RF_grid = grid[self.level]
-#            else:
-#                self.RF_grid = self.dict
-#
-#            RFR = RandomForestRegressor()
-#            varthres = VarianceThreshold()
-#            pipe = Pipeline([("fs", varthres),("RFR", RFR)])
-#            search = GridSearchCV(pipe, self.RF_grid, cv=10,iid=False, return_train_score=False)
-#            search.fit(self.X_train,self.Y_train)
-#            
-#            best_n_estimators = search.best_params_['RFR__n_estimators']
-#            best_threshold = search.best_params_['fs__threshold']
-#            
-#            best_RFR = RandomForestRegressor(n_estimators = best_n_estimators)
-#            best_estimator = Pipeline([("fs", VarianceThreshold(threshold = best_threshold)),("RFR", best_RFR)])
-#
-#        elif self.algo == 'StochasticGD':
-#            grid = self.ml_params[self.algo]
-#
-#            self.read_dict()
-#            if self.level in self.parameters_level:
-#                self.SGD_grid = grid[self.level]
-#            else:
-#                self.SGD_grid = self.dict
-#
-#            search = GridSearchCV(SGDRegressor(tol = 1e-5), param_grid = self.SGD_grid, cv=10)
-#            search.fit(self.X_train,self.Y_train)
-#
-#            best_penalty = search.best_params_['penalty']
-#            best_alpha = search.best_params_['alpha']
-#            best_learning_rate = search.best_params_['learning_rate']
-#
-#            best_estimator = SGDRegressor(tol = 1e-5, penalty = best_penalty, alpha = best_alpha, learning_rate = best_learning_rate)
