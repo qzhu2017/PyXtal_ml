@@ -20,7 +20,7 @@ file = 'datasets/nonmetal_MP_8049.json'
 prop = 'formation_energy' #'band_gap'
 feature = 'RDF+ADF+Chem+Charge'  # 'RDF', 'RDF+ADF', 'all'
 algo = 'KNN'
-parameters = 'medium' #'tight'
+parameters = 'light' #'medium' #'tight'
 figname = 'test_plot.png'
 N_sample = 200
 
@@ -70,9 +70,8 @@ ml.plot_correlation(figname=figname)
 ml.print_summary()
 
 # save cross-val results
-
-cv = pd.DataFrame.from_dict(ml.cv_result)
-cv.to_csv('results/CV_result.csv')
+#cv = pd.DataFrame.from_dict(ml.cv_result)
+#cv.to_csv('results/CV_result.csv')
 
 # print outliers
 import collections
