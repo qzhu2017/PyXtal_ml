@@ -1,4 +1,4 @@
-Time elapsed for reading the json files: 2.182 seconds
+`Time elapsed for reading the json files: 2.182 seconds
 Total number of materials: 5000
 The chosen feature is: Packing_Efficiency
 0 materials have been processed
@@ -13,7 +13,7 @@ The chosen feature is: Packing_Efficiency
 4500 materials have been processed
 Time elapsed for creating the descriptors: 1784.833 seconds
 Each material has 1 descriptors
-Time elapsed for machine learning: 0.074 seconds
+Time elapsed for machine learning: 0.074 seconds`
 ----------------------------------------
 -------------SUMMARY of ML--------------
 ----------------------------------------
