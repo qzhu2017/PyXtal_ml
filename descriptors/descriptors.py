@@ -3,9 +3,11 @@ from descriptors.ADF import ADF
 from descriptors.chem import Chem
 from descriptors.charge import Charge
 from descriptors.DDF import DDF
+from descriptors.packing_efficiency import packing_efficiency
 from optparse import OptionParser
 import numpy as np
 from pymatgen.core.structure import Structure
+
 
 class descriptor:
     """Collection of molecular data.
@@ -41,27 +43,21 @@ class descriptor:
                 self.descriptor['Chem'] = Chem(self.struc).mean_chem
             elif lib == 'Charge':
                 self.descriptor['Charge'] = Charge(self.struc).mean_chg
+            elif lib == 'Packing_Efficiency':
+                self.descriptor['Packing_Efficiency'] = packing_efficiency(
+                    self.struc).eff
 
     def merge(self):
         arr = []
         for key in self.descriptor.keys():
+            if len(self.descriptor[key]) == 0:
+                print(key, np.shape(self.descriptor[key]))
             if len(arr) == 0:
                 arr = self.descriptor[key]
             else:
                 arr = np.hstack((arr, self.descriptor[key]))
         return arr
 
-    def check_valid(self):
-        for key in self.descriptor.keys():
-            if np.isnan(self.descriptor[key]).any():
-                print('Something is wrong in calculating the descriptor: {}'.format(key))
-                print(self.struc)
-                print('Values:')
-                print(self.descriptor)
-                print('Saving the structure to {} in vasp format'.format('error.vasp'))
-                self.struc.to(filename='error.vasp', fmt='poscar')
-                return False
-        return True
 
 if __name__ == "__main__":
     # -------------------------------- Options -------------------------
@@ -81,8 +77,5 @@ if __name__ == "__main__":
     test = Structure.from_file(options.structure)
     des = descriptor(test)
     print(des.libs)
-    print(des.descriptor)
-    print(des.check_valid())
     print(des.merge())
     print('length of the descriptors: ', np.shape(des.merge()))
-
