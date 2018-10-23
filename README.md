@@ -1,4 +1,6 @@
 # PyXtal\_ml
+
+## Overview
 A library of ML training of materials' properties
 - `datasets`: python class to download the data from open database + data in json format
 - `descriptors`: python class for different types of descriptors (RDF, ADF, chemical labeling and enviroments)
@@ -6,6 +8,7 @@ A library of ML training of materials' properties
 - `test`: python class for unit test (to implement)
 - `results`: a collection of results.
 
+## Hierarchy
 This code has the following hierarchy
 ```
 pyxtal_ml
@@ -14,4 +17,11 @@ pyxtal_ml
 ├── datasets -> collection.py -> (json files)
 ├── ml -> methods.py (KRR, KNN, ANN, .etc.)
 ├── test -> (various scripts to test the accuracy and efficiency of the code)
+```
+
+## Installation
+
+```
+# git clone https://github.com/qzhu2017/PyXtal_ml.git
+# python setup.py install
 ```
