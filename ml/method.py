@@ -29,11 +29,11 @@ class method:
         self.prop = prop
         self.tag = tag
         self.test_size = test_size
-        options = ['KNN', 'KRR', 'GradientBoosting', 'RF', 'StochasticGD']
+        self.ml_options = ['KNN', 'KRR', 'GradientBoosting', 'RF', 'StochasticGD']
         self.parameters_level = ['light', 'medium', 'tight']
         self.dict = kwargs
         
-        if self.algo in options:
+        if self.algo in self.ml_options:
             # Split data into training and test sets
             self.X_train, self.X_test, self.Y_train, self.Y_test = train_test_split(self.feature, self.prop, test_size = self.test_size, random_state = 0)
             
@@ -54,95 +54,63 @@ class method:
         """
         for key, value in self.dict.items():
             if value in self.parameters_level:
-                self.level = value # using light, medium, or tight
+                self.level = value # light, medium, or tight
+                self.params_ = self.ml_params[self.algo] # import ml parameters defined in default_params.yaml
                 break
             else:
-                self.level = None # using user's defined parameters
+                self.level = None
+                self.params_ = self.dict # using user's defined parameters
                 break
+        
+    def gridsearch_params(self, level, dict_params_):
+        """
+
+        """
+        keys = []
+        for key, value in dict_params_.items():
+            keys.append(key)
+        if level == 'light':
+            p_grid = {}
+            CV = 2
+        elif level == 'medium':
+            p_grid = {}
+            CV = dict_params_[keys[0]]
+        else: # This should work for 'tight' and user-defined parameters
+            p_grid = dict_params_[keys[1]]
+            CV = dict_params_[keys[0]]
+
+        return p_grid, CV
 
     def ml(self):
         """
 
         """
+        self.read_dict()
+
         if self.algo == 'KNN':
-            grid = self.ml_params[self.algo]
-            self.KNN_grid = grid['params']
-            self.CV = grid['cv']
-            self.read_dict()
-            
-            if self.level == 'light':
-                best_estimator = KNeighborsRegressor()
-            elif self.level == 'medium':
-                best_estimator = GridSearchCV(KNeighborsRegressor(), param_grid = {}, cv = self.CV)
-            elif self.level == 'tight':
-                best_estimator = GridSearchCV(KNeighborsRegressor(), param_grid = self.KNN_grid, cv = self.CV)
-            else: # user-defined parameters
-                self.KNN_grid = self.dict
-                best_estimator = GridSearchCV(KNeighborsRegressor(), param_grid = self.KNN_grid, cv = self.CV)
+
+            self.KNN_grid, self.CV = self.gridsearch_params(self.level, self.ml_params[self.algo])
+            best_estimator = GridSearchCV(KNeighborsRegressor(), param_grid = self.KNN_grid, cv = self.CV)
             
         elif self.algo == 'KRR':
-            grid = self.ml_params[self.algo]
-            self.KRR_grid = grid['params']
-            self.CV = grid['cv']
-            self.read_dict()
 
-            if self.level == 'light':
-                best_estimator = KernelRidge()
-            elif self.level == 'medium':
-                best_estimator = GridSearchCV(KernelRidge(), param_grid = {}, cv = self.CV)
-            elif self.level == 'tight':
-                best_estimator = GridSearchCV(KernelRidge(), param_grid = self.KRR_grid, cv = self.CV)
-            else:
-                self.KRR_grid = self.dict
-                best_estimator = GridSearchCV(KernelRidge(), param_grid = self.KRR_grid, cv = self.CV)
+            self.KRR_grid, self.CV = self.gridsearch_params(self.level, self.ml_params[self.algo])
+            best_estimator = GridSearchCV(KernelRidge(), param_grid = self.KRR_grid, cv = self.CV)
 
         elif self.algo == 'GradientBoosting':
-            grid = self.ml_params[self.algo]
-            self.GB_grid = grid['params']
-            self.CV = grid['cv']
-            self.read_dict()
 
-            if self.level == 'light':
-                best_estimator = GradientBoostingRegressor()
-            elif self.level == 'medium':
-                best_estimator = GridSearchCV(GradientBoostingRegressor(), param_grid = {}, cv = self.CV)
-            elif self.level == 'tight':
-                best_estimator = GridSearchCV(GradientBoostingRegressor(), param_grid = self.GB_grid, cv = self.CV)
-            else: #user-defined parameters
-                self.GB_grid = self.dict
-                best_estimator = GridSearchCV(GradientBoostingRegressor(), param_grid = self.GB_grid, cv = self.CV)
+            self.GB_grid, self.CV = self.gridsearch_params(self.level, self.ml_params[self.algo])
+            best_estimator = GridSearchCV(GradientBoostingRegressor(), param_grid = self.GB_grid, cv = self.CV)
 
         elif self.algo == 'RF':
-            grid = self.ml_params[self.algo]
-            self.RF_grid = grid['params']
-            self.CV = grid['cv']
-            self.read_dict()
 
-            if self.level == 'light':
-                best_estimator = RandomForestRegressor()
-            elif self.level == 'medium':
-                best_estimator = GridSearchCV(RandomForestRegressor(), param_grid = {}, cv = self.CV)
-            elif self.level == 'tight':
-                best_estimator = GridSearchCV(RandomForestRegressor(), param_grid = self.RF_grid, cv = self.CV)
-            else:
-                self.RF_grid = self.dict
-                best_estimator = GridSearchCV(RandomForestRegressor(), param_grid = self.RF_grid, cv = self.CV)
+            self.RF_grid, self.CV = self.gridsearch_params(self.level, self.ml_params[self.algo])
+            best_estimator = GridSearchCV(RandomForestRegressor(), param_grid = self.RF_grid, cv = self.CV)
 
         elif self.algo == 'StochasticGD':
-            grid = self.ml_params[self.algo]
-            self.SGD_grid = grid['params']
-            self.CV = grid['cv']
-            self.read_dict()
 
-            if self.level == 'light':
-                best_estimator = SGDRegressor()
-            elif self.level == 'medium':
-                best_estimator = GridSearchCV(SGDRegressor(), param_grid = {}, cv = self.CV)
-            elif self.level == 'tight':
-                best_estimator = GridSearchCV(SGDRegressor(), param_grid = self.SGD_grid, cv = self.CV)
-            else:
-                self.SGD_grid = self.dict
-                best_estimator = GridSearchCV(SGDRegressor(), param_grid = self.SGD_grid, cv = self.CV)
+            self.SGD_grid, self.CV = self.gridsearch_params(self.level, self.ml_params[self.algo])
+            best_estimator = GridSearchCV(SGDRegressor(), param_grid = self.SGD_grid, cv = self.CV)
 
         best_estimator.fit(self.X_train, self.Y_train)
         self.y_predicted = best_estimator.predict(self.X_test)
@@ -150,9 +118,10 @@ class method:
         self.r2 = r2_score(self.Y_test, self.y_predicted, sample_weight=None)
         self.mae = mean_absolute_error(self.y_predicted, self.Y_test)
         self.estimator = best_estimator
-
+        
         if self.level in ['tight', 'medium']:
             self.cv_result = best_estimator.cv_results_
+
         if self.level == 'tight' or self.level == None:
             self.best_parameters = best_estimator.best_params_
         else:
