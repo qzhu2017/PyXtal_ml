@@ -4,15 +4,17 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
-    name="ml-materials",
-    version="0.1dev",
+    name="pyxtal_ml",
+    version="0.0dev",
     author="Qiang Zhu, Howard Yanxon, David Zagaceta",
     author_email="qiang.zhu@unlv.edu",
-    description="Python code for Machine Learning of Materails' properties",
+    description="Python code for Machine Learning of crystal properties",
     long_description=long_description,
-    url="https://github.com/qzhu2017/ML-Materials",
-    #packages=['pyxtal', 'pyxtal.database'],
-    #package_data={'pyxtal.database': ['*.csv', '*.json']},
+    url="https://github.com/qzhu2017/PyXtal-ml",
+    packages=['pyxtal_ml', 'pyxtal_ml.datasets', 'pyxtal_ml.descriptors', 'pyxtal_ml.ml'],
+    package_data={'pyxtal_ml.datasets': ['*.json'],
+                  'pyxtal_ml.ml': ['*.yaml'],
+                  'pyxtal_ml.descriptors': ['*.json', '*.yaml']},
     classifiers=(
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",

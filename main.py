@@ -1,9 +1,10 @@
 import numpy as np
 import pandas as pd
+import os.path as op
 from tabulate import tabulate
-from descriptors.descriptors import descriptor
-from datasets.collection import Collection
-from ml.method import method
+from pyxtal_ml.descriptors.descriptors import descriptor
+from pyxtal_ml.datasets.collection import Collection
+from pyxtal_ml.ml.method import method
 from time import time
 import warnings
 warnings.filterwarnings("ignore")
@@ -16,11 +17,11 @@ warnings.filterwarnings("ignore")
 #figname = 'test_plot.png'
 #N_sample = None #5000
 
-file = 'datasets/nonmetal_MP_8049.json'
+file = op.join(op.dirname(__file__), 'pyxtal_ml/datasets/nonmetal_MP_8049.json')
 prop = 'formation_energy' #'band_gap'
 feature = 'RDF+ADF+Chem+Charge'  # 'RDF', 'RDF+ADF', 'all'
 algo = 'KNN'
-parameters = 'light' #'medium' #'tight'
+parameters = 'medium' #'medium' #'tight'
 figname = 'test_plot.png'
 N_sample = 200
 

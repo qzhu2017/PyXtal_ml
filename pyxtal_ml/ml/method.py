@@ -11,9 +11,12 @@ import numpy as np
 from sklearn.metrics import mean_absolute_error, r2_score
 from matplotlib import rcParams
 import matplotlib.pyplot as plt
+import os.path as op
+
 rcParams.update({'figure.autolayout': True})
 plt.style.use("bmh")
 sys.path.append('../')
+yaml_path = op.join(op.dirname(__file__), 'default_params.yaml')
 
 class method:
     """
@@ -37,7 +40,7 @@ class method:
             # Split data into training and test sets
             self.X_train, self.X_test, self.Y_train, self.Y_test = train_test_split(self.feature, self.prop, test_size = self.test_size, random_state = 0)
             
-            with open('ml/default_params.yaml', 'r') as stream:
+            with open(yaml_path, 'r') as stream:
                 try:
                     self.ml_params = yaml.load(stream)
                 except yaml.YAMLError as exc:
