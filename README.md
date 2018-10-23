@@ -20,8 +20,14 @@ pyxtal_ml
 ```
 
 ## Installation
-
 ```
 # git clone https://github.com/qzhu2017/PyXtal_ml.git
 # python setup.py install
 ```
+
+## Dependencies:
+* [SciPy 1.0.1](https://www.scipy.org/install.html)
+* [NumPy 1.14.3](https://www.scipy.org/scipylib/download.html)
+* [Scikit-learn](http://scikit-learn.org/stable/)
+* [Pandas 0.20.3](https://pandas.pydata.org/getpandas.html)
+* [Pymatgen](http://pymatgen.org/#getting-pymatgen)
