@@ -1,8 +1,17 @@
-# This file stores all parameters used in the GridSearchCV function by different ML algorithms
-# In the light set, we use the default parameters provided by each ML algorithm with single run of training. 
-# In the medium set, we use the default parameters + cross_validation (cv)
-# In the tight set, we use grid search + cross_validation. The ranges of parameters are given in params 
-
+ANN:
+  cv: 10
+  params:
+    n_estimators:
+    - 10
+    - 30
+    - 60
+    - 90
+    - 150
+    - 250
+    - 500
+    - 750
+    - 1000
+    - 2000
 GradientBoosting:
   cv: 10
   params:
