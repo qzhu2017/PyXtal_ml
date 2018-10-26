@@ -8,6 +8,7 @@ from pyxtal_ml.descriptors.descriptors import descriptor
 from pyxtal_ml.datasets.collection import Collection
 from pyxtal_ml.ml.method import method
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+from progressbar import ProgressBar
 from optparse import OptionParser
 import warnings
 warnings.filterwarnings("ignore")
@@ -53,14 +54,13 @@ class run:
         """
         start = time()
         x = []
-        for i, struc in enumerate(self.strucs):
+        pbar = ProgressBar()
+        for struc in pbar(self.strucs):
             des = descriptor(struc, self.feature).merge()
             if len(x) == 0:
                 x = des
             else:
                 x = np.vstack((x, des))
-            if i%500 == 0:
-                print('{} materials have been processed'.format(i))
 
         y = np.array(self.props)
         X = []
