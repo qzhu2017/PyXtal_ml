@@ -190,8 +190,13 @@ class Voronoi_Descriptors(object):
                     alphas.append(1)
                 else:
                     alphas.append(np.mean(alpha))
+            mean_alphas = np.mean(alphas)
+            alphas_var = np.var(alphas)
 
-            return [np.mean(alphas), np.var(alphas)]
+            if np.isnan(mean_alphas) == True:
+                return [0, 0]
+            else:
+                return [mean_alphas, alphas_var]
 
     def get_environment_attributes(self):
         '''
