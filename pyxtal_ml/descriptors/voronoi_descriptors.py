@@ -257,3 +257,35 @@ class Voronoi_Descriptors(object):
             delta_stats.append(dmax-dmin)
 
         return delta_stats
+
+
+if __name__ == "__main__":
+    # ------------------------ Options -------------------------------------
+    parser = OptionParser()
+    parser.add_option("-c", "--crystal", dest="structure", default='',
+                      help="crystal from file, cif or poscar, REQUIRED",
+                      metavar="crystal")
+
+    (options, args) = parser.parse_args()
+
+    if options.structure.find('cif') > 0:
+        fileformat = 'cif'
+    else:
+        fileformat = 'poscar'
+
+    test = Structure.from_file(options.structure)
+    test.make_supercell([2, 2, 2])
+    voro = Voronoi_Descriptors(test)
+    print('voro.get_packing_efficiency()')
+    print(voro.get_packing_efficiency())
+    print('voro.get_volume_statistics()')
+    print(voro.get_volume_statistics())
+    print('voro.get_effective_coordination_number()')
+    print(voro.get_effective_coordination_number())
+    print('voro.get_bond_statistics()')
+    print(voro.get_bond_statistics())
+    print('voro.get_chemical_ordering_parameters()')
+    print(voro.get_chemical_ordering_parameters())
+    print('voro.get_environment_attributes()')
+    print(voro.get_environment_attributes())
+
