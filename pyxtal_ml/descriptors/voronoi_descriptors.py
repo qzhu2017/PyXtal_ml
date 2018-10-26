@@ -36,6 +36,17 @@ class Voronoi_Descriptors(object):
 
         self.compute_polyhedra()
 
+    def all(self):
+        pef = self.get_packing_efficiency()
+        vstat = self.get_volume_statistics()
+        ecn = self.get_effective_coordination_number()
+        bstat = self.get_bond_statistics()
+        cop = self.get_chemical_ordering_parameters()
+        ea = self.get_environment_attributes()
+        arr = np.hstack((pef, vstat, ecn, bstat, cop, ea))
+
+        return arr
+
     @staticmethod
     def populate_element_dict(elements_list):
         '''
@@ -274,18 +285,22 @@ if __name__ == "__main__":
         fileformat = 'poscar'
 
     test = Structure.from_file(options.structure)
+    voro = Voronoi_Descriptors(test)
+    print(voro.all())
     test.make_supercell([2, 2, 2])
     voro = Voronoi_Descriptors(test)
-    print('voro.get_packing_efficiency()')
-    print(voro.get_packing_efficiency())
-    print('voro.get_volume_statistics()')
-    print(voro.get_volume_statistics())
-    print('voro.get_effective_coordination_number()')
-    print(voro.get_effective_coordination_number())
-    print('voro.get_bond_statistics()')
-    print(voro.get_bond_statistics())
-    print('voro.get_chemical_ordering_parameters()')
-    print(voro.get_chemical_ordering_parameters())
-    print('voro.get_environment_attributes()')
-    print(voro.get_environment_attributes())
+    print(voro.all())
+
+    #print('voro.get_packing_efficiency()')
+    #print(voro.get_packing_efficiency())
+    #print('voro.get_volume_statistics()')
+    #print(voro.get_volume_statistics())
+    #print('voro.get_effective_coordination_number()')
+    #print(voro.get_effective_coordination_number())
+    #print('voro.get_bond_statistics()')
+    #print(voro.get_bond_statistics())
+    #print('voro.get_chemical_ordering_parameters()')
+    #print(voro.get_chemical_ordering_parameters())
+    #print('voro.get_environment_attributes()')
+    #print(voro.get_environment_attributes())
 
