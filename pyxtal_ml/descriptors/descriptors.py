@@ -3,6 +3,7 @@ from pyxtal_ml.descriptors.ADF import ADF
 from pyxtal_ml.descriptors.chem import Chem
 from pyxtal_ml.descriptors.charge import Charge
 from pyxtal_ml.descriptors.DDF import DDF
+from pyxtal_ml.descriptors.voronoi_descriptors import Voronoi_Descriptors
 from pyxtal_ml.descriptors.packing_efficiency import packing_efficiency
 from optparse import OptionParser
 import numpy as np
@@ -33,6 +34,7 @@ class descriptor:
                 self.libs.append(lib)
 
         for lib in self.libs:
+            voro = Voronoi_Descriptors(self.struc)
             if lib == 'RDF':
                 self.descriptor['RDF'] = RDF(self.struc).RDF[1, :]
             elif lib == 'ADF':
@@ -43,9 +45,22 @@ class descriptor:
                 self.descriptor['Chem'] = Chem(self.struc).mean_chem
             elif lib == 'Charge':
                 self.descriptor['Charge'] = Charge(self.struc).mean_chg
-            elif lib == 'Packing_Efficiency':
-                self.descriptor['Packing_Efficiency'] = packing_efficiency(
-                    self.struc).eff
+            elif lib == 'Packing_efficiency':
+                self.descriptor['Packing_efficiency'] = voro.get_packing_efficiency(
+                )
+            elif lib == 'Volume_stats':
+                self.descriptor['Volume_stats'] = voro.get_volume_statistics()
+            elif lib == 'Bond_stats':
+                self.descriptor['Bond_stats'] = voro.get_bond_statistics()
+            elif lib == 'Coord_number':
+                self.descriptor['Coord_number'] = voro.get_effective_coordination_number(
+                )
+            elif lib == 'Chemical_ordering':
+                self.descriptor['Chemical_ordering'] = voro.get_chemical_ordering_parameters(
+                )
+            elif lib == 'Environment_attributes':
+                self.descriptor['Environment_attributes'] = voro.get_environment_attributes(
+                )
 
     def merge(self, keys=None):
         if keys is None:
