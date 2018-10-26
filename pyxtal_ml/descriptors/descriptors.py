@@ -25,7 +25,7 @@ class descriptor:
         self.libs = libs
         self.struc = crystal
         self.descriptor = {}
-        options = ['RDF', 'ADF', 'DDF', 'Chem', 'Charge']
+        options = ['RDF', 'ADF', 'DDF', 'Chem', 'Charge', 'Voronoi']
         self.libs = []
         if libs == 'all':
             self.libs = options
@@ -33,8 +33,13 @@ class descriptor:
             for lib in libs.split('+'):
                 self.libs.append(lib)
 
+        #for lib in self.libs:
+        #    if lib in ['Packing_efficiency, Volume_stats, Bond_stats, Coord_number, Chemical_ordering, Environment_attibutes']:
+        #        voro = Voronoi_Descriptors(self.struc)
+        #        break
+        
         for lib in self.libs:
-            voro = Voronoi_Descriptors(self.struc)
+            #voro = Voronoi_Descriptors(self.struc)
             if lib == 'RDF':
                 self.descriptor['RDF'] = RDF(self.struc).RDF[1, :]
             elif lib == 'ADF':
@@ -45,22 +50,24 @@ class descriptor:
                 self.descriptor['Chem'] = Chem(self.struc).mean_chem
             elif lib == 'Charge':
                 self.descriptor['Charge'] = Charge(self.struc).mean_chg
-            elif lib == 'Packing_efficiency':
-                self.descriptor['Packing_efficiency'] = voro.get_packing_efficiency(
-                )
-            elif lib == 'Volume_stats':
-                self.descriptor['Volume_stats'] = voro.get_volume_statistics()
-            elif lib == 'Bond_stats':
-                self.descriptor['Bond_stats'] = voro.get_bond_statistics()
-            elif lib == 'Coord_number':
-                self.descriptor['Coord_number'] = voro.get_effective_coordination_number(
-                )
-            elif lib == 'Chemical_ordering':
-                self.descriptor['Chemical_ordering'] = voro.get_chemical_ordering_parameters(
-                )
-            elif lib == 'Environment_attributes':
-                self.descriptor['Environment_attributes'] = voro.get_environment_attributes(
-                )
+            elif lib == 'Voronoi':
+                self.descriptor['Voronoi'] = Voronoi_Descriptors(self.struc).all()
+            #elif lib == 'Packing_efficiency':
+            #    self.descriptor['Packing_efficiency'] = voro.get_packing_efficiency(
+            #    )
+            #elif lib == 'Volume_stats':
+            #    self.descriptor['Volume_stats'] = voro.get_volume_statistics()
+            #elif lib == 'Bond_stats':
+            #    self.descriptor['Bond_stats'] = voro.get_bond_statistics()
+            #elif lib == 'Coord_number':
+            #    self.descriptor['Coord_number'] = voro.get_effective_coordination_number(
+            #    )
+            #elif lib == 'Chemical_ordering':
+            #    self.descriptor['Chemical_ordering'] = voro.get_chemical_ordering_parameters(
+            #    )
+            #elif lib == 'Environment_attributes':
+            #    self.descriptor['Environment_attributes'] = voro.get_environment_attributes(
+            #    )
 
     def merge(self, keys=None):
         if keys is None:
@@ -98,6 +105,7 @@ if __name__ == "__main__":
 
     test = Structure.from_file(options.structure)
     des = descriptor(test)
-    print(des.libs)
+    for lib in des.libs:
+        print(lib, len(des.descriptor[lib]))
     print(des.merge())
     print('length of the descriptors: ', np.shape(des.merge()))
