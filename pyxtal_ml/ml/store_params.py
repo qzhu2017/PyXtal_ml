@@ -18,7 +18,10 @@ default_params = {
             'params': {"n_estimators": [10, 30, 60, 90, 150, 250, 500, 750, 1000, 2000]}},
         'StochasticGD':
         {'cv': 10,
-            'params': {"penalty": ['l2', 'elasticnet'], "alpha": [1e5, 1e4, 1e3, 100, 10, 1, 0.1, 1e-2, 1e-3, 1e-4, 1e-5], "learning_rate": ['optimal', 'constant', 'invscaling', 'adaptive']}}
+            'params': {"penalty": ['l2', 'elasticnet'], "alpha": [1e5, 1e4, 1e3, 100, 10, 1, 0.1, 1e-2, 1e-3, 1e-4, 1e-5], "learning_rate": ['optimal', 'constant', 'invscaling', 'adaptive']}},
+	'ANN':
+        {'cv': 10,
+            'params': {"n_estimators": [10, 30, 60, 90, 150, 250, 500, 750, 1000, 2000]}},
         }
 
 
