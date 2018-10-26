@@ -127,7 +127,7 @@ class method:
 
             best_estimator = Sequential()
 #            best_estimator.add(Flatten())
-            best_estimator.add(Dense(673, activation = 'relu', input_dim = 1344))
+            best_estimator.add(Dense(673, activation = 'relu', input_dim = len(self.feature[0])))
             best_estimator.add(Dense(673, activation = 'relu'))
             best_estimator.add(Dense(673, activation = 'relu'))
             best_estimator.add(Dense(output_dim = 1, activation = 'linear'))
