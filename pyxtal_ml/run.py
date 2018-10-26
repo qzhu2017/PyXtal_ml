@@ -21,8 +21,8 @@ class run:
         time:
     """
 
-    def __init__(self, N_sample, jsonfile, algo='KRR', feature='Chem+RDF', 
-                 prop='formation_energy', level='medium'):
+    def __init__(self, jsonfile, N_sample=None, feature='Chem+RDF', 
+                 prop='formation_energy', level='light'):
         """
         Args:
             algo: algorithm in ['KRR', 'KNN', ....]
@@ -31,8 +31,7 @@ class run:
             level: 'light', 'medium', 'tight'
             file: source json file
         """
-        self.algo = algo
-        self.feature = feature
+        self.feature0 = feature
         self.prop = prop
         self.level = level
         self.N_sample = N_sample
@@ -53,43 +52,56 @@ class run:
         convert the structures to descriptors in the format of 1D array
         """
         start = time()
-        x = []
+        print('Calculating the descriptors for {:} materials'.format(len(self.strucs)))
         pbar = ProgressBar()
+        feas = []
         for struc in pbar(self.strucs):
-            des = descriptor(struc, self.feature).merge()
-            if len(x) == 0:
-                x = des
-            else:
-                x = np.vstack((x, des))
-
-        y = np.array(self.props)
-        X = []
-        Y = []
-        for i in range(len(y)):
-            if y[i] != None:
-                Y.append(y[i])
-                X.append(x[i])
-
+            feas.append(descriptor(struc, self.feature0))
         end = time()
         self.time['convert_data'] = end-start
+
+        self.features = feas
+
+    def choose_feature(self, keys=None):
+        """
+        convert the structures to descriptors in the format of 1D array
+        """
+        X = []
+        Y = []
+        for fea, y0 in zip(self.features, self.props):
+            if y0 != None:
+                X.append(fea.merge(keys=keys))
+                Y.append(y0)
         self.X = X
         self.Y = Y
+        if keys is None:
+            self.feature = self.feature0
+        else:
+            self.feature = keys
 
-    def ml_train(self, plot=False, print_info=True):
+    def ml_train(self, algo='KRR', plot=False, print_info=True):
         """
         build machine learning model for X/Y set
         """
-
+        self.algo = algo
+        print('\nML learning with {} algorithm'.format(self.algo))
         tag = {'prop': self.prop, 'feature':self.feature}
         start = time()
         ml = method(feature=self.X, prop=self.Y, algo=self.algo, params=self.level, tag=tag)
         end = time()
-        self.time['ml'] = start - end
+        self.time['ml'] = end-start
         if plot:
             ml.plot_correlation(figname=self.file[:-4]+'_'+self.algo+'.png')
         if print_info:
             ml.print_summary()
         self.ml = ml
+
+    def print_time(self):
+        """
+        print the timings
+        """
+        for tag in self.time.keys():
+            print("{0:<16}  {1:>14.2f} seconds".format(tag, self.time[tag]))
 
     def print_outliers(self):
         """
