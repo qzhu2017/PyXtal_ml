@@ -62,9 +62,16 @@ class descriptor:
                 self.descriptor['Environment_attributes'] = voro.get_environment_attributes(
                 )
 
-    def merge(self):
+    def merge(self, keys=None):
+        if keys is None:
+            keys0 = self.descriptor.keys()
+        else:
+            keys0 = []
+            for key in keys.split('+'):
+                keys0.append(key)
+
         arr = []
-        for key in self.descriptor.keys():
+        for key in keys0:
             if len(self.descriptor[key]) == 0:
                 print(key, np.shape(self.descriptor[key]))
             if len(arr) == 0:
