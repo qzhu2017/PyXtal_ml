@@ -83,7 +83,7 @@ class run:
         else:
             self.feature = keys
 
-    def ml_train(self, algo='KRR', plot=False, print_info=True):
+    def ml_train(self, algo='KRR', plot=False, print_info=True, save=False):
         """
         build machine learning model for X/Y set
         """
@@ -98,6 +98,9 @@ class run:
             ml.plot_correlation(figname=self.file[:-4]+'_'+self.algo+'.png')
         if print_info:
             ml.print_summary()
+        if save:
+            from sklearn.externals import joblib
+            joblib.dump(ml.estimator, algo+'.joblib')
         self.ml = ml
 
     def print_time(self):
