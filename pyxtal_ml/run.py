@@ -56,7 +56,11 @@ class run:
         pbar = ProgressBar()
         feas = []
         for struc in pbar(self.strucs):
-            feas.append(descriptor(struc, self.feature0))
+            try:
+                feas.append(descriptor(struc, self.feature0))
+            except:
+                feas.append([])
+                print('Problem occurs in {}'.format(struc.formula))
         end = time()
         self.time['convert_data'] = end-start
 
@@ -69,7 +73,7 @@ class run:
         X = []
         Y = []
         for fea, y0 in zip(self.features, self.props):
-            if y0 != None:
+            if y0 != None and fea:
                 X.append(fea.merge(keys=keys))
                 Y.append(y0)
         self.X = X
