@@ -21,17 +21,19 @@ yaml_path = op.join(op.dirname(__file__), 'default_params.yaml')
 
 class method:
     """
-    the class of ml model training
+    Class for implementing a machine learning algorithm based on the level of comprehensiveness
+    of training. The minimum inputs to employ this class are type of algorithm, feature as the 
+    descriptors, property to be predicted
     """
 
-    def __init__(self, algo, feature, prop, tag, test_size = 0.3, **kwargs):
+    def __init__(self, algo, feature, prop, pipeline = False, test_size = 0.3, **kwargs):
         """
 
         """
         self.algo = algo
         self.feature = feature
         self.prop = prop
-        self.tag = tag
+        self.tag = {'prop': self.prop, 'feature':self.feature}
         self.test_size = test_size
         self.ml_options = ['KNN', 'KRR', 'GradientBoosting', 'RF', 'StochasticGD', 'ANN', 'SVR', 'Lasso', 'ENet']
         self.parameters_level = ['light', 'medium', 'tight']
@@ -68,6 +70,8 @@ class method:
         
     def gridsearch_params(self, level, dict_params_):
         """
+        
+
 
         """
         keys = []
@@ -130,21 +134,22 @@ class method:
 
             self.Lasso_grid, self.CV = self.gridsearch_params(self.level, self.ml_params[self.algo])
             best_estimator = GridSearchCV(Lasso(), param_grid = self.Lasso_grid, cv = self.CV)
-
-        best_estimator.fit(self.X_train, self.Y_train)
-        self.y_predicted = best_estimator.predict(self.X_test)
-        self.y_predicted0 = best_estimator.predict(self.X_train)
-        self.r2 = r2_score(self.Y_test, self.y_predicted, sample_weight=None)
-        self.mae = mean_absolute_error(self.y_predicted, self.Y_test)
-        self.estimator = best_estimator
         
-        if self.level in ['tight', 'medium']:
-            self.cv_result = best_estimator.cv_results_
+        if pipeline == False:
+            best_estimator.fit(self.X_train, self.Y_train)
+            self.y_predicted = best_estimator.predict(self.X_test)
+            self.y_predicted0 = best_estimator.predict(self.X_train)
+            self.r2 = r2_score(self.Y_test, self.y_predicted, sample_weight=None)
+            self.mae = mean_absolute_error(self.y_predicted, self.Y_test)
+            self.estimator = best_estimator
+        
+            if self.level in ['tight', 'medium']:
+                self.cv_result = best_estimator.cv_results_
 
-        if self.level == 'tight' or self.level == None:
-            self.best_parameters = best_estimator.best_params_
-        else:
-            pass
+            if self.level == 'tight' or self.level == None:
+                self.best_parameters = best_estimator.best_params_
+            else:
+                pass
 
     def plot_correlation(self, figname=None, figsize=(12,8)):
         """
