@@ -91,7 +91,7 @@ class run:
         print('\nML learning with {} algorithm'.format(self.algo))
         tag = {'prop': self.prop, 'feature':self.feature}
         start = time()
-        ml = method(feature=self.X, prop=self.Y, algo=self.algo, params=self.level)
+        ml = method(feature=self.X, prop=self.Y, algo=self.algo, params=self.level,tag=tag)
         end = time()
         self.time['ml'] = end-start
         if plot:
