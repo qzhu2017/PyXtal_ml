@@ -6,9 +6,9 @@ from sklearn.ensemble import RandomForestRegressor,GradientBoostingRegressor
 from sklearn.linear_model import SGDRegressor
 from sklearn.feature_selection import VarianceThreshold
 from sklearn.pipeline import Pipeline
-import keras
-from keras.models import Sequential
-from keras.layers import Dense, Input, Flatten
+#import keras
+#from keras.models import Sequential
+#from keras.layers import Dense, Input, Flatten
 import yaml
 import numpy as np
 from sklearn.metrics import mean_absolute_error, r2_score

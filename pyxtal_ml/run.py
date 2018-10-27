@@ -6,7 +6,7 @@ from tabulate import tabulate
 from time import time
 from pyxtal_ml.descriptors.descriptors import descriptor
 from pyxtal_ml.datasets.collection import Collection
-from pyxtal_ml.ml.method import method
+from pyxtal_ml.ml.ml_sklearn import method
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from progressbar import ProgressBar
 from optparse import OptionParser
