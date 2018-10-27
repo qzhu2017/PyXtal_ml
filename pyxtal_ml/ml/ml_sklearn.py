@@ -6,9 +6,7 @@ from sklearn.ensemble import RandomForestRegressor,GradientBoostingRegressor
 from sklearn.linear_model import SGDRegressor
 from sklearn.feature_selection import VarianceThreshold
 from sklearn.pipeline import Pipeline
-#import keras
-#from keras.models import Sequential
-#from keras.layers import Dense, Input, Flatten
+from sklearn.svm import SVR
 import yaml
 import numpy as np
 from sklearn.metrics import mean_absolute_error, r2_score
@@ -35,7 +33,7 @@ class method:
         self.prop = prop
         self.tag = tag
         self.test_size = test_size
-        self.ml_options = ['KNN', 'KRR', 'GradientBoosting', 'RF', 'StochasticGD', 'ANN']
+        self.ml_options = ['KNN', 'KRR', 'GradientBoosting', 'RF', 'StochasticGD', 'ANN', 'SVR']
         self.parameters_level = ['light', 'medium', 'tight']
         self.dict = kwargs
         
@@ -97,43 +95,33 @@ class method:
 
             self.KNN_grid, self.CV = self.gridsearch_params(self.level, self.ml_params[self.algo])
             best_estimator = GridSearchCV(KNeighborsRegressor(), param_grid = self.KNN_grid, cv = self.CV)
-            best_estimator.fit(self.X_train, self.Y_train)
            
         elif self.algo == 'KRR':
 
             self.KRR_grid, self.CV = self.gridsearch_params(self.level, self.ml_params[self.algo])
             best_estimator = GridSearchCV(KernelRidge(), param_grid = self.KRR_grid, cv = self.CV)
-            best_estimator.fit(self.X_train, self.Y_train)
 
         elif self.algo == 'GradientBoosting':
 
             self.GB_grid, self.CV = self.gridsearch_params(self.level, self.ml_params[self.algo])
             best_estimator = GridSearchCV(GradientBoostingRegressor(), param_grid = self.GB_grid, cv = self.CV)
-            best_estimator.fit(self.X_train, self.Y_train)
 
         elif self.algo == 'RF':
 
             self.RF_grid, self.CV = self.gridsearch_params(self.level, self.ml_params[self.algo])
             best_estimator = GridSearchCV(RandomForestRegressor(), param_grid = self.RF_grid, cv = self.CV)
-            best_estimator.fit(self.X_train, self.Y_train)
 
         elif self.algo == 'StochasticGD':
 
             self.SGD_grid, self.CV = self.gridsearch_params(self.level, self.ml_params[self.algo])
             best_estimator = GridSearchCV(SGDRegressor(), param_grid = self.SGD_grid, cv = self.CV)
-            best_estimator.fit(self.X_train, self.Y_train)
+        
+        elif self.algo == 'SVR':
 
-        elif self.algo == 'ANN':
+            self.SVR_grid, self.CV = self.gridsearch_params(self.level, self.ml_params[self.algo])
+            best_estimator = GridSearchCV(SVR(), param_grid = self.SVR_grid, cv = self.CV)
 
-            best_estimator = Sequential()
-#            best_estimator.add(Flatten())
-            best_estimator.add(Dense(673, activation = 'relu', input_dim = len(self.feature[0])))
-            best_estimator.add(Dense(673, activation = 'relu'))
-            best_estimator.add(Dense(673, activation = 'relu'))
-            best_estimator.add(Dense(output_dim = 1, activation = 'linear'))
-            best_estimator.compile(optimizer = 'sgd', loss = 'mse', metrics = ['accuracy'])
-            best_estimator.fit(np.array(self.X_train), np.array(self.Y_train))
-
+        best_estimator.fit(self.X_train, self.Y_train)
         self.y_predicted = best_estimator.predict(self.X_test)
         self.y_predicted0 = best_estimator.predict(self.X_train)
         self.r2 = r2_score(self.Y_test, self.y_predicted, sample_weight=None)
