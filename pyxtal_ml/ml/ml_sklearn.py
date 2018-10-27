@@ -22,8 +22,19 @@ yaml_path = op.join(op.dirname(__file__), 'default_params.yaml')
 class method:
     """
     Class for implementing a machine learning algorithm based on the level of comprehensiveness
-    of training. The minimum inputs to employ this class are type of algorithm, feature as the 
-    descriptors, property to be predicted
+    of training. All machine learning algorithms is called from Scikit-learn. The minimum inputs 
+    to employ this class are type of algorithm, feature as the descriptors, property to be predicted,
+    and the tag consists of the names of features and properties.
+
+    Args:
+        algo: A string consists of machine learning algorithm defined in ml_options
+        feature: A list of materials' feature
+        prop: An array of materials' property
+        tag: A dict of property and features names
+        pipeline: Add machine learning pipeline to  
+        test_size: a default argument of 0.3 means 30% of data is used for testing 
+            the machine learning model.
+        kwargs: A dictionary of dictionaries of machine learning parameters.
     """
 
     def __init__(self, algo, feature, prop, tag, pipeline = False, test_size = 0.3, **kwargs):
@@ -98,42 +109,42 @@ class method:
 
         if self.algo == 'KNN':
 
-            self.KNN_grid, self.CV = self.gridsearch_params(self.level, self.ml_params[self.algo])
+            self.KNN_grid, self.CV = self.gridsearch_params(self.level, self.params_)
             best_estimator = GridSearchCV(KNeighborsRegressor(), param_grid = self.KNN_grid, cv = self.CV)
            
         elif self.algo == 'KRR':
 
-            self.KRR_grid, self.CV = self.gridsearch_params(self.level, self.ml_params[self.algo])
+            self.KRR_grid, self.CV = self.gridsearch_params(self.level, self.params_)
             best_estimator = GridSearchCV(KernelRidge(), param_grid = self.KRR_grid, cv = self.CV)
 
         elif self.algo == 'GradientBoosting':
 
-            self.GB_grid, self.CV = self.gridsearch_params(self.level, self.ml_params[self.algo])
+            self.GB_grid, self.CV = self.gridsearch_params(self.level, self.params_])
             best_estimator = GridSearchCV(GradientBoostingRegressor(), param_grid = self.GB_grid, cv = self.CV)
 
         elif self.algo == 'RF':
 
-            self.RF_grid, self.CV = self.gridsearch_params(self.level, self.ml_params[self.algo])
+            self.RF_grid, self.CV = self.gridsearch_params(self.level, self.params_)
             best_estimator = GridSearchCV(RandomForestRegressor(), param_grid = self.RF_grid, cv = self.CV)
 
         elif self.algo == 'StochasticGD':
 
-            self.SGD_grid, self.CV = self.gridsearch_params(self.level, self.ml_params[self.algo])
+            self.SGD_grid, self.CV = self.gridsearch_params(self.level, self.params_)
             best_estimator = GridSearchCV(SGDRegressor(), param_grid = self.SGD_grid, cv = self.CV)
         
         elif self.algo == 'SVR':
 
-            self.SVR_grid, self.CV = self.gridsearch_params(self.level, self.ml_params[self.algo])
+            self.SVR_grid, self.CV = self.gridsearch_params(self.level, self.params_)
             best_estimator = GridSearchCV(SVR(), param_grid = self.SVR_grid, cv = self.CV)
 
         elif self.algo == 'ENet':
 
-            self.ENet_grid, self.CV = self.gridsearch_params(self.level, self.ml_params[self.algo])
+            self.ENet_grid, self.CV = self.gridsearch_params(self.level, self.params_)
             best_estimator = GridSearchCV(ElasticNet(), param_grid = self.ENet_grid, cv = self.CV)
 
         elif self.algo == 'Lasso':
 
-            self.Lasso_grid, self.CV = self.gridsearch_params(self.level, self.ml_params[self.algo])
+            self.Lasso_grid, self.CV = self.gridsearch_params(self.level, self.params_)
             best_estimator = GridSearchCV(Lasso(), param_grid = self.Lasso_grid, cv = self.CV)
         
         if self.pipeline == False:
