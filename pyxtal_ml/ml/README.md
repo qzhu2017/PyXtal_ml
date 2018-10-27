@@ -7,6 +7,7 @@ Currently, we focus on the models in `sklearn`
 - Support Vector Regression: `SVR`
 - Gradient Boosting: `GradientBoosting`
 - LASSO: `LASSO`
+- ElasticNet: `ENet`
 - Stochastic gradient descent: `StochasticGD`
 - Artificial Neural Network: `ANN`
 
