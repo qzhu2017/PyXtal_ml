@@ -26,15 +26,16 @@ class method:
     descriptors, property to be predicted
     """
 
-    def __init__(self, algo, feature, prop, pipeline = False, test_size = 0.3, **kwargs):
+    def __init__(self, algo, feature, prop, tag, pipeline = False, test_size = 0.3, **kwargs):
         """
 
         """
         self.algo = algo
         self.feature = feature
         self.prop = prop
-        self.tag = {'prop': self.prop, 'feature':self.feature}
+        self.tag = tag
         self.test_size = test_size
+        self.pipeline = pipeline
         self.ml_options = ['KNN', 'KRR', 'GradientBoosting', 'RF', 'StochasticGD', 'ANN', 'SVR', 'Lasso', 'ENet']
         self.parameters_level = ['light', 'medium', 'tight']
         self.dict = kwargs
@@ -135,7 +136,7 @@ class method:
             self.Lasso_grid, self.CV = self.gridsearch_params(self.level, self.ml_params[self.algo])
             best_estimator = GridSearchCV(Lasso(), param_grid = self.Lasso_grid, cv = self.CV)
         
-        if pipeline == False:
+        if self.pipeline == False:
             best_estimator.fit(self.X_train, self.Y_train)
             self.y_predicted = best_estimator.predict(self.X_test)
             self.y_predicted0 = best_estimator.predict(self.X_train)
