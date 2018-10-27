@@ -4,7 +4,7 @@ from pyxtal_ml.descriptors.chem import Chem
 from pyxtal_ml.descriptors.charge import Charge
 from pyxtal_ml.descriptors.DDF import DDF
 from pyxtal_ml.descriptors.voronoi_descriptors import Voronoi_Descriptors
-from pyxtal_ml.descriptors.packing_efficiency import packing_efficiency
+#from pyxtal_ml.descriptors.packing_efficiency import packing_efficiency
 from optparse import OptionParser
 import numpy as np
 from pymatgen.core.structure import Structure
