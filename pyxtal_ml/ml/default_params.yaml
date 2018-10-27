@@ -12,6 +12,21 @@ ANN:
     - 750
     - 1000
     - 2000
+ENet:
+  cv: 10
+  params:
+    alpha:
+    - 1000.0
+    - 100
+    - 10
+    - 1
+    - 0.1
+    - 0.01
+    - 0.001
+    l1_ratio:
+    - 1
+    - 0.5
+    - 0
 GradientBoosting:
   cv: 10
   params:
@@ -60,6 +75,17 @@ KRR:
     - rbf
     - laplacian
     - linear
+Lasso:
+  cv: 10
+  params:
+    alpha:
+    - 1000.0
+    - 100
+    - 10
+    - 1
+    - 0.1
+    - 0.01
+    - 0.001
 RF:
   cv: 10
   params:

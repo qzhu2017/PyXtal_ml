@@ -3,7 +3,7 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.kernel_ridge import KernelRidge
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.ensemble import RandomForestRegressor,GradientBoostingRegressor
-from sklearn.linear_model import SGDRegressor
+from sklearn.linear_model import SGDRegressor, ElasticNet, Lasso
 from sklearn.feature_selection import VarianceThreshold
 from sklearn.pipeline import Pipeline
 from sklearn.svm import SVR
@@ -33,7 +33,7 @@ class method:
         self.prop = prop
         self.tag = tag
         self.test_size = test_size
-        self.ml_options = ['KNN', 'KRR', 'GradientBoosting', 'RF', 'StochasticGD', 'ANN', 'SVR']
+        self.ml_options = ['KNN', 'KRR', 'GradientBoosting', 'RF', 'StochasticGD', 'ANN', 'SVR', 'Lasso', 'ENet']
         self.parameters_level = ['light', 'medium', 'tight']
         self.dict = kwargs
         
@@ -120,6 +120,16 @@ class method:
 
             self.SVR_grid, self.CV = self.gridsearch_params(self.level, self.ml_params[self.algo])
             best_estimator = GridSearchCV(SVR(), param_grid = self.SVR_grid, cv = self.CV)
+
+        elif self.algo == 'ENet':
+
+            self.ENet_grid, self.CV = self.gridsearch_params(self.level, self.ml_params[self.algo])
+            best_estimator = GridSearchCV(ElasticNet(), param_grid = self.ENet_grid, cv = self.CV)
+
+        elif self.algo == 'Lasso':
+
+            self.Lasso_grid, self.CV = self.gridsearch_params(self.level, self.ml_params[self.algo])
+            best_estimator = GridSearchCV(Lasso(), param_grid = self.Lasso_grid, cv = self.CV)
 
         best_estimator.fit(self.X_train, self.Y_train)
         self.y_predicted = best_estimator.predict(self.X_test)
