@@ -22,7 +22,7 @@ class run:
     """
 
     def __init__(self, jsonfile, N_sample=None, feature='Chem+RDF', 
-                 prop='formation_energy', level='light', pipeline = False):
+                 prop='formation_energy', level='light'):
         """
         Args:
             algo: algorithm in ['KRR', 'KNN', ....]
@@ -34,7 +34,6 @@ class run:
         self.feature0 = feature
         self.prop = prop
         self.level = level
-        self.pipeline = pipeline
         self.N_sample = N_sample
         self.file = jsonfile
         self.time = {}
@@ -84,11 +83,12 @@ class run:
         else:
             self.feature = keys
 
-    def ml_train(self, algo='KRR', plot=False, print_info=True, save=False):
+    def ml_train(self, algo='KRR', pipeline = False, plot=False, print_info=True, save=False):
         """
         build machine learning model for X/Y set
         """
         self.algo = algo
+        self.pipeline = pipeline
         print('\nML learning with {} algorithm'.format(self.algo))
         tag = {'prop': self.prop, 'feature':self.feature}
         start = time()
