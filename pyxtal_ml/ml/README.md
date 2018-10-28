@@ -11,6 +11,10 @@ Currently, we focus on the models in `sklearn`
 - Stochastic gradient descent: `StochasticGD`
 - Artificial Neural Network: `ANN`
 
+In addition, we provide pipeline models to complement the models above:
+- VarianceThreshold: `VT`
+- Principal component analysis: `PCA`
+
 We are also going to explore the Deep Learning methods from `Keras` and `Pytorch` soon.
 
 Typically, one needs to explore the parameter space for each algorithm in order to achieve the best performance. 
