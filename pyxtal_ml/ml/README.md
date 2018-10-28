@@ -13,7 +13,7 @@ Currently, we focus on the models in `sklearn`
 
 In addition, we provide pipeline models to complement the models above:
 - VarianceThreshold: `VT`
-- Principal component analysis: `PCA`
+- Principal components analysis: `PCA`
 
 We are also going to explore the Deep Learning methods from `Keras` and `Pytorch` soon.
 
