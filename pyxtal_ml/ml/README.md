@@ -21,7 +21,7 @@ Typically, one needs to explore the parameter space for each algorithm in order 
 Therefore, we provide three sets of trainings to different algorithm.
 For a standard ML fitting, we use the follwing pipes,
 - split the data to training and test sets
-- choose the estimator ('algo')
+- choose the estimator (`algo`)
 - explore the parameter space
 - process the features 
 - fit and predict
@@ -35,4 +35,4 @@ However, the accuracy/efficiency of ML training is really proceedure and paramet
 
 - **`tight`**: `grid search` + `cross_validation`. This allows an exhaustive exploration to achieve the best performance. But it will require a significant amount of computation time. One has to be very patient!
 
-The default parameter sets are defined in [`default_params.yaml`](https://github.com/qzhu2017/ML-Materials/blob/master/ml/default_params.yaml). It is **human readable and editable**. One can simply modify this set of parameter if needed. On the other hand, one can pass the parameters as the dictionary when calling `ml.method`, these parameters will **override** the parameters used in the existing set if there exists a match. 
+The default parameter sets are defined in [`default_params.yaml`](https://github.com/qzhu2017/PyXtal_ml/blob/master/pyxtal_ml/ml/default_params.yaml). It is **human readable and editable**. One can simply modify this set of parameter if needed. On the other hand, one can pass the parameters as the dictionary when calling `ml.method`, these parameters will **override** the parameters used in the existing set if there exists a match. 
