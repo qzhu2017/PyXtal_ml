@@ -7,6 +7,7 @@ from sklearn.linear_model import SGDRegressor, ElasticNet, Lasso
 from sklearn.feature_selection import VarianceThreshold
 from sklearn.pipeline import Pipeline
 from sklearn.svm import SVR
+from sklearn.decomposition import PCA
 import yaml
 import numpy as np
 from sklearn.metrics import mean_absolute_error, r2_score
@@ -21,17 +22,17 @@ yaml_path = op.join(op.dirname(__file__), 'default_params.yaml')
 
 class method:
     """
-    Class for implementing a machine learning algorithm based on the level of comprehensiveness
+    Class for implementing a machine learning algorithm based on the comprehensiveness level
     of training. All machine learning algorithms is called from Scikit-learn. The minimum inputs 
     to employ this class are type of algorithm, feature as the descriptors, property to be predicted,
     and the tag consists of the names of features and properties.
 
     Args:
-        algo: A string consists of machine learning algorithm defined in ml_options
+        algo: A string consists of machine learning algorithm defined in algo_options
         feature: A list of materials' feature
         prop: An array of materials' property
         tag: A dict of property and features names
-        pipeline: Add machine learning pipeline to  
+        pipeline: Add extra machine learning algorithms to be run one after another 
         test_size: a default argument of 0.3 means 30% of data is used for testing 
             the machine learning model.
         kwargs: A dictionary of dictionaries of machine learning parameters.
@@ -45,19 +46,20 @@ class method:
         self.feature = feature
         self.prop = prop
         self.tag = tag
-        self.test_size = test_size
         self.pipeline = pipeline
-        self.ml_options = ['KNN', 'KRR', 'GradientBoosting', 'RF', 'StochasticGD', 'ANN', 'SVR', 'Lasso', 'ENet']
-        self.parameters_level = ['light', 'medium', 'tight']
+        self.test_size = test_size
         self.dict = kwargs
+        self.algo_options = ['KNN', 'KRR', 'GradientBoosting', 'RF', 'StochasticGD', 'ANN', 'SVR', 'Lasso', 'ENet']
+        self.pipeline_options = ['VT', 'PCA']
+        self.parameters_level = ['light', 'medium', 'tight']
         
-        if self.algo in self.ml_options:
+        if self.algo in self.algo_options:
             # Split data into training and test sets
             self.X_train, self.X_test, self.Y_train, self.Y_test = train_test_split(self.feature, self.prop, test_size = self.test_size, random_state = 0)
             
             with open(yaml_path, 'r') as stream:
                 try:
-                    self.ml_params = yaml.load(stream)
+                    self.algos_params = yaml.load(stream)
                 except yaml.YAMLError as exc:
                     print(exc)
 
@@ -68,38 +70,50 @@ class method:
 
     def read_dict(self):
         """
-        reading dictionary
+        reading from **kwargs argument to determine the comprehensiveness level of training and its parameters
         """
         for key, value in self.dict.items():
             if value in self.parameters_level:
-                self.level = value # light, medium, or tight
-                self.params_ = self.ml_params[self.algo] # import ml parameters defined in default_params.yaml
+                self.level = value                          # light, medium, or tight
+                self.params = self.algos_params[self.algo]  # import ml parameters pre-defined in default_params.yaml
                 break
             else:
                 self.level = None
-                self.params_ = self.dict # using user's defined parameters
+                self.params = self.dict                     # using user-defined parameters
                 break
         
-    def gridsearch_params(self, level, dict_params_):
+    def get_params_for_gridsearch(self, level, params_):
         """
-        
-
-
+        get parameters for GridSearch
         """
         keys = []
-        for key, value in dict_params_.items():
+        for key, value in params_.items():
             keys.append(key)
         if level == 'light':
             p_grid = {}
             CV = 2
         elif level == 'medium':
             p_grid = {}
-            CV = dict_params_[keys[0]]
-        else: # This should work for 'tight' and user-defined parameters
-            p_grid = dict_params_[keys[1]]
-            CV = dict_params_[keys[0]]
+            CV = params_[keys[0]]
+        else:                                               # This should work for 'tight' and user-defined parameters
+            p_grid = params_[keys[1]]
+            CV = params_[keys[0]]
 
         return p_grid, CV
+
+    def get_pipe_params_for_gridsearch(self, algo, grid):
+        """
+        get pipeline parameters for GridSearch
+        """
+        keys = []
+        clf_grid = {}
+        if len(grid) == 0:
+            clf_grid = {}
+        else:
+            for key, value in grid.items():
+                clf_grid[algo+'__'+key] = value
+
+        return clf_grid
 
     def ml(self):
         """
@@ -107,61 +121,62 @@ class method:
         """
         self.read_dict()
 
+        # Main classifier
         if self.algo == 'KNN':
-
-            self.KNN_grid, self.CV = self.gridsearch_params(self.level, self.params_)
-            best_estimator = GridSearchCV(KNeighborsRegressor(), param_grid = self.KNN_grid, cv = self.CV)
+            self.grid, self.CV = self.get_params_for_gridsearch(self.level, self.params)
+            clf = KNeighborsRegressor()
            
         elif self.algo == 'KRR':
-
-            self.KRR_grid, self.CV = self.gridsearch_params(self.level, self.params_)
-            best_estimator = GridSearchCV(KernelRidge(), param_grid = self.KRR_grid, cv = self.CV)
+            self.grid, self.CV = self.get_params_for_gridsearch(self.level, self.params)
+            clf = KernelRidge()
 
         elif self.algo == 'GradientBoosting':
-
-            self.GB_grid, self.CV = self.gridsearch_params(self.level, self.params_])
-            best_estimator = GridSearchCV(GradientBoostingRegressor(), param_grid = self.GB_grid, cv = self.CV)
-
+            self.grid, self.CV = self.get_params_for_gridsearch(self.level, self.params)
+            clf = GradientBoostingRegressor()
+        
         elif self.algo == 'RF':
-
-            self.RF_grid, self.CV = self.gridsearch_params(self.level, self.params_)
-            best_estimator = GridSearchCV(RandomForestRegressor(), param_grid = self.RF_grid, cv = self.CV)
+            self.grid, self.CV = self.get_params_for_gridsearch(self.level, self.params)
+            clf = RandomForestRegressor()
 
         elif self.algo == 'StochasticGD':
-
-            self.SGD_grid, self.CV = self.gridsearch_params(self.level, self.params_)
-            best_estimator = GridSearchCV(SGDRegressor(), param_grid = self.SGD_grid, cv = self.CV)
+            self.grid, self.CV = self.get_params_for_gridsearch(self.level, self.params)
+            clf = SGDRegressor()
         
         elif self.algo == 'SVR':
-
-            self.SVR_grid, self.CV = self.gridsearch_params(self.level, self.params_)
-            best_estimator = GridSearchCV(SVR(), param_grid = self.SVR_grid, cv = self.CV)
+            self.grid, self.CV = self.get_params_for_gridsearch(self.level, self.params)
+            clf = SVR()
 
         elif self.algo == 'ENet':
-
-            self.ENet_grid, self.CV = self.gridsearch_params(self.level, self.params_)
-            best_estimator = GridSearchCV(ElasticNet(), param_grid = self.ENet_grid, cv = self.CV)
+            self.grid, self.CV = self.get_params_for_gridsearch(self.level, self.params)
+            clf = ElasticNet()
 
         elif self.algo == 'Lasso':
-
-            self.Lasso_grid, self.CV = self.gridsearch_params(self.level, self.params_)
-            best_estimator = GridSearchCV(Lasso(), param_grid = self.Lasso_grid, cv = self.CV)
+            self.grid, self.CV = self.get_params_for_gridsearch(self.level, self.params)
+            clf = Lasso()
         
-        if self.pipeline == False:
-            best_estimator.fit(self.X_train, self.Y_train)
-            self.y_predicted = best_estimator.predict(self.X_test)
-            self.y_predicted0 = best_estimator.predict(self.X_train)
-            self.r2 = r2_score(self.Y_test, self.y_predicted, sample_weight=None)
-            self.mae = mean_absolute_error(self.y_predicted, self.Y_test)
-            self.estimator = best_estimator
-        
-            if self.level in ['tight', 'medium']:
-                self.cv_result = best_estimator.cv_results_
+        # Extra classifier
+        if self.pipeline in self.pipeline_options:
+            self.grid = self.get_pipe_params_for_gridsearch(self.algo, self.grid)
+            if self.pipeline == 'VT':
+                estimator = Pipeline(steps=[(self.pipeline, VarianceThreshold()),(self.algo, clf)])
+            elif self.pipeline == 'PCA':
+                estimator = Pipeline(steps=[(self.pipeline, PCA()), (self.algo, clf)])
+        else:
+            estimator = clf
 
-            if self.level == 'tight' or self.level == None:
-                self.best_parameters = best_estimator.best_params_
-            else:
-                pass
+        best_estimator = GridSearchCV(estimator, param_grid = self.grid, cv = self.CV)
+        best_estimator.fit(self.X_train, self.Y_train)
+        self.y_predicted = best_estimator.predict(self.X_test)
+        self.y_predicted0 = best_estimator.predict(self.X_train)
+        self.r2 = r2_score(self.Y_test, self.y_predicted, sample_weight=None)
+        self.mae = mean_absolute_error(self.y_predicted, self.Y_test)
+        self.estimator = best_estimator
+        
+        if self.level in ['tight', 'medium']:
+            self.cv_result = best_estimator.cv_results_
+
+        if self.level == 'tight' or self.level == None:
+            self.best_parameters = best_estimator.best_params_
 
     def plot_correlation(self, figname=None, figsize=(12,8)):
         """

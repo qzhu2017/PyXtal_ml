@@ -22,7 +22,7 @@ class run:
     """
 
     def __init__(self, jsonfile, N_sample=None, feature='Chem+RDF', 
-                 prop='formation_energy', level='light'):
+                 prop='formation_energy', level='light', pipeline = False):
         """
         Args:
             algo: algorithm in ['KRR', 'KNN', ....]
@@ -34,6 +34,7 @@ class run:
         self.feature0 = feature
         self.prop = prop
         self.level = level
+        self.pipeline = pipeline
         self.N_sample = N_sample
         self.file = jsonfile
         self.time = {}
@@ -91,7 +92,7 @@ class run:
         print('\nML learning with {} algorithm'.format(self.algo))
         tag = {'prop': self.prop, 'feature':self.feature}
         start = time()
-        ml = method(feature=self.X, prop=self.Y, algo=self.algo, tag=tag, params=self.level)
+        ml = method(feature=self.X, prop=self.Y, algo=self.algo, tag=tag, pipeline = self.pipeline, params=self.level)
         end = time()
         self.time['ml'] = end-start
         if plot:
