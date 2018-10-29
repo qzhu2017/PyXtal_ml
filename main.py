@@ -13,6 +13,6 @@ runner.load_data()
 runner.convert_data_1D()
 runner.choose_feature()
 for algo in algos:
-    runner.ml_train(algo=algo)
+    runner.ml_train(algo=algo, pipeline=pipeline)
     #runner.print_outliers()
 runner.print_time()
