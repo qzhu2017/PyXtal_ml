@@ -171,9 +171,7 @@ class method:
         self.r2 = r2_score(self.Y_test, self.y_predicted, sample_weight=None)
         self.mae = mean_absolute_error(self.y_predicted, self.Y_test)
         self.estimator = best_estimator
-        
-        if self.level in ['tight', 'medium']:
-            self.cv_result = best_estimator.cv_results_
+        self.cv_result = best_estimator.cv_results_
 
         if self.level == 'tight' or self.level == None:
             self.best_parameters = best_estimator.best_params_
@@ -223,7 +221,6 @@ class method:
         print("Property:           {:>20}".format(self.tag['prop']))
         print("r^2:              {:22.4f}".format(self.r2))
         print("MAE:              {:22.4f}".format(self.mae))
-        if self.level in ['tight', 'medium']:
-            for score, std in zip(self.cv_result['mean_train_score'], self.cv_result['std_train_score']):
-                print("Mean train_score: {:22.4f}".format(score))
-                print("Std train_score:  {:22.4f}".format(std))
+        for score, std in zip(self.cv_result['mean_train_score'], self.cv_result['std_train_score']):
+            print("Mean train_score: {:22.4f}".format(score))
+            print("Std train_score:  {:22.4f}".format(std))
