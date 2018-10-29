@@ -1,14 +1,28 @@
-# Chem+RDF+ADF+Charge (QZ)
+# Chem+RDF+ADF+Charge+Voronoi (QZ & HY)
 With the following parameters in `main.py`
 ```python
 file = 'datasets/nonmetal_MP_8049.json'
 prop = 'formation_energy' #'band_gap'
-feature = 'Chem+RDF+ADF+Charge'  # 'RDF', 'RDF+ADF', 'all'
+feature = 'Chem+RDF+ADF+Charge+Voronoi'  # 'RDF', 'RDF+ADF', 'Chem+RDF+ADF+Charge', 'all'
 algo = 'GradientBoosting'
 parameters = 'light'
 figname = 'test_plot.png'
 N_sample = None #5000
 ```
+```
+----------------------------------------
+------------SUMMARY of ML---------------
+----------------------------------------
+Number of samples:                  8049
+Number of features:                 1383
+Algorithm:              GradientBoosting
+Feature:     Chem+RDF+ADF+Charge+Voronoi
+Property:               formation_energy
+r^2:                              0.9257
+MAE:                              0.2023
+```
+
+# Chem+RDF+ADF+Charge 
 We obtain the following results after commits 141
 ```
 qiangzhu@Qiangs-MBP:~/Desktop/github/ML-Materials$ python main.py 
@@ -50,9 +64,6 @@ MAE:                              0.2217
 ```
 
 ![Example-01](https://github.com/qzhu2017/ML-Materials/blob/master/results/MP-8049.png)
-
-
-
 
 # Chem+ADF+Charge (QZ)
 
