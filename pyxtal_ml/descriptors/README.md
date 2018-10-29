@@ -4,5 +4,5 @@ We provide the interface to many desciptors.
 - `DDF`: Dihedral angle distribution function
 - `Chem`: element dependent dependent chemical labels, inspired by the method used in Jarvis-ML
 - `Charge`: element dependent charges, inspired by the method used in Jarvis-ML
-- `Packing Efficiency`: maximum packing efficiency in cell, inspired by the method used in Matminer
+- `Voronoi`: the Voronoi tessellation of crystal structure, proposed by Ward et at in Phys. Rev. B, 96, 024104 (2017)
 
