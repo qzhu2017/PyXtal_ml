@@ -79,7 +79,8 @@ class method:
                 break
             else:
                 self.level = None
-                self.params = self.dict                     # using user-defined parameters
+                #self.params = self.dict                     # using user-defined parameters
+                self.params = value                     # using user-defined parameters
                 break
         
     def get_params_for_gridsearch(self, level, params_):
@@ -96,8 +97,15 @@ class method:
             p_grid = {}
             CV = params_[keys[0]]
         else:                                               # This should work for 'tight' and user-defined parameters
-            p_grid = params_[keys[1]]
-            CV = params_[keys[0]]
+            if 'cv' in params_.keys():
+                CV = params_['cv']
+            else:
+                CV = 5
+
+            if 'params' in params_.keys():
+                p_grid = params_['params']
+            else:
+                p_grid = {}
 
         return p_grid, CV
 
@@ -221,6 +229,7 @@ class method:
         print("Property:           {:>20}".format(self.tag['prop']))
         print("r^2:              {:22.4f}".format(self.r2))
         print("MAE:              {:22.4f}".format(self.mae))
-        for score, std in zip(self.cv_result['mean_train_score'], self.cv_result['std_train_score']):
+        for score, std, param in zip(self.cv_result['mean_train_score'], self.cv_result['std_train_score'], self.cv_result['params']):
+            print("Parameters: {}".format(param))
             print("Mean train_score: {:22.4f}".format(score))
             print("Std train_score:  {:22.4f}".format(std))

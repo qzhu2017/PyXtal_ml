@@ -52,7 +52,7 @@ class run:
         end = time()
         self.time['load_data'] = end-start
 
-    def convert_data_1D(self, parallel=True, progress=True):
+    def convert_data_1D(self, parallel=False, progress=True):
         """
         convert the structures to descriptors in the format of 1D array
         """
