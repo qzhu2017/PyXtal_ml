@@ -6,7 +6,7 @@ Currently, the available models are:
 - Random Forest: `RF`
 - Support Vector Regression: `SVR`
 - Gradient Boosting: `GradientBoosting`
-- LASSO: `LASSO`
+- LASSO: `Lasso`
 - ElasticNet: `ENet`
 - Stochastic gradient descent: `StochasticGD`
 - Artificial Neural Network: `ANN`
