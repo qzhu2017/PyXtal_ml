@@ -3,6 +3,7 @@ import numpy as np
 from pymatgen.core.structure import Structure
 from pymatgen.core.periodic_table import Element
 from pymatgen.core.bonds import get_bond_length
+from statsmodels import robust
 from optparse import OptionParser
 
 
@@ -112,15 +113,20 @@ class Voronoi_Descriptors(object):
         + 1 number to describe the cell size: 
         '''
         Volume = []
+        Volume_Variance = []
 
         for polyhedron, element in self.polyhedra:
             volume = []
             for face in polyhedron.values():
                 volume.append(face['volume'])
 
-            Volume.append(np.sum(volume))
+            Volume.append(np.mean(volume))
+            Volume_Variance.append(np.std(volume))
 
-        return [np.mean(Volume), np.var(Volume)]
+        Cell_Size = len(self.polyhedra)
+
+        return [np.mean(Volume), np.amax(Volume), np.amin(Volume),
+                np.mean(Volume_Variance), np.ptp(Volume), Cell_Size]
 
     def get_bond_statistics(self):
         '''
@@ -145,9 +151,11 @@ class Voronoi_Descriptors(object):
                                                     face['site'].specie))
 
         mean_bond_lengths = np.mean(bond_lengths)
-        bond_length_variance = np.var(bond_lengths)
+        max_bond_lengths = np.amax(bond_lengths) / mean_bond_lengths
+        min_bond_lengths = np.amin(bond_lengths) / mean_bond_lengths
+        mean_absolute_deviation = robust.mad(bond_lengths) / mean_bond_lengths
 
-        return [mean_bond_lengths, bond_length_variance]
+        return [max_bond_lengths, min_bond_lengths, mean_absolute_deviation]
 
     def get_effective_coordination_number(self):
         '''
@@ -174,7 +182,8 @@ class Voronoi_Descriptors(object):
         for CN in CN_dict.values():
             CN_eff.append(np.mean(CN))
 
-        return [np.mean(CN_eff), np.var(CN_eff)]
+        return [np.mean(CN_eff), np.amax(CN_eff), np.amin(CN_eff),
+                robust.mad(CN_eff)]
 
     def get_chemical_ordering_parameters(self):
         '''
@@ -215,7 +224,7 @@ class Voronoi_Descriptors(object):
             alphas_var = np.var(alphas)
 
             if np.isnan(mean_alphas) == True:
-                return [0, 0]
+                return [1, 0]
             else:
                 return [mean_alphas, alphas_var]
 
@@ -313,4 +322,3 @@ if __name__ == "__main__":
     print(voro.get_chemical_ordering_parameters())
     print('voro.get_environment_attributes()')
     print(voro.get_environment_attributes())
-
