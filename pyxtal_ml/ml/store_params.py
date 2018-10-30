@@ -13,11 +13,11 @@ default_params = {
             'params': {"learning_rate": [0.01, 0.1, 1, 10], "n_estimators": [100, 500, 1000, 1500, 2500, 3000, 4000, 5000]}},
         'RF':
         {'cv': 10,
-            'params': {"n_estimators": [10, 30, 60, 90, 150, 250, 500, 750, 1000, 2000]}},
+            'params': {"n_estimators": [10, 30, 60, 90, 150, 250]}},
         'StochasticGD':
         {'cv': 10,
             'params': {"penalty": ['l2', 'elasticnet'], "alpha": [1e5, 1e4, 1e3, 100, 10, 1, 0.1, 1e-2, 1e-3, 1e-4, 1e-5], "learning_rate": ['optimal', 'constant', 'invscaling', 'adaptive']}},
-	'ANN':
+	    'ANN':
         {'cv': 10,
             'params': {"n_estimators": [10, 30, 60, 90, 150, 250, 500, 750, 1000, 2000]}},
         'SVR':
