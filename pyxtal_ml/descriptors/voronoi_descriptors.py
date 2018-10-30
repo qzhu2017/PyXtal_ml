@@ -106,7 +106,10 @@ class Voronoi_Descriptors(object):
         Computes the mean volume of all Voronoi polyhedra in the structure
 
         returns:
+
             [mean_volume, volume_variance]
+        #QZ: 5 numbers: mean, max, min, avg_dev, range
+        + 1 number to describe the cell size: 
         '''
         Volume = []
 
@@ -126,6 +129,11 @@ class Voronoi_Descriptors(object):
 
         returns:
             [mean bond length, bond lenth variance]
+        #QZ: 3 numbers:
+        mean absolute deviation / the mean average bond length
+        maximum average bond length / the mean average bond length
+        maimmum average bond length / the mean average bond length
+
         '''
 
         bond_lengths = []
@@ -148,6 +156,7 @@ class Voronoi_Descriptors(object):
 
         returns:
             [mean coordination number, coordination number variance]
+        #QZ: the PRB paper says 4 numbers, mean(), max(), min(), mean_abs_deviation()
         '''
         CN_dict = self.populate_element_dict(self.elements)
 
@@ -175,6 +184,7 @@ class Voronoi_Descriptors(object):
 
         returns:
             [mean coordination number, coordination number variance]
+        #QZ: the PRB paper says 3 numbers, mean() for 1st, 2nd and 3rd neighbour shells
         '''
         alphas = []
         Chemical_Ordering = self.populate_element_dict(self.elements)
