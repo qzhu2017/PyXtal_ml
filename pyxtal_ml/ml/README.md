@@ -37,4 +37,4 @@ However, the accuracy/efficiency of ML training is really procedure- and paramet
 
 The default parameter sets are defined in [`default_params.yaml`](https://github.com/qzhu2017/PyXtal_ml/blob/master/pyxtal_ml/ml/default_params.yaml). It is **human readable and editable**. One can simply modify this set of parameter if needed. On the other hand, one can pass the parameters as the dictionary when calling `ml.method`, these parameters will **override** the parameters used in the existing set if there exists a match. 
 
-### COMMING SOON: Deep Learning methods with `Keras` and `Pytorch`.
+### COMING SOON: Deep Learning methods with `Keras` and `Pytorch`.
