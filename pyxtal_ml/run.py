@@ -1,4 +1,5 @@
 import numpy as np
+import sys
 import collections
 import pandas as pd
 import os.path as op
@@ -12,6 +13,10 @@ from progressbar import ProgressBar
 from optparse import OptionParser
 import warnings
 warnings.filterwarnings("ignore")
+
+def f(x):
+    return x*x
+
 
 class run:
     """
@@ -47,24 +52,46 @@ class run:
         end = time()
         self.time['load_data'] = end-start
 
-    def convert_data_1D(self):
+    def convert_data_1D(self, parallel=True, progress=True):
         """
         convert the structures to descriptors in the format of 1D array
         """
+
         start = time()
-        print('Calculating the descriptors for {:} materials'.format(len(self.strucs)))
-        pbar = ProgressBar()
-        feas = []
-        for struc in pbar(self.strucs):
-            try:
-                feas.append(descriptor(struc, self.feature0))
-            except:
-                feas.append([])
-                print('Problem occurs in {}'.format(struc.formula))
+        if progress:
+            import tqdm
+            tqdm_func = tqdm.tqdm
+            strucs = tqdm_func(list(self.strucs), desc=self.__class__.__name__)
+
+        if parallel:
+            from multiprocessing import Pool, cpu_count
+            from functools import partial
+            if type(parallel)==bool:
+                ncpu = cpu_count()
+            else:
+                ncpu = int(parallel)
+            print('---Parallel mode is on, {} cores with be used'.format(ncpu))
+            with Pool(ncpu) as p:
+                func = partial(self.calc_feas)
+                feas = p.map(func, strucs)
+        else:
+            feas = []
+            for struc in strucs:
+                feas.append(self.calc_feas(struc))
+
         end = time()
         self.time['convert_data'] = end-start
-
         self.features = feas
+
+    def calc_feas(self, struc, print_error=False):
+        res={}
+        try:
+            feas = descriptor(struc, self.feature0)
+        except:
+            feas = []
+            if print_error:
+                print('Problems in :', struc.formula)
+        return feas
 
     def choose_feature(self, keys=None):
         """
