@@ -66,6 +66,8 @@ class run:
         if parallel:
             from multiprocessing import Pool, cpu_count
             from functools import partial
+            #QZ: it is not a good idea to use too many number of cpus due to communication
+            #usually, 2-8 should be sufficient
             if type(parallel)==bool:
                 ncpu = cpu_count()
             else:
@@ -74,6 +76,8 @@ class run:
             with Pool(ncpu) as p:
                 func = partial(self.calc_feas)
                 feas = p.map(func, strucs)
+                p.close()
+                p.join()
         else:
             feas = []
             for struc in strucs:
