@@ -35,7 +35,7 @@ However, the accuracy/efficiency of ML training is really procedure- and paramet
 
 - **`tight`**: `grid search` + `cross_validation`. This allows an exhaustive exploration to achieve the best performance. But it will require a significant amount of computation time. One has to be very patient!
 
-- **`user-defined`**: `users can defined their own parameters and k-fold cross-validation`.
+- **`user-defined`**: `users can defined their own k-fold cross-validation and parameters`. For example, users can pass a dictionary in this format, {'cv':5, 'my_parameters': {"learning_rate": [0.1,0.2]}}. Although the names 'cv' and 'my_parameters' do not matter, they need to be in that order, i.e. k-fold cross-validation and parameters. `K-fold cross-validation >= 2`
 
 The default parameter sets are defined in [`default_params.yaml`](https://github.com/qzhu2017/PyXtal_ml/blob/master/pyxtal_ml/ml/default_params.yaml). It is **human readable and editable**. One can simply modify this set of parameter if needed. On the other hand, one can pass the parameters as the dictionary when calling `ml.method`, these parameters will **override** the parameters used in the existing set if there exists a match. 
 
