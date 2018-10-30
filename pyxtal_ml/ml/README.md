@@ -11,15 +11,19 @@ Currently, we focus on the models in `sklearn`
 - Stochastic gradient descent: `StochasticGD`
 - Artificial Neural Network: `ANN`
 
-In addition, we provide pipeline models to complement the models above:
+In addition, we offer add-on models to complement the models above:
 - VarianceThreshold: `VT`
 - Principal components analysis: `PCA`
+
+These add-on models aren't a necessary steps to achieve accurate machine learning predictions. However, these models can increase the accuracy of predictions by manipulating the training input data (i.e. training descriptors). The manipulation involves getting rid of non-contributing descriptors before the training of machine learning algorithm happened. To emphasize, these add-on models only apply to the training descriptors, and this is accomplished through pipeline method from `sklearn`.
+
+Pipeline method applies an add-on model and a machine learning algorithms in order. For example, VarianceThreshold and Random Forest are picked to predict a materials' property. First, pipeline method will apply VarianceThreshold to the training descriptors, i.e. VarianceThreshold removes non-contributing descriptors. Non-contributing descriptors are the descriptors that have variance equals zero by default. Second, pipeline method will perform Random Forest algorithm with the contributing descriptors. These add-on models have the advantage of reducing the size of descriptors without sacrificing any information. Thus, the training time is reduced based on dimensionality factor.
 
 We are also going to explore the Deep Learning methods from `Keras` and `Pytorch` soon.
 
 Typically, one needs to explore the parameter space for each algorithm in order to achieve the best performance. 
-Therefore, we provide three sets of trainings to different algorithm.
-For a standard ML fitting, we use the follwing pipes,
+Therefore, we provide a set of three training levels: light, medium, and tight.
+A standard ML fitting involves these consecutive steps:
 - split the data to training and test sets
 - choose the estimator (`algo`)
 - explore the parameter space
