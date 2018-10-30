@@ -29,14 +29,14 @@ A standard ML fitting involves these consecutive steps:
 
 However, the accuracy/efficiency of ML training is really procedure- and parameter-dependent. Therefore, we generally provide the following a set of three training levels and user-defined parameters: 
 
-- **`light`**: `default parameters` provided by [Scikit-learn](http://scikit-learn.org/stable/) for each ML algorithm with single run of training. This allows a minimum effort to complete the model training. It is useful for quick and dirty test. If the dataset is good, one may still get good fitting from such a brute-force training.
+- **`light`**: `default parameters` provided by [Scikit-learn](http://scikit-learn.org/stable/) for each ML algorithm with single run of training. This allows a minimum effort to complete the model training. It is useful for quick and dirty test. If the dataset is good, users may still get good fitting from such a brute-force training.
 
 - **`medium`**: `default parameters` + `cross_validation`. Cross-validate training with k-fold cross-validation. For `medium`, k-fold equals 10.
 
-- **`tight`**: `grid search` + `cross_validation`. This allows an exhaustive exploration to achieve the best performance. But it will require a significant amount of computation time. One has to be very patient!
+- **`tight`**: `grid search` + `cross_validation`. This allows an exhaustive exploration to achieve the best performance. But it will require a significant amount of computation time. Users has to be very patient!
 
 - **`user-defined`**: `users can defined their own k-fold cross-validation >= 2 and parameters`. For example, users can pass a dictionary in this format, {'cv':5, 'my_parameters': {"learning_rate": [0.1,0.2]}}. Although the names 'cv' and 'my_parameters' do not matter, they need to be in that order, i.e. k-fold cross-validation and parameters.
 
-The default parameter sets are defined in [`default_params.yaml`](https://github.com/qzhu2017/PyXtal_ml/blob/master/pyxtal_ml/ml/default_params.yaml). It is **human readable and editable**. One can simply modify this set of parameter if needed. On the other hand, one can pass the parameters as the dictionary when calling `ml.method`, these parameters will **override** the parameters used in the existing set if there exists a match. 
+Another user-defined-parameters path is by changing the value in the [`default_params.yaml`](https://github.com/qzhu2017/PyXtal_ml/blob/master/pyxtal_ml/ml/default_params.yaml). The default_params.yaml is **human readable and editable**. Users can simply modify this set of parameter if needed. If users pass the parameters as dictionary, the default_params.yaml will be **overriden**.
 
 ### COMING SOON: Deep Learning methods with `Keras` and `Pytorch`.
