@@ -1,19 +1,22 @@
 We offer the interface to many machine learning regression algorithms from [Scikit-learn](http://scikit-learn.org/stable/) to predict materials' properties.
 
 Currently, the available models are:
-- Nearest Neighbor: `KNN`
-- Kernel Ridge Regression: `KRR`
-- Random Forest: `RF`
-- Support Vector Regression: `SVR`
-- Gradient Boosting: `GradientBoosting`
+- K-Nearest Neighbor: `KNeighborsRegressor` or `KNN`
+- Kernel Ridge: `KernelRidge` or `KRR`
+- Support Vector Machine: `SVR`
+- GradientBoosting: `GradientBoostingRegressor` or `GB`
+- RandomForest: `RandomForestRegressor` or `RF`
 - LASSO: `Lasso`
-- ElasticNet: `ENet`
-- Stochastic gradient descent: `StochasticGD`
-- Artificial Neural Network: `ANN`
+- ElasticNet: `ElasticNet` or `ENet`
+- Stochastic Gradient Descent: `SGDRegressor` or `SGD`
+- Artificial Neural Network: `MLPRegressor` or `ANN`
+- Gaussian Process Regressor: `GaussianProcessRegressor` or `GPR`
 
 In addition, we provide add-on models to complement the models above:
-- VarianceThreshold: `VT`
+- VarianceThreshold: `VarianceThreshold` or `VT`
 - Principal components analysis: `PCA`
+
+Note: The format is adopted from Scikit-learn and our short notations. In arfificial neural network, `MLPRegressor` is the term defined by Scikit-learn for ANN regressor, and `ANN` is our short-hand notation.
 
 These add-on models aren't a necessary steps to complete accurate machine learning predictions. However, these models can increase the accuracy of predictions by manipulating the training input data (i.e. training descriptors). The manipulation involves getting rid of non-contributing descriptors before the training of machine learning algorithm happened. To emphasize, these add-on models only apply to the training descriptors, and this is accomplished through pipeline method from `sklearn`.
 
