@@ -27,13 +27,15 @@ A standard ML fitting involves these consecutive steps:
 - cross validation
 - fit and predict
 
-However, the accuracy/efficiency of ML training is really procedure- and parameter-dependent. Therefore, we generally provide the following a set of three training levels: 
+However, the accuracy/efficiency of ML training is really procedure- and parameter-dependent. Therefore, we generally provide the following a set of three training levels and user-defined parameters: 
 
-- **`light`**: `default parameters` provided by each ML algorithm with single run of training. This allows a minimum effort to complete the model training. It is useful for quick and dirty test. If the dataset is good, one may still get good fitting from such a brute-force training.
+- **`light`**: `default parameters` provided by [Scikit-learn](http://scikit-learn.org/stable/) for each ML algorithm with single run of training. This allows a minimum effort to complete the model training. It is useful for quick and dirty test. If the dataset is good, one may still get good fitting from such a brute-force training.
 
-- **`medium`**: `default parameters` + `cross_validation`. To run training multiple times and obtain the averaged score of fitting performance. This is recommended for real application.
+- **`medium`**: `default parameters` + `cross_validation`. Cross-validate training with k-fold cross-validation. For `medium`, k-fold equals 10.
 
 - **`tight`**: `grid search` + `cross_validation`. This allows an exhaustive exploration to achieve the best performance. But it will require a significant amount of computation time. One has to be very patient!
+
+- **`user-defined`**: users can defined their own parameters and k-fold cross-validation.
 
 The default parameter sets are defined in [`default_params.yaml`](https://github.com/qzhu2017/PyXtal_ml/blob/master/pyxtal_ml/ml/default_params.yaml). It is **human readable and editable**. One can simply modify this set of parameter if needed. On the other hand, one can pass the parameters as the dictionary when calling `ml.method`, these parameters will **override** the parameters used in the existing set if there exists a match. 
 
