@@ -242,9 +242,9 @@ class Voronoi_Descriptors(object):
 
             Volumes.append(np.sum(volume))
 
-        Cell_Size = len(self.polyhedra)
+        #Cell_Size = len(self.polyhedra)
 
-        return [self.MAD(Volumes) / np.mean(Volumes), Cell_Size]
+        return self.MAD(Volumes) / np.mean(Volumes) #Cell_Size
 
     def get_bond_statistics(self):
         '''
@@ -433,3 +433,4 @@ if __name__ == "__main__":
     print(voro.get_chemical_ordering_parameters())
     print('voro.get_environment_attributes()')
     print(voro.get_environment_attributes())
+    print(len(voro.all()))
