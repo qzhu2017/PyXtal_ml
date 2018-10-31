@@ -3,7 +3,12 @@ import numpy as np
 from pymatgen.core.structure import Structure, IStructure
 from pymatgen.core.periodic_table import Element, Specie
 from pymatgen.core.bonds import get_bond_length
+from monty.serialization import loadfn
+import os.path as op
 from optparse import OptionParser
+
+filename = op.join(op.dirname(__file__), 'Elements.json')
+ele_data = loadfn(filename)
 
 
 class Voronoi_Descriptors(object):
@@ -116,6 +121,61 @@ class Voronoi_Descriptors(object):
             crystal = IStructure.from_sites(crystal)
 
         return method.get_all_nn_info(crystal)
+
+    @staticmethod
+    def get_chemical_descriptors_from_file(elm, weight):
+        # the current json file has only 82 elements, some are missing
+        elm = str(elm)
+        properties = ['nsvalence', 'npvalence', 'ndvalence', 'nfvalence',
+                      'nsunfill', 'npunfill', 'ndunfill', 'nfunfill',
+                      'first_ion_en']
+        if elm in ['Pa', 'Ac', 'Pu', 'Np', 'Am', 'Bk', 'Cf', 'Cm', 'Es',
+                   'Fm', 'Lr', 'Md', 'No']:
+            elm = 'Th'
+        elif elm in ['Eu', 'Pm']:
+            elm = 'La'
+        elif elm in ['Xe', 'Rn']:
+            elm = 'Kr'
+        elif elm in ['At']:
+            elm = 'I'
+        elif elm in ['Fr']:
+            elm = 'Cs'
+        elif elm in ['Ra']:
+            elm = 'Ba'
+        d = ele_data[elm]
+        arr = []
+        for prop in properties:
+            arr.append(d[prop] * weight)
+        arr += [np.sum(arr[0:4])]  # total valence
+        arr += [np.sum(arr[4:8])]  # total unfilled
+
+        return arr
+
+    @staticmethod
+    def get_chemical_descriptors_from_pymatgen(elm, weight):
+
+        element = elm.data
+        properties = ['Atomic no', 'Atomic mass', 'row', 'col',
+                      'Mendeleev no', 'Atomic radius']
+
+        arr = []
+
+        for prop in properties:
+            if prop == 'row':
+                arr.append(elm.row * weight)
+                continue
+            if prop == 'col':
+                arr.append(elm.group * weight)
+                continue
+            else:
+                arr.append(element[prop] * weight)
+
+        return arr
+
+    def get_descr(self, elm, weight):
+
+        return (np.hstack((self.get_chemical_descriptors_from_file(elm, weight),
+                           self.get_chemical_descriptors_from_pymatgen(elm, weight))))
 
     def Get_stats(self, List, weights=None):
         '''
@@ -309,17 +369,12 @@ class Voronoi_Descriptors(object):
             a list of property statistics in the crystal
         '''
 
-        delta_dict = {'an': [], 'aw': [], 'rn': [], 'cn': [],
-                      'mn': [], 'ar': []}
         # implement valence
 
+        attributes = []
+        surface_areas = []
+
         for polyhedron, element in self.polyhedra:
-            atomic_number = []
-            atomic_weight = []
-            row_number = []
-            column_number = []
-            mendeleev_number = []
-            atomic_radii = []
 
             face_area = []
             element_1 = Element(element)
@@ -327,34 +382,20 @@ class Voronoi_Descriptors(object):
                 area = face['area']
                 element_2 = Element(face['site'].specie)
                 face_area.append(area)
-                atomic_number.append(area*(element_2.data['Atomic no'] -
-                                           element_1.data['Atomic no']))
-                atomic_weight.append(area*(element_2.data['Atomic mass'] -
-                                           element_1.data['Atomic mass']))
-                row_number.append(area*(element_2.row - element_1.row))
-                column_number.append(area*(element_2.group -
-                                           element_1.group))
-                mendeleev_number.append(area*(element_2.data['Mendeleev no'] -
-                                              element_1.data['Mendeleev no']))
-                atomic_radii.append(area*(element_2.data['Atomic radius'] -
-                                          element_1.data['Atomic radius']))
 
-            surface_area = np.sum(face_area)
-            delta_dict['an'].append(np.sum(atomic_number) / surface_area)
-            delta_dict['aw'].append(np.sum(atomic_weight) / surface_area)
-            delta_dict['rn'].append(np.sum(row_number) / surface_area)
-            delta_dict['cn'].append(np.sum(column_number) / surface_area)
-            delta_dict['mn'].append(np.sum(mendeleev_number) / surface_area)
-            delta_dict['ar'].append(np.sum(atomic_radii) / surface_area)
+                element_1_props = self.get_descr(element_1, area)
 
+                element_2_props = self.get_descr(element_2, area)
+
+                attributes.append((element_1_props - element_2_props))
+
+            surface_areas.append(np.sum(face_area))
+
+        attributes = np.array(attributes)
         delta_stats = []
-        for delta in delta_dict.values():
-            delta_stats.append(np.mean(delta))
-            delta_stats.append(np.std(delta))
-            dmax, dmin = np.amax(delta), np.amin(delta)
-            delta_stats.append(dmax)
-            delta_stats.append(dmin)
-            delta_stats.append(dmax-dmin)
+
+        for i, _ in enumerate(attributes[0, :]):
+            delta_stats += self.Get_stats(attributes[:, i])
 
         return delta_stats
 
