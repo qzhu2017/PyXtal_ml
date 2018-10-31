@@ -79,7 +79,6 @@ class method:
                 break
             else:
                 self.level = None
-                #self.params = self.dict                     # using user-defined parameters
                 self.params = value                     # using user-defined parameters
                 break
         
@@ -90,22 +89,19 @@ class method:
         keys = []
         for key, value in params_.items():
             keys.append(key)
+            if type(value) is int:
+                CV = value
+            else:
+                p_grid = value
+                CV = 10
         if level == 'light':
             p_grid = {}
             CV = 2
         elif level == 'medium':
             p_grid = {}
-            CV = params_[keys[0]]
-        else:                                               # This should work for 'tight' and user-defined parameters
-            if 'cv' in params_.keys():
-                CV = params_['cv']
-            else:
-                CV = 5
-
-            if 'params' in params_.keys():
-                p_grid = params_['params']
-            else:
-                p_grid = {}
+        else:                                            # This should work for 'tight' and user-defined parameters
+            pass
+        print('This is: ',p_grid, CV)
 
         return p_grid, CV
 
