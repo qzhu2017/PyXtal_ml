@@ -101,8 +101,7 @@ class method:
             p_grid = {}
         else:                                            # This should work for 'tight' and user-defined parameters
             pass
-        print('This is: ',p_grid, CV)
-
+        
         return p_grid, CV
 
     def get_pipe_params_for_gridsearch(self, algo, grid):
