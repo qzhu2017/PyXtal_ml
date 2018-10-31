@@ -15,10 +15,10 @@ setup(
     package_data={'pyxtal_ml.datasets': ['*.json'],
                   'pyxtal_ml.ml': ['*.yaml'],
                   'pyxtal_ml.descriptors': ['*.json', '*.yaml']},
-    classifiers=(
+    classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
-    ),
+    ],
     requires=['pymatgen', 'numpy', 'scipy', 'sklearn', 'matplotlib'],
 )
