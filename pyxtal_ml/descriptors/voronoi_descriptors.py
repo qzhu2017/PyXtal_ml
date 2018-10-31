@@ -1,9 +1,8 @@
 from pymatgen.analysis.local_env import VoronoiNN
 import numpy as np
-from pymatgen.core.structure import Structure
-from pymatgen.core.periodic_table import Element
+from pymatgen.core.structure import Structure, IStructure
+from pymatgen.core.periodic_table import Element, Specie
 from pymatgen.core.bonds import get_bond_length
-from statsmodels import robust
 from optparse import OptionParser
 
 
@@ -31,6 +30,7 @@ class Voronoi_Descriptors(object):
         '''
         self.crystal = crystal
         self.comp = crystal.composition
+        self.shells = (1, 2, 3)
         # find elements using set intersection
         self.elements = list(
             set(crystal.species).intersection(crystal.species))
@@ -67,6 +67,70 @@ class Voronoi_Descriptors(object):
             element_dict[element] = []
 
         return element_dict
+
+    @staticmethod
+    def weighted_average(List, weights=None):
+        '''
+        Compute the weighted average of a 1-d array
+
+        Args:
+            list:  a 1d float array
+            weights: the weights for the average
+
+        Returns:
+            the weighted average of the array
+        '''
+
+        return np.average(List, weights=weights)
+
+    @staticmethod
+    def MAD(List, weights=None):
+        '''
+        Compute the mean absolute deviation of a 1-d array
+
+        Args:
+            List: A 1d float array
+            weights:  the weights for the calculation
+
+        Returns:
+            the weighted mean absolute deviation of the 1-d array
+        '''
+
+        mean = np.mean(List)
+
+        return np.average(np.abs(np.subtract(List, mean)), weights=weights)
+
+    @staticmethod
+    def get_all_nearest_neighbors(method, crystal):
+        '''
+        Get the nearest neighbor list of a structure
+
+        Args:
+            method: method used to compute nearest_neighbors
+            crystal:  pymatgen structure
+
+        Returns:
+            nearest neighbors
+        '''
+        if isinstance(crystal, Structure):
+            crystal = IStructure.from_sites(crystal)
+
+        return method.get_all_nn_info(crystal)
+
+    def Get_stats(self, List, weights=None):
+        '''
+        Compute the min, max, range, mean, and mean absolute deviation
+        over a 1-d array
+
+        Args:
+            List: a 1-d float array
+
+        Returns:
+            the stats described above
+        '''
+
+        return [np.amin(List), np.amax(List), np.ptp(List),
+                self.weighted_average(List, weights), self.MAD(List, weights)]
 
     def compute_polyhedra(self):
         '''
@@ -107,26 +171,20 @@ class Voronoi_Descriptors(object):
         Computes the mean volume of all Voronoi polyhedra in the structure
 
         returns:
-
-            [mean_volume, volume_variance]
-        #QZ: 5 numbers: mean, max, min, avg_dev, range
-        + 1 number to describe the cell size: 
+            [volume_variance, cell_size]
         '''
-        Volume = []
-        Volume_Variance = []
+        Volumes = []
 
         for polyhedron, element in self.polyhedra:
             volume = []
             for face in polyhedron.values():
                 volume.append(face['volume'])
 
-            Volume.append(np.mean(volume))
-            Volume_Variance.append(np.std(volume))
+            Volumes.append(np.sum(volume))
 
         Cell_Size = len(self.polyhedra)
 
-        return [np.mean(Volume), np.amax(Volume), np.amin(Volume),
-                np.mean(Volume_Variance), np.ptp(Volume), Cell_Size]
+        return [self.MAD(Volumes) / np.mean(Volumes), Cell_Size]
 
     def get_bond_statistics(self):
         '''
@@ -134,28 +192,32 @@ class Voronoi_Descriptors(object):
         of the crystal using Voronoi polyhedra
 
         returns:
-            [mean bond length, bond lenth variance]
-        #QZ: 3 numbers:
-        mean absolute deviation / the mean average bond length
-        maximum average bond length / the mean average bond length
-        maimmum average bond length / the mean average bond length
+            see Get_stats
+
 
         '''
 
-        bond_lengths = []
+        avg_bond_lengths = []
+        bond_length_var = []
 
         for polyhedron, element in self.polyhedra:
             bond_lengths = []
+            face_areas = []
             for face in polyhedron.values():
-                bond_lengths.append(get_bond_length(element,
-                                                    face['site'].specie))
+                bond_lengths.append(face['face_dist'] * 2)
+                face_areas.append(face['area'])
+            mean = self.weighted_average(bond_lengths, face_areas)
+            avg_bond_lengths.append(mean)
+            bond_length_var.append(self.MAD(bond_lengths, face_areas) / mean)
 
-        mean_bond_lengths = np.mean(bond_lengths)
-        max_bond_lengths = np.amax(bond_lengths) / mean_bond_lengths
-        min_bond_lengths = np.amin(bond_lengths) / mean_bond_lengths
-        mean_absolute_deviation = robust.mad(bond_lengths) / mean_bond_lengths
+        avg_bond_lengths /= np.mean(avg_bond_lengths)
 
-        return [max_bond_lengths, min_bond_lengths, mean_absolute_deviation]
+        features = [self.MAD(avg_bond_lengths), np.amin(avg_bond_lengths),
+                    np.amax(avg_bond_lengths)]
+
+        features += self.Get_stats(bond_length_var)
+
+        return features
 
     def get_effective_coordination_number(self):
         '''
@@ -163,8 +225,7 @@ class Voronoi_Descriptors(object):
         for all elements in the crystal using Voronoi polyhedra
 
         returns:
-            [mean coordination number, coordination number variance]
-        #QZ: the PRB paper says 4 numbers, mean(), max(), min(), mean_abs_deviation()
+            see Get_stats
         '''
         CN_dict = self.populate_element_dict(self.elements)
 
@@ -182,8 +243,7 @@ class Voronoi_Descriptors(object):
         for CN in CN_dict.values():
             CN_eff.append(np.mean(CN))
 
-        return [np.mean(CN_eff), np.amax(CN_eff), np.amin(CN_eff),
-                robust.mad(CN_eff)]
+        return self.Get_stats(CN_eff)
 
     def get_chemical_ordering_parameters(self):
         '''
@@ -195,38 +255,48 @@ class Voronoi_Descriptors(object):
             [mean coordination number, coordination number variance]
         #QZ: the PRB paper says 3 numbers, mean() for 1st, 2nd and 3rd neighbour shells
         '''
-        alphas = []
-        Chemical_Ordering = self.populate_element_dict(self.elements)
-        for polyhedron, element in self.polyhedra:
-            face_area = []
-            atomic_fraction = []
-            ordering_faces = []
-            for face in polyhedron.values():
-                face_area.append(face['area'])
-                if element == face['site'].specie:
-                    atomic_fraction.append(
-                        self.comp.get_atomic_fraction(element))
-                    ordering_faces.append(face['area'])
+        if len(self.crystal.composition) == 1:
+            return [0]*len(self.shells)
 
-            ordering_faces = np.array(ordering_faces)
-            atomic_fraction = np.array(atomic_fraction)
-            face_area = np.array(face_area)
-            Chemical_Ordering[element].append(np.mean(1-ordering_faces /
-                                                      atomic_fraction /
-                                                      face_area.sum()))
+        # Get a list of types
+        elems, fracs = zip(*self.crystal.composition.element_composition.
+                           fractional_composition.items())
 
-            for alpha in Chemical_Ordering.values():
-                if len(alpha) == 0:
-                    alphas.append(1)
-                else:
-                    alphas.append(np.mean(alpha))
-            mean_alphas = np.mean(alphas)
-            alphas_var = np.var(alphas)
+        # Precompute the list of NNs in the structure
+        weight = 'area'
+        voro = VoronoiNN(weight=weight)
+        all_nn = self.get_all_nearest_neighbors(voro, self.crystal)
 
-            if np.isnan(mean_alphas) == True:
-                return [1, 0]
-            else:
-                return [mean_alphas, alphas_var]
+        # Evaluate each shell
+        output = []
+        for shell in self.shells:
+            # Initialize an array to store the ordering parameters
+            ordering = np.zeros((len(self.crystal), len(elems)))
+
+            # Get the ordering of each type of each atom
+            for site_idx in range(len(self.crystal)):
+                nns = voro._get_nn_shell_info(self.crystal, all_nn, site_idx,
+                                              shell)
+
+                # Sum up the weights
+                total_weight = sum(x['weight'] for x in nns)
+
+                # Get weight by type
+                for nn in nns:
+                    site_elem = nn['site'].specie.element \
+                        if isinstance(nn['site'].specie, Specie) else \
+                        nn['site'].specie
+                    elem_idx = elems.index(site_elem)
+                    ordering[site_idx, elem_idx] += nn['weight']
+
+                # Compute the ordering parameter
+                ordering[site_idx, :] = 1 - ordering[site_idx, :] / \
+                    total_weight / np.array(fracs)
+
+            # Compute the average ordering for the entire structure
+            output.append(np.abs(ordering).mean())
+
+        return output
 
     def get_environment_attributes(self):
         '''
