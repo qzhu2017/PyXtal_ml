@@ -49,8 +49,10 @@ class method:
         self.pipeline = pipeline
         self.test_size = test_size
         self.dict = kwargs
-        self.algo_options = ['KNN', 'KRR', 'GradientBoosting', 'RF', 'StochasticGD', 'ANN', 'SVR', 'Lasso', 'ENet']
-        self.pipeline_options = ['VT', 'PCA']
+        self.algo_options = ['KNN', 'KneighborsRegressor', 'KRR', 'KernelRidge', 'GB', 'GradientBoosting', 
+                'RF', 'RandomForestRegressor', 'SGD', 'SGDRegressor', 'MLPRegressor', 'ANN', 'SVR', 
+                'Lasso', 'ElasticNet', 'ENet', 'GaussianProcessRegressor', 'GPR']
+        self.pipeline_options = ['VT', 'VarianceThreshold', 'PCA']
         self.parameters_level = ['light', 'medium', 'tight']
         
         if self.algo in self.algo_options:
@@ -125,23 +127,23 @@ class method:
         self.read_dict()
 
         # Main classifier
-        if self.algo == 'KNN':
+        if self.algo == 'KNN' or self.algo == 'KNeighborsRegressor':
             self.grid, self.CV = self.get_params_for_gridsearch(self.level, self.params)
             clf = KNeighborsRegressor()
            
-        elif self.algo == 'KRR':
+        elif self.algo == 'KRR' or self.algo == 'KernelRidge':
             self.grid, self.CV = self.get_params_for_gridsearch(self.level, self.params)
             clf = KernelRidge()
 
-        elif self.algo == 'GradientBoosting':
+        elif self.algo == 'GB' or self.algo == 'GradientBoostingRegressor':
             self.grid, self.CV = self.get_params_for_gridsearch(self.level, self.params)
             clf = GradientBoostingRegressor()
         
-        elif self.algo == 'RF':
+        elif self.algo == 'RandomForestRegressor' or self.algo == 'RF':
             self.grid, self.CV = self.get_params_for_gridsearch(self.level, self.params)
             clf = RandomForestRegressor()
 
-        elif self.algo == 'StochasticGD':
+        elif self.algo == 'SGDRegressor' or self.algo == 'SGD':
             self.grid, self.CV = self.get_params_for_gridsearch(self.level, self.params)
             clf = SGDRegressor()
         
@@ -149,7 +151,7 @@ class method:
             self.grid, self.CV = self.get_params_for_gridsearch(self.level, self.params)
             clf = SVR()
 
-        elif self.algo == 'ENet':
+        elif self.algo == 'ElasticNet' or self.algo == 'ENet':
             self.grid, self.CV = self.get_params_for_gridsearch(self.level, self.params)
             clf = ElasticNet()
 
@@ -160,7 +162,7 @@ class method:
         # Extra classifier
         if self.pipeline in self.pipeline_options:
             self.grid = self.get_pipe_params_for_gridsearch(self.algo, self.grid)
-            if self.pipeline == 'VT':
+            if self.pipeline == 'VarianceThreshold' or self.pipeline == 'VT':
                 estimator = Pipeline(steps=[(self.pipeline, VarianceThreshold()),(self.algo, clf)])
             elif self.pipeline == 'PCA':
                 estimator = Pipeline(steps=[(self.pipeline, PCA()), (self.algo, clf)])
