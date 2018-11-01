@@ -127,42 +127,42 @@ class method:
         self.read_dict()
 
         # Main classifier
-        if self.algo == 'KNN' or self.algo == 'KNeighborsRegressor':
+        if self.algo in ['KNN', 'KNeighborsRegressor']:
             self.grid, self.CV = self.get_params_for_gridsearch(self.level, self.params)
             clf = KNeighborsRegressor()
            
-        elif self.algo == 'KRR' or self.algo == 'KernelRidge':
+        elif self.algo in ['KRR', 'KernelRidge']:
             self.grid, self.CV = self.get_params_for_gridsearch(self.level, self.params)
             clf = KernelRidge()
 
-        elif self.algo == 'GB' or self.algo == 'GradientBoostingRegressor':
+        elif self.algo in ['GB', 'GradientBoostingRegressor']:
             self.grid, self.CV = self.get_params_for_gridsearch(self.level, self.params)
             clf = GradientBoostingRegressor()
         
-        elif self.algo == 'RandomForestRegressor' or self.algo == 'RF':
+        elif self.algo in ['RandomForestRegressor', 'RF']:
             self.grid, self.CV = self.get_params_for_gridsearch(self.level, self.params)
             clf = RandomForestRegressor()
 
-        elif self.algo == 'SGDRegressor' or self.algo == 'SGD':
+        elif self.algo in ['SGDRegressor', 'SGD']:
             self.grid, self.CV = self.get_params_for_gridsearch(self.level, self.params)
             clf = SGDRegressor()
         
-        elif self.algo == 'SVR':
+        elif self.algo in ['SVR']:
             self.grid, self.CV = self.get_params_for_gridsearch(self.level, self.params)
             clf = SVR()
 
-        elif self.algo == 'ElasticNet' or self.algo == 'ENet':
+        elif self.algo in ['ElasticNet', 'ENet']:
             self.grid, self.CV = self.get_params_for_gridsearch(self.level, self.params)
             clf = ElasticNet()
 
-        elif self.algo == 'Lasso':
+        elif self.algo in ['Lasso']:
             self.grid, self.CV = self.get_params_for_gridsearch(self.level, self.params)
             clf = Lasso()
         
         # Extra classifier
         if self.pipeline in self.pipeline_options:
             self.grid = self.get_pipe_params_for_gridsearch(self.algo, self.grid)
-            if self.pipeline == 'VarianceThreshold' or self.pipeline == 'VT':
+            if self.pipeline in ['VarianceThreshold', 'VT']:
                 estimator = Pipeline(steps=[(self.pipeline, VarianceThreshold()),(self.algo, clf)])
             elif self.pipeline == 'PCA':
                 estimator = Pipeline(steps=[(self.pipeline, PCA()), (self.algo, clf)])
