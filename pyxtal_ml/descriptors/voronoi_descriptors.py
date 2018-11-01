@@ -242,9 +242,7 @@ class Voronoi_Descriptors(object):
 
             Volumes.append(np.sum(volume))
 
-        Cell_Size = len(self.polyhedra)
-
-        return [self.MAD(Volumes) / np.mean(Volumes), Cell_Size]
+        return [self.MAD(Volumes) / np.mean(Volumes)]
 
     def get_bond_statistics(self):
         '''
