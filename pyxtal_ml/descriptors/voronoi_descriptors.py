@@ -26,6 +26,8 @@ class Voronoi_Descriptors(object):
                   crystal constituents
         polyhedra: the voronoi polyhedra corresponding to
                    each site in the structure
+        shells: the shells to compute voronoi polyhedra over
+                for chemical ordering parameters
     '''
 
     def __init__(self, crystal):
@@ -33,6 +35,7 @@ class Voronoi_Descriptors(object):
         Assign attributes and compute the Voronoi polyhedra of
         the crystal structure using pymatgen functionality
         '''
+        # attributes
         self.crystal = crystal
         self.comp = crystal.composition
         self.shells = (1, 2, 3)
@@ -40,21 +43,30 @@ class Voronoi_Descriptors(object):
         self.elements = list(
             set(crystal.species).intersection(crystal.species))
 
+        # call compute polyhedra method to assign polyhedra attribute
         self.compute_polyhedra()
 
     def all(self):
+        '''
+        Computes all Voronoi polyhedra features
+
+        Calls all voronoi features and stacks them
+        into a 1-d array
+        '''
+        # call voronoi feature methods
         pef = self.get_packing_efficiency()
         vstat = self.get_volume_statistics()
         ecn = self.get_effective_coordination_number()
         bstat = self.get_bond_statistics()
         cop = self.get_chemical_ordering_parameters()
         ea = self.get_environment_attributes()
+
+        # stack into 1-d array
         arr = np.hstack((pef, vstat, ecn, bstat, cop, ea))
 
         return arr
 
-    @staticmethod
-    def populate_element_dict(elements_list):
+    def populate_element_dict(self):
         '''
         For features that depend on elements, populate a dictionary
         of empty lists with each element in the structure as a key
@@ -67,43 +79,48 @@ class Voronoi_Descriptors(object):
 
         '''
 
+        # create an empty dictionary
         element_dict = {}
-        for element in elements_list:
+        # iterate over element attribute to create
+        # a dictionary of empty lists with the constituent
+        # elements as keys
+        for element in self.elements:
             element_dict[element] = []
 
         return element_dict
 
     @staticmethod
-    def weighted_average(List, weights=None):
+    def weighted_average(array, weights=None):
         '''
         Compute the weighted average of a 1-d array
 
         Args:
-            list:  a 1d float array
-            weights: the weights for the average
+            array:  a 1-d array or list
+            weights: weights corresponding to each element in the list
 
         Returns:
             the weighted average of the array
         '''
 
-        return np.average(List, weights=weights)
+        return np.average(array, weights=weights)
 
     @staticmethod
-    def MAD(List, weights=None):
+    def MAD(array, weights=None):
         '''
         Compute the mean absolute deviation of a 1-d array
 
         Args:
-            List: A 1d float array
-            weights:  the weights for the calculation
+            array: A 1-d array or list
+            weights:  weights corresponding to each element of the
+                      array
 
         Returns:
             the weighted mean absolute deviation of the 1-d array
         '''
 
-        mean = np.mean(List)
-
-        return np.average(np.abs(np.subtract(List, mean)), weights=weights)
+        mean = np.mean(array)
+        # mean absolute deviation
+        return np.average(np.abs(np.subtract(array, mean)), weights=weights)
 
     @staticmethod
     def get_all_nearest_neighbors(method, crystal):
@@ -117,18 +134,37 @@ class Voronoi_Descriptors(object):
         Returns:
             nearest neighbors
         '''
+        # check that the passed crystal is a pymatgen structure object
         if isinstance(crystal, Structure):
+            # make the structure an immutable object
             crystal = IStructure.from_sites(crystal)
 
+        # get the voronoi info of the crystal
         return method.get_all_nn_info(crystal)
 
     @staticmethod
     def get_chemical_descriptors_from_file(elm, weight):
-        # the current json file has only 82 elements, some are missing
+        '''
+        Calls certain elemental properties from the Elements.json file
+        to use as weighted chemical environment attributes
+
+        Args:
+            elm: a pymatgen element object
+            weight: a numerical value to be used as a weight for
+                    these attributes
+
+        Returns:
+            an array of chemical environment attributes
+        '''
+        # convert the element object to a string for indexing of the json file
         elm = str(elm)
+
+        # compute the below elemental properties
         properties = ['nsvalence', 'npvalence', 'ndvalence', 'nfvalence',
                       'nsunfill', 'npunfill', 'ndunfill', 'nfunfill',
                       'first_ion_en']
+
+        # the current json file has only 82 elements, some are missing
         if elm in ['Pa', 'Ac', 'Pu', 'Np', 'Am', 'Bk', 'Cf', 'Cm', 'Es',
                    'Fm', 'Lr', 'Md', 'No']:
             elm = 'Th'
@@ -142,18 +178,37 @@ class Voronoi_Descriptors(object):
             elm = 'Cs'
         elif elm in ['Ra']:
             elm = 'Ba'
-        d = ele_data[elm]
+
+        # call the elemental specfic dictionary
+        data = ele_data[elm]
+
+        # populate an empty list with the above elemental properties
         arr = []
         for prop in properties:
-            arr.append(d[prop] * weight)
+            # gather the property and multiply by the weight
+            arr.append(data[prop] * weight)
+
+        # items 0-3 correspond to the occupancies of the valence structure
         arr += [np.sum(arr[0:4])]  # total valence
+        # items 4-7 correspond to the vacancies of the valence structure
         arr += [np.sum(arr[4:8])]  # total unfilled
 
         return arr
 
     @staticmethod
     def get_chemical_descriptors_from_pymatgen(elm, weight):
+        '''
+        Calls certain elemental properties from Pymatgen to use
+        as weighted chemical environment attributes
 
+        Args:
+            elm: a pymatgen element object
+            weight: a numerical value to be used as a weight
+                    for these attributes
+
+        Returns:
+            an array of chemical environment attributes
+        '''
         element = elm.data
         properties = ['Atomic no', 'Atomic mass', 'row', 'col',
                       'Mendeleev no', 'Atomic radius']
@@ -173,24 +228,37 @@ class Voronoi_Descriptors(object):
         return arr
 
     def get_descr(self, elm, weight):
+        '''
+        Calls chemical attributes from pymatgen and a json file
+
+        Args:
+            elm: a pymatgen element object
+            weight: a numerical value to be used as a weight
+                    for these attributes
+
+        Returns:
+            an array of weighted chemical envronment attributes
+        '''
 
         return (np.hstack((self.get_chemical_descriptors_from_file(elm, weight),
                            self.get_chemical_descriptors_from_pymatgen(elm, weight))))
 
-    def Get_stats(self, List, weights=None):
+    def Get_stats(self, array, weights=None):
         '''
         Compute the min, max, range, mean, and mean absolute deviation
         over a 1-d array
 
         Args:
-            List: a 1-d float array
+            Array: a 1-d float array
+            weights: a numerical value to be used as a weight
+                     for the chemical environment attributes
 
         Returns:
             the stats described above
         '''
 
-        return [np.amin(List), np.amax(List), np.ptp(List),
-                self.weighted_average(List, weights), self.MAD(List, weights)]
+        return [np.amin(array), np.amax(array), np.ptp(array),
+                self.weighted_average(array, weights), self.MAD(array, weights)]
 
     def compute_polyhedra(self):
         '''
@@ -199,8 +267,11 @@ class Voronoi_Descriptors(object):
         a list as an attribute
         '''
 
+        # call the voronoi object
         voronoi = VoronoiNN()
-        self.polyhedra = []
+        self.polyhedra = []  # declare polyhedra attribute
+        # populate the attribute with the polyhedron associated with each
+        # atomic site
         for i, _ in enumerate(self.crystal):
             self.polyhedra.append((voronoi.get_voronoi_polyhedra(self.crystal, i),
                                    self.crystal[i].specie))
@@ -215,6 +286,8 @@ class Voronoi_Descriptors(object):
         '''
         maximum_radii = []
 
+        # find the minimum distance from the center of the polyhedron
+        # to the polyhedron faces
         for polyhedron, element in self.polyhedra:
             radii = []
 
@@ -222,7 +295,8 @@ class Voronoi_Descriptors(object):
                 radii.append(face['face_dist'])
 
             maximum_radii.append(min(radii))
-
+        # sum up all of the sphere volumes corresponding to the
+        # minimum face distances
         return [4/3 * np.pi * np.power(maximum_radii, 3).sum()
                 / self.crystal.volume]
 
@@ -231,10 +305,11 @@ class Voronoi_Descriptors(object):
         Computes the mean volume of all Voronoi polyhedra in the structure
 
         returns:
-            [volume_variance, cell_size]
+            [volume_variance / mean_volume]
         '''
         Volumes = []
 
+        # find the volume associated with each polyhedron
         for polyhedron, element in self.polyhedra:
             volume = []
             for face in polyhedron.values():
@@ -251,8 +326,6 @@ class Voronoi_Descriptors(object):
 
         returns:
             see Get_stats
-
-
         '''
 
         avg_bond_lengths = []
@@ -262,14 +335,22 @@ class Voronoi_Descriptors(object):
             bond_lengths = []
             face_areas = []
             for face in polyhedron.values():
+                # call the bond lengths and face areas (weights)
                 bond_lengths.append(face['face_dist'] * 2)
                 face_areas.append(face['area'])
+
+            # compute the weighted average of the bond lengths
             mean = self.weighted_average(bond_lengths, face_areas)
             avg_bond_lengths.append(mean)
+            # compute the weighted mean absolute deviation of the bond lengths
+            # divided by the mean
             bond_length_var.append(self.MAD(bond_lengths, face_areas) / mean)
 
+        # normalize the average bond lengths by the mean
         avg_bond_lengths /= np.mean(avg_bond_lengths)
 
+        ''' compute the mean absolute deviation, max and min of the average
+            bond lengths '''
         features = [self.MAD(avg_bond_lengths), np.amin(avg_bond_lengths),
                     np.amax(avg_bond_lengths)]
 
@@ -285,19 +366,24 @@ class Voronoi_Descriptors(object):
         returns:
             see Get_stats
         '''
-        CN_dict = self.populate_element_dict(self.elements)
+        # populate a dictionary of empty lists with keys
+        # for each element in the crystal
+        CN_dict = self.populate_element_dict()
 
+        # find the coordination number for each elemet
         for polyhedron, element in self.polyhedra:
             face_area = []
             for face in polyhedron.values():
                 face_area.append(face['area'])
 
             face_area = np.array(face_area)
+            # square of the sum divided by the sum of squares
             CN_dict[element].append(
                 (face_area.sum()**2)/((face_area**2).sum()))
 
         CN_eff = []
-
+        ''' populate the a list with the average coordination numbers
+            associated with each element '''
         for CN in CN_dict.values():
             CN_eff.append(np.mean(CN))
 
@@ -311,7 +397,6 @@ class Voronoi_Descriptors(object):
 
         returns:
             [mean coordination number, coordination number variance]
-        #QZ: the PRB paper says 3 numbers, mean() for 1st, 2nd and 3rd neighbour shells
         '''
         if len(self.crystal.composition) == 1:
             return [0]*len(self.shells)
@@ -367,32 +452,41 @@ class Voronoi_Descriptors(object):
             a list of property statistics in the crystal
         '''
 
-        # implement valence
-
         attributes = []
-        surface_areas = []
-
+        ''' call selected chemical environment attributes
+          compute the differences of environment attributes in the structure
+          weight those differences using face areas of the polyhedra '''
         for polyhedron, element in self.polyhedra:
 
+            polyhedron_attributes = []
             face_area = []
             element_1 = Element(element)
             for face in polyhedron.values():
                 area = face['area']
                 element_2 = Element(face['site'].specie)
                 face_area.append(area)
-
+                # see get_descr method
                 element_1_props = self.get_descr(element_1, area)
 
                 element_2_props = self.get_descr(element_2, area)
+                # differences in properties
+                polyhedron_attributes.append(
+                    (element_1_props - element_2_props))
+            # normalize by the surface area of the polyhedron
+            surface_area = np.sum(face_area)
+            for i, att in enumerate(polyhedron_attributes):
+                polyhedron_attributes[i] / surface_area
 
-                attributes.append((element_1_props - element_2_props))
+            # add the attribute to the list of attributes
+            attributes += polyhedron_attributes
 
-            surface_areas.append(np.sum(face_area))
-
+        # conver to array
         attributes = np.array(attributes)
         delta_stats = []
 
+        # iterate over columns ( each property corresponds to a row )
         for i, _ in enumerate(attributes[0, :]):
+            # see get stats
             delta_stats += self.Get_stats(attributes[:, i])
 
         return delta_stats
