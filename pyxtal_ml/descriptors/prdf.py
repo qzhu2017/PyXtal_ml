@@ -147,7 +147,7 @@ class PRDF(object):
            the first element in the tuple is the site information'''
         for i, site in enumerate(self._crystal):
             ele_1 = self._crystal[i].species_string
-            for j, neighbor in enumerate(neighbors[i]):  # QZ: this is wrong!
+            for j, neighbor in enumerate(neighbors[i]):
                 ele_2 = neighbors[i][j][0].species_string
                 '''again the conditions ensure that the element combinations
                    are ordered alphabetically'''
