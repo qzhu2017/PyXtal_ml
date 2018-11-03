@@ -180,6 +180,7 @@ class PRDF(object):
 
             # only compute the RDF if the list is nonempty
             if len(distances[comb]) == 0:
+                print('{} is empty, perhaps need to increase R_max'.format(comb))
                 continue
 
             hist, _ = np.histogram(distances[comb], bins, density=True)
