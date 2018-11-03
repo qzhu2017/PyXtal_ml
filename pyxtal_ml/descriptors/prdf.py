@@ -24,9 +24,9 @@ class PRDF(object):
         R_bin: bin length when computing the RDF
 
     Attributes:
-        PRDF: the pairwise radial distribution function
+        PRDF: the pairwise radial distribution function integrals
         prdf_dict: the dictionary of pairwise radial distribution
-                   functions
+                   function integrals
     '''
 
     def __init__(self, crystal, symmetrize=True,
@@ -57,7 +57,7 @@ class PRDF(object):
     def create_RDF_table(self):
         '''
         Creates a dictionary with pairwise element combination keys
-        with R_max / R_bin length zero vectors.
+        with zero values.
         '''
         self.prdf_dict = {}
         elements = []
@@ -114,8 +114,9 @@ class PRDF(object):
 
     def compute_PRDF(self):
         '''
-        Compute the pairwise radial distribution functions of all possible
-        combinations of constituent elements in the given crystal structure
+        Compute the pairwise radial distribution function integrals of all
+        possible combinations of constituent elements in the given crystal
+        structure
         '''
 
         # get all neighbors up to R_max
