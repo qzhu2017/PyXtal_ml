@@ -177,8 +177,10 @@ class PRDF(object):
             '''use numpy's histogram function to find a propability density
                associated with each bin for the RDF'''
 
+            # only compute the RDF if the list is nonempty
             if len(distances[comb]) == 0:
                 continue
+
             hist, _ = np.histogram(distances[comb], bins, density=True)
             # RDF = counts / (volume * site density * sites in primitive cell)
             rdf = (hist / shell_volume / site_density / neighbors_length)
