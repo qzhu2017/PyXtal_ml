@@ -183,7 +183,7 @@ class PRDF(object):
                 print('{} is empty, perhaps need to increase R_max'.format(comb))
                 continue
 
-            hist, _ = np.histogram(distances[comb], bins, density=True)
+            hist, _ = np.histogram(distances[comb], bins, density=False)
             # RDF = counts / (volume * site density * sites in primitive cell)
             rdf = (hist / shell_volume / site_density / neighbors_length)
             # integrate the distribution function using a monte carlo integral
