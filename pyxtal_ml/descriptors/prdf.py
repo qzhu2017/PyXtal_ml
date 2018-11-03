@@ -147,8 +147,8 @@ class PRDF(object):
            the first element in the tuple is the site information'''
         for i, site in enumerate(self._crystal):
             ele_1 = self._crystal[i].species_string
-            for j, neighbor in enumerate(neighbors): #QZ: this is wrong!
-                ele_2 = neighbors[i][j][0].species_string 
+            for j, neighbor in enumerate(neighbors[i]):  # QZ: this is wrong!
+                ele_2 = neighbors[i][j][0].species_string
                 '''again the conditions ensure that the element combinations
                    are ordered alphabetically'''
                 if ele_1 <= ele_2:
@@ -219,9 +219,11 @@ if __name__ == "__main__":
         fileformat = 'poscar'
 
     test = Structure.from_file(options.structure)
-    f1 = PRDF(test, symmetrize=False, R_max=options.Rmax, R_bin=options.delta).PRDF
+    f1 = PRDF(test, symmetrize=False, R_max=options.Rmax,
+              R_bin=options.delta).PRDF
     test.make_supercell([2, 2, 2])
-    f2 = PRDF(test, symmetrize=False, R_max=options.Rmax, R_bin=options.delta).PRDF
+    f2 = PRDF(test, symmetrize=False, R_max=options.Rmax,
+              R_bin=options.delta).PRDF
     diff = f1-f2
     print(len(diff))
-    print(diff[abs(diff)>0.1])
+    print(diff[abs(diff) > 0.1])
