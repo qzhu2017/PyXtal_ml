@@ -6,6 +6,7 @@ from monty.serialization import loadfn
 import itertools
 import os.path as op
 from optparse import OptionParser
+from scipy.interpolate import interp1d
 
 filename = op.join(op.dirname(__file__), 'element_charge.json')
 ele_data = loadfn(filename)
@@ -74,16 +75,42 @@ class PRDF(object):
                alphabetical order
 
                the pairwise element combinations ( Bi-Te ) are used as keys to
-               access a dictionary of pairwise RDF's corresponding to each
-               every possible elemental pair, all RDF's are populated
-               initially as zero vectors of length R_max / R_bin'''
+               access a dictionary of pairwise RDF integrals corresponding to
+               each every possible elemental pair, all RDF integrals are
+               populated initially as zero values'''
             if comb[0] <= comb[1]:
-                self.prdf_dict[comb[0]+'-'+comb[1]
-                               ] = np.zeros(round(self._R_max / self._R_bin))
+                self.prdf_dict[comb[0]+'-'+comb[1]] = 0
 
             else:
-                self.prdf_dict[comb[1]+'-'+comb[0]
-                               ] = np.zeros(round(self._R_max / self._R_bin))
+                self.prdf_dict[comb[1]+'-'+comb[0]] = 0
+
+    @staticmethod
+    def monte_carlo_integral(x_max, y, N=10**5):
+        '''A monte carlo integral from 0 to x_max
+
+        Args:
+            x_max: the maximum domain value
+            y: function values corresponding to each x
+            N: number of points in MC integral
+
+        Returns:
+            the integral of y=f(x) over the domain 0 -> xmax'''
+
+        height = np.amax(y)
+        width = x_max
+        area = height*width
+
+        x = np.linspace(0, x_max, len(y))
+        interpolate = interp1d(x, y, kind='cubic')
+
+        y_guess = np.random.random(N)*height
+
+        X = np.linspace(0, x_max, N)
+        y_interpolated = interpolate(X)
+
+        count = (y_interpolated >= y_guess).sum()
+
+        return count * area / N
 
     def compute_PRDF(self):
         '''
@@ -144,25 +171,28 @@ class PRDF(object):
         # length of neighbors array (the number of atoms in the primitive cell)
         neighbors_length = len(neighbors)
 
-        '''populate the prdf_dict with the pairwise rdfs associated with the
+        '''populate the prdf_dict with the pairwise rdf integrals associated with the
            distance information in the distance dictionary'''
         for comb in distances.keys():
             '''use numpy's histogram function to find a propability density
                associated with each bin for the RDF'''
+
+            if len(distances[comb]) == 0:
+                continue
             hist, _ = np.histogram(distances[comb], bins, density=True)
-
             # RDF = counts / (volume * site density * sites in primitive cell)
-            self.prdf_dict[comb] = (hist / shell_volume / site_density /
-                                    neighbors_length)
+            rdf = (hist / shell_volume / site_density / neighbors_length)
+            # integrate the distribution function using a monte carlo integral
+            self.prdf_dict[comb] = self.monte_carlo_integral(self._R_max, rdf)
 
-        '''stack all prdf arrays so that the descriptor length
+        '''stack all prdf integrals so that the descriptor length
            is invariant between crystal structure so long as
            r_max and r_bin are held constant'''
         for i, PRDF in enumerate(self.prdf_dict.values()):
             if i == 0:
-                self.PRDF = PRDF
+                self.PRDF = [PRDF]
             else:
-                self.PRDF = np.hstack((self.PRDF, PRDF))
+                self.PRDF.append(PRDF)
 
 
 if __name__ == "__main_":
