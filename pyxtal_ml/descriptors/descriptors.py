@@ -3,6 +3,7 @@ from pyxtal_ml.descriptors.ADF import ADF
 from pyxtal_ml.descriptors.chem import Chem
 from pyxtal_ml.descriptors.charge import Charge
 from pyxtal_ml.descriptors.DDF import DDF
+from pyxtal_ml.descriptors.prdf import PRDF
 from pyxtal_ml.descriptors.voronoi_descriptors import Voronoi_Descriptors
 from optparse import OptionParser
 import numpy as np
@@ -24,7 +25,7 @@ class descriptor:
         self.libs = libs
         self.struc = crystal
         self.descriptor = {}
-        options = ['RDF', 'ADF', 'DDF', 'Chem', 'Charge', 'Voronoi']
+        options = ['RDF', 'ADF', 'DDF', 'Chem', 'Charge', 'Voronoi', 'PRDF']
         self.libs = []
         if libs == 'all':
             self.libs = options
@@ -32,11 +33,11 @@ class descriptor:
             for lib in libs.split('+'):
                 self.libs.append(lib)
 
-        #for lib in self.libs:
+        # for lib in self.libs:
         #    if lib in ['Packing_efficiency, Volume_stats, Bond_stats, Coord_number, Chemical_ordering, Environment_attibutes']:
         #        voro = Voronoi_Descriptors(self.struc)
         #        break
-        
+
         for lib in self.libs:
             #voro = Voronoi_Descriptors(self.struc)
             if lib == 'RDF':
@@ -50,21 +51,24 @@ class descriptor:
             elif lib == 'Charge':
                 self.descriptor['Charge'] = Charge(self.struc).mean_chg
             elif lib == 'Voronoi':
-                self.descriptor['Voronoi'] = Voronoi_Descriptors(self.struc).all()
-            #elif lib == 'Packing_efficiency':
+                self.descriptor['Voronoi'] = Voronoi_Descriptors(
+                    self.struc).all()
+            elif lib == 'PRDF':
+                self.descriptor['PRDF'] = PRDF(self.struc).PRDF
+            # elif lib == 'Packing_efficiency':
             #    self.descriptor['Packing_efficiency'] = voro.get_packing_efficiency(
             #    )
-            #elif lib == 'Volume_stats':
+            # elif lib == 'Volume_stats':
             #    self.descriptor['Volume_stats'] = voro.get_volume_statistics()
-            #elif lib == 'Bond_stats':
+            # elif lib == 'Bond_stats':
             #    self.descriptor['Bond_stats'] = voro.get_bond_statistics()
-            #elif lib == 'Coord_number':
+            # elif lib == 'Coord_number':
             #    self.descriptor['Coord_number'] = voro.get_effective_coordination_number(
             #    )
-            #elif lib == 'Chemical_ordering':
+            # elif lib == 'Chemical_ordering':
             #    self.descriptor['Chemical_ordering'] = voro.get_chemical_ordering_parameters(
             #    )
-            #elif lib == 'Environment_attributes':
+            # elif lib == 'Environment_attributes':
             #    self.descriptor['Environment_attributes'] = voro.get_environment_attributes(
             #    )
 
@@ -84,6 +88,7 @@ class descriptor:
                 arr = self.descriptor[key]
             else:
                 arr = np.hstack((arr, self.descriptor[key]))
+        print(np.shape(arr))
         return arr
 
 
