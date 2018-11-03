@@ -50,11 +50,11 @@ class PRDF(object):
         # populate private crystal attribute
         self._crystal = crystal
 
-        self.create_RDF_table()
+        self._create_RDF_table()
 
-        self.compute_PRDF()
+        self._compute_PRDF()
 
-    def create_RDF_table(self):
+    def _create_RDF_table(self):
         '''
         Creates a dictionary with pairwise element combination keys
         with zero values.
@@ -85,7 +85,7 @@ class PRDF(object):
                 self.prdf_dict[comb[1]+'-'+comb[0]] = 0
 
     @staticmethod
-    def monte_carlo_integral(x_max, y, N=10**5):
+    def _monte_carlo_integral(x_max, y, N=10**5):
         '''A monte carlo integral from 0 to x_max
 
         Args:
@@ -112,7 +112,7 @@ class PRDF(object):
 
         return count * area / N
 
-    def compute_PRDF(self):
+    def _compute_PRDF(self):
         '''
         Compute the pairwise radial distribution function integrals of all
         possible combinations of constituent elements in the given crystal
@@ -187,7 +187,7 @@ class PRDF(object):
             # RDF = counts / (volume * site density * sites in primitive cell)
             rdf = (hist / shell_volume / site_density / neighbors_length)
             # integrate the distribution function using a monte carlo integral
-            self.prdf_dict[comb] = self.monte_carlo_integral(self._R_max, rdf)
+            self.prdf_dict[comb] = self._monte_carlo_integral(self._R_max, rdf)
 
         '''stack all prdf integrals so that the descriptor length
            is invariant between crystal structure so long as
