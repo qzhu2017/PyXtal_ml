@@ -88,7 +88,7 @@ class descriptor:
                 arr = self.descriptor[key]
             else:
                 arr = np.hstack((arr, self.descriptor[key]))
-        print(np.shape(arr))
+        #print(np.shape(arr))
         return arr
 
 

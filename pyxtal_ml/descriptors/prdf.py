@@ -30,7 +30,7 @@ class PRDF(object):
     '''
 
     def __init__(self, crystal, symmetrize=True,
-                 R_max=6, R_bin=0.2):
+                 R_max=6.0, R_bin=0.2, print_error=False):
         '''
         '''
         # populate the private attributes
@@ -52,7 +52,10 @@ class PRDF(object):
 
         self._create_RDF_table()
 
+        self.ErrorMsg = []
         self._compute_PRDF()
+        if print_error and len(self.ErrorMsg):
+            print(self.ErrorMsg)
 
     def _create_RDF_table(self):
         '''
@@ -180,7 +183,7 @@ class PRDF(object):
 
             # only compute the RDF if the list is nonempty
             if len(distances[comb]) == 0:
-                print('{} is empty, perhaps need to increase R_max'.format(comb))
+                self.ErrorMsg.append('{0} is empty in {1}, perhaps need to increase R_max'.format(comb, self._crystal.formula))
                 continue
 
             hist, _ = np.histogram(distances[comb], bins, density=False)
