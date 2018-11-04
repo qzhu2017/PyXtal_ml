@@ -8,6 +8,8 @@ from sklearn.feature_selection import VarianceThreshold
 from sklearn.pipeline import Pipeline
 from sklearn.svm import SVR
 from sklearn.decomposition import PCA
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.neural_network import MLPRegressor
 import yaml
 import numpy as np
 from sklearn.metrics import mean_absolute_error, r2_score
@@ -158,6 +160,18 @@ class method:
         elif self.algo in ['Lasso']:
             self.grid, self.CV = self.get_params_for_gridsearch(self.level, self.params)
             clf = Lasso()
+
+        elif self.algo in ['GaussianProcessRegressor', 'GRP']:
+            self.grid, self.CV = self.get_params_for_gridsearch(self.level, self.params)
+            clf = GaussianProcessRegressor()
+
+        elif self.algo in ['MLPRegressor', 'ANN']:
+            self.grid, self.CV = self.get_params_for_gridsearch(self.level, self.params)
+            clf = MLPRegressor()
+
+        elif self.algo in ['GaussianProcessRegressor', 'GPR']:
+            self.grid, self.CV = self.get_params_for_gridsearch(self.level, self.params)
+            clf = GaussianProcessRegressor()
         
         # Extra classifier
         if self.pipeline in self.pipeline_options:

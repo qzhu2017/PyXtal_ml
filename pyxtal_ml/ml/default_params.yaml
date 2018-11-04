@@ -1,17 +1,13 @@
 ANN:
   cv: 10
   params:
-    n_estimators:
-    - 10
-    - 30
-    - 60
-    - 90
-    - 150
-    - 250
-    - 500
-    - 750
-    - 1000
-    - 2000
+    hidden_layer_sizes:
+    - 50
+    - 100
+    learning_rate:
+    - invscaling
+    solver:
+    - lbfgs
 ENet:
   cv: 10
   params:
@@ -27,6 +23,12 @@ ENet:
     - 1
     - 0.5
     - 0
+GPR:
+  cv: 10
+  params:
+    kernel:
+    - WhiteKernel
+    - ExpSineSquared
 GradientBoosting:
   cv: 10
   params:
