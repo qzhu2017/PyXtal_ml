@@ -65,3 +65,23 @@ convert_data              146.13 seconds
 ml                         56.95 seconds
 ```
 
+## Training on 25923 materials from Jarvis
+```
+ML learning with RF algorithm
+----------------------------------------
+-------------SUMMARY of ML--------------
+----------------------------------------
+Number of samples:                 25923
+Number of features:                 4998
+Algorithm:                            RF
+Feature:                       PRDF+Chem
+Property:               formation_energy
+r^2:                              0.9316
+MAE:                              0.1589
+Parameters: {'n_estimators': 10}
+Mean train_score:                 0.9843
+Std train_score:                  0.0010
+load_data                   8.41 seconds
+convert_data              533.22 seconds
+ml                        254.84 seconds
+```
