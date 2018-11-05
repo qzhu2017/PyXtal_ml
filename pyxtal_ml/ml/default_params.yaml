@@ -27,8 +27,29 @@ GPR:
   cv: 10
   params:
     kernel:
-    - WhiteKernel
-    - ExpSineSquared
+    - !!python/object:sklearn.gaussian_process.kernels.WhiteKernel
+      noise_level: 1.0
+      noise_level_bounds: &id001 !!python/tuple
+      - 1.0e-05
+      - 100000.0
+    - !!python/object:sklearn.gaussian_process.kernels.ExpSineSquared
+      length_scale: 1.0
+      length_scale_bounds: &id002 !!python/tuple
+      - 1.0e-05
+      - 100000.0
+      periodicity: 1.0
+      periodicity_bounds: &id003 !!python/tuple
+      - 1.0e-05
+      - 100000.0
+    - !!python/object:sklearn.gaussian_process.kernels.Sum
+      k1: !!python/object:sklearn.gaussian_process.kernels.WhiteKernel
+        noise_level: 1.0
+        noise_level_bounds: *id001
+      k2: !!python/object:sklearn.gaussian_process.kernels.ExpSineSquared
+        length_scale: 1.0
+        length_scale_bounds: *id002
+        periodicity: 1.0
+        periodicity_bounds: *id003
 GradientBoosting:
   cv: 10
   params:

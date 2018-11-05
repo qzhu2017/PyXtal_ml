@@ -1,5 +1,9 @@
 import yaml
 import numpy as np
+from sklearn.gaussian_process.kernels import (RBF, WhiteKernel, Matern, RationalQuadratic,
+                                                ExpSineSquared, DotProduct,
+                                                ConstantKernel)
+
 
 default_params = {
         'KNN':
@@ -34,7 +38,7 @@ default_params = {
             'params': {"hidden_layer_sizes": [50, 100], "solver": ['lbfgs'], "learning_rate": ['invscaling']}},
         'GPR':
         {'cv': 10,
-            'params': {"kernel": ['WhiteKernel', 'ExpSineSquared']}}
+            'params': {"kernel": [WhiteKernel(), ExpSineSquared(), WhiteKernel()+ExpSineSquared()]}}
         }
 
 

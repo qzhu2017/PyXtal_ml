@@ -9,6 +9,9 @@ from sklearn.pipeline import Pipeline
 from sklearn.svm import SVR
 from sklearn.decomposition import PCA
 from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import (RBF, WhiteKernel, Matern, RationalQuadratic, 
+                                                ExpSineSquared, DotProduct, 
+                                                ConstantKernel)
 from sklearn.neural_network import MLPRegressor
 import yaml
 import numpy as np
@@ -171,7 +174,7 @@ class method:
 
         elif self.algo in ['GaussianProcessRegressor', 'GPR']:
             self.grid, self.CV = self.get_params_for_gridsearch(self.level, self.params)
-            clf = GaussianProcessRegressor()
+            clf = GaussianProcessRegressor(alpha = 1000.0)
         
         # Extra classifier
         if self.pipeline in self.pipeline_options:
