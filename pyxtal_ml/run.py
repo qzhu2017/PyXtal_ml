@@ -5,6 +5,11 @@ import pandas as pd
 import os.path as op
 from tabulate import tabulate
 from time import time
+from sklearn.preprocessing import (MinMaxScaler, minmax_scale, MaxAbsScaler, maxabs_scale, KernelCenterer,
+                            StandardScaler, RobustScaler, robust_scale, Normalizer, Binarizer, 
+                            PolynomialFeatures, FunctionTransformer, PowerTransformer, 
+                            QuantileTransformer, quantile_transform, OrdinalEncoder, OneHotEncoder, 
+                            KBinsDiscretizer)
 from pyxtal_ml.descriptors.descriptors import descriptor
 from pyxtal_ml.datasets.collection import Collection
 from pyxtal_ml.ml.ml_sklearn import method
@@ -17,7 +22,6 @@ warnings.filterwarnings("ignore")
 def f(x):
     return x*x
 
-
 class run:
     """
     a class of production runs of pyxtal_ml
@@ -27,7 +31,7 @@ class run:
     """
 
     def __init__(self, jsonfile, N_sample=None, feature='Chem+RDF', 
-                 prop='formation_energy', level='light'):
+                 prop='formation_energy', level='light', scale_feature = False):
         """
         Args:
             algo: algorithm in ['KRR', 'KNN', ....]
@@ -42,6 +46,7 @@ class run:
         self.N_sample = N_sample
         self.file = jsonfile
         self.time = {}
+        self.scale_feature = scale_feature
 
     def load_data(self):
         """
@@ -51,6 +56,14 @@ class run:
         self.strucs, self.props = Collection(self.file, self.prop, self.N_sample).extract_struc_prop()
         end = time()
         self.time['load_data'] = end-start
+
+    def feature_scaling(self, X):
+        """
+        feature scaling with an appropriate algorithm of your choice
+        """
+        X = eval(self.scale_feature).fit_transform(X)
+
+        return X
 
     def convert_data_1D(self, parallel=False, progress=True):
         """
@@ -107,7 +120,13 @@ class run:
             if y0 != None and fea:
                 X.append(fea.merge(keys=keys))
                 Y.append(y0)
-        self.X = X
+
+        # Check if feature scaling has value
+        if self.scale_feature != False:
+            self.X = self.feature_scaling(X)
+        else:
+            self.X = X
+
         self.Y = Y
         if keys is None:
             self.feature = self.feature0
