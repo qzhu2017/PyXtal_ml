@@ -31,7 +31,7 @@ class run:
     """
 
     def __init__(self, jsonfile, N_sample=None, feature='Chem+RDF', 
-                 prop='formation_energy', level='light', scale_feature = False):
+                 prop='formation_energy', level='light', feature_scaling = False):
         """
         Args:
             algo: algorithm in ['KRR', 'KNN', ....]
@@ -46,7 +46,7 @@ class run:
         self.N_sample = N_sample
         self.file = jsonfile
         self.time = {}
-        self.scale_feature = scale_feature
+        self.feature_scaling = feature_scaling+'()'
 
     def load_data(self):
         """
@@ -57,11 +57,11 @@ class run:
         end = time()
         self.time['load_data'] = end-start
 
-    def feature_scaling(self, X):
+    def apply_feature_scaling(self, X):
         """
         feature scaling with an appropriate algorithm of your choice
         """
-        X = eval(self.scale_feature).fit_transform(X)
+        X = eval(self.feature_scaling).fit_transform(X)
 
         return X
 
@@ -122,8 +122,8 @@ class run:
                 Y.append(y0)
 
         # Check if feature scaling has value
-        if self.scale_feature != False:
-            self.X = self.feature_scaling(X)
+        if self.feature_scaling != False:
+            self.X = self.apply_feature_scaling(X)
         else:
             self.X = X
 
