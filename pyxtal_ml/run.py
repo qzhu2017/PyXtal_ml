@@ -31,7 +31,7 @@ class run:
     """
 
     def __init__(self, jsonfile, N_sample=None, feature='Chem+RDF', 
-                 prop='formation_energy', level='light', feature_scaling = False):
+                 prop='formation_energy', level='light'):
         """
         Args:
             algo: algorithm in ['KRR', 'KNN', ....]
@@ -46,7 +46,6 @@ class run:
         self.N_sample = N_sample
         self.file = jsonfile
         self.time = {}
-        self.feature_scaling = feature_scaling+'()'
 
     def load_data(self):
         """
@@ -56,14 +55,6 @@ class run:
         self.strucs, self.props = Collection(self.file, self.prop, self.N_sample).extract_struc_prop()
         end = time()
         self.time['load_data'] = end-start
-
-    def apply_feature_scaling(self, X):
-        """
-        feature scaling with an appropriate algorithm of your choice
-        """
-        X = eval(self.feature_scaling).fit_transform(X)
-
-        return X
 
     def convert_data_1D(self, parallel=False, progress=True):
         """
@@ -121,28 +112,25 @@ class run:
                 X.append(fea.merge(keys=keys))
                 Y.append(y0)
 
-        # Check if feature scaling has value
-        if self.feature_scaling != False:
-            self.X = self.apply_feature_scaling(X)
-        else:
-            self.X = X
-
+        self.X = X
         self.Y = Y
         if keys is None:
             self.feature = self.feature0
         else:
             self.feature = keys
 
-    def ml_train(self, algo='KRR', pipeline = False, plot=False, print_info=True, save=False):
+    def ml_train(self, algo='KRR', pipeline = False, feature_scaling=False, plot=False, print_info=True, save=False):
         """
         build machine learning model for X/Y set
         """
         self.algo = algo
         self.pipeline = pipeline
+        self.feature_scaling = feature_scaling
         print('\nML learning with {} algorithm'.format(self.algo))
         tag = {'prop': self.prop, 'feature':self.feature}
         start = time()
-        ml = method(feature=self.X, prop=self.Y, algo=self.algo, tag=tag, pipeline = self.pipeline, params=self.level)
+        ml = method(feature=self.X, prop=self.Y, algo=self.algo, tag=tag, 
+                pipeline = self.pipeline, feature_scaling = self.feature_scaling, params=self.level)
         end = time()
         self.time['ml'] = end-start
         if plot:
