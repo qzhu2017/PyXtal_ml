@@ -56,7 +56,7 @@ class method:
         self.prop = prop
         self.tag = tag
         self.pipeline = pipeline
-        self.feature_scaling = feature_scaling+'()'
+        self.feature_scaling = feature_scaling
         self.test_size = test_size
         self.dict = kwargs
         self.algo_options = ['KNN', 'KneighborsRegressor', 'KRR', 'KernelRidge', 'GB', 'GradientBoosting', 
@@ -90,7 +90,7 @@ class method:
         """
         feature scaling with an appropriate algorithm of your choice
         """
-        X = eval(self.feature_scaling).fit_transform(X)
+        X = eval(self.feature_scaling+'()').fit_transform(X)
         
         return X
 

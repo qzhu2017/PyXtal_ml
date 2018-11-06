@@ -35,7 +35,7 @@ default_params = {
             'params': {"alpha": [1e3, 100, 10, 1, 0.1, 1e-2, 1e-3], "l1_ratio": [1, 0.5, 0]}},
         'ANN':
         {'cv': 10,
-            'params': {"hidden_layer_sizes": [50, 100], "solver": ['lbfgs'], "learning_rate": ['invscaling']}},
+            'params': {"hidden_layer_sizes": [(50, 3)], "solver": ['lbfgs'], "learning_rate": ['invscaling']}},
         'GPR':
         {'cv': 10,
             'params': {"kernel": [WhiteKernel(), ExpSineSquared(), WhiteKernel()+ExpSineSquared()]}}

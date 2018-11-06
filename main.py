@@ -4,10 +4,10 @@ import numpy as np
 from sklearn.gaussian_process.kernels import WhiteKernel, ExpSineSquared
 
 jsonfile = resource_filename("pyxtal_ml", "datasets/nonmetal_MP_8049.json")
-algos = ['GPR']
+algos = ['ANN']
 N_sample = 300
 feature = 'Chem'
-feature_scaling = 'MaxAbsScaler'
+feature_scaling = 'MinMaxScaler'
 level = 'tight' #{'my_params': {"kernel": [ExpSineSquared(l, p) for l in np.logspace(-2, 2, 10) for p in np.logspace(0, 2, 10)]}, 'CV': 4}
 pipeline = False
 

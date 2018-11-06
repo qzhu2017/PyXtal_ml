@@ -2,8 +2,9 @@ ANN:
   cv: 10
   params:
     hidden_layer_sizes:
-    - 50
-    - 100
+    - !!python/tuple
+      - 50
+      - 3
     learning_rate:
     - invscaling
     solver:
