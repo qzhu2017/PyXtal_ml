@@ -1,8 +1,10 @@
-import torch
-from torch import nn, autograd, optim
-import torch.nn.functional as F
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+import torch
+from torch import nn, optim
+import torch.nn.functional as F
+
 
 class torching():
     """
@@ -20,32 +22,47 @@ class torching():
         # Read the hidden layers information:
         self.n_layers, self.n_neurons = hidden_layers.values()
         
-        # Perform Neural Network
-        self.net = self.Net(self.feature_size, self.n_layers, self.n_neurons)
+        # Building Neural Network architecture using Net class
+        self.model = self.Net(self.feature_size, self.n_layers, self.n_neurons)
         
-        optimizer = optim.SGD(self.net.parameters(), lr=0.001)
-        loss_func = nn.MSELoss()  # this is for regression mean squared loss
+        # Learning parameter for NN
+        optimizer = optim.SGD(self.model.parameters(), lr = 0.005)
+        loss_func = nn.MSELoss()  # mean squared eror loss
 
-        plt.ion()   # something about plotting
-
+        # Learning step
         for t in range(1000):
-            prediction = self.net(self.feature)     # input x and predict based on x
-            loss = loss_func(prediction, self.prop)     # must be (1. nn output, 2. target)
-
-            optimizer.zero_grad()   # clear gradients for next train
-            loss.backward()         # backpropagation, compute gradients
-            optimizer.step()        # apply gradients
+            optimizer.zero_grad()
+            
+            y_ = self.model(self.feature)
+            loss = loss_func(y_, y)
+            
+            loss.backward(retain_graph=True)
+            optimizer.step()
+            
+#            prediction = self.net(self.feature)     # input x and predict based on x
+#            loss = loss_func(prediction, self.prop)     # must be (1. nn output, 2. target)
+#
+#            optimizer.zero_grad()   # clear gradients for next train
+#            loss.backward(retain_graph=True)         # backpropagation, compute gradients
+#            optimizer.step()        # apply gradients
             
             if t % 5 == 0:
                 # plot and show learning process
                 plt.cla()
                 plt.scatter(x.data.numpy(), y.data.numpy())
-                plt.plot(x.data.numpy(), prediction.data.numpy(), 'r-', lw=5)
+                plt.plot(x.data.numpy(), y_.data.numpy(), 'r-', lw=5)
                 plt.text(0.5, 0, 'Loss=%.4f' % loss.data.numpy(), fontdict={'size': 20, 'color':  'red'})
                 plt.pause(0.1)
 
         plt.ioff()
         plt.show()
+        
+        # Eval
+        
+#        self.model.eval()
+#        with torch.no_grad():
+#            y_ = self.model(self.feature)
+        
 
     
     class Net(nn.Module):
@@ -60,17 +77,17 @@ class torching():
             self.n_neurons = n_neurons
             
             if n_layers > 1:
-                layers = n_layers
-                if len(n_neurons) > 1:
+                if len(n_neurons) > 1:              # different sizes of neurons in layers
                     self.h1 = nn.Linear(feature_size, n_neurons[0])
                     self.hidden = []
-                    for i in range(1, layers):
+                    for i in range(n_layers-1):
                         self.hidden.append(nn.Linear(n_neurons[i], n_neurons[i+1]))
-                    self.predict = nn.Linear(n_neurons[layers], 1)
-                else:
+                    self.predict = nn.Linear(n_neurons[n_layers-1], 1)
+                    
+                else:                               # same size of neurons in layers
                     self.h1 = nn.Linear(feature_size, n_neurons[0])
                     self.hidden = []
-                    for i in range(1, layers):
+                    for i in range(n_layers-1):
                         self.hidden.append(nn.Linear(n_neurons[0], n_neurons[0]))
                     self.predict = nn.Linear(n_neurons[0], 1)
                     
@@ -80,17 +97,17 @@ class torching():
                 
         def forward(self, x):
             out = F.relu(self.h1(x))
-#            if self.n_layers > 1:
-#                for hid in self.hidden:
-#                    out = hid(out)
-#                    out = F.relu(out)
-#            else:
-#                pass
+            if self.n_layers > 1:
+                for hid in self.hidden:
+                    out = hid(out)
+                    out = F.relu(out)
+            else:
+                pass
             out = self.predict(out)
             return out
             
-x = autograd.Variable(torch.unsqueeze(torch.linspace(-1, 1, 100), dim=1), requires_grad=True)  # x data (tensor), shape=(100, 1)
-y = autograd.Variable(x.pow(2) + 0.2*torch.rand(x.size()), requires_grad=True)                # noisy y data (tensor), shape=(100, 1)
+x = torch.unsqueeze(torch.linspace(-1, 1, 100, requires_grad=True), dim=1)  # x data (tensor), shape=(100, 1)
+y = x.pow(2) + 0.2*torch.rand(x.size())                # noisy y data (tensor), shape=(100, 1)
 
 hl = {"n_layers": 1, "n_neurons": [10]}
 
