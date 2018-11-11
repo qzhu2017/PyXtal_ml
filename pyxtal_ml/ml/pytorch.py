@@ -23,12 +23,12 @@ class torching():
         # Perform Neural Network
         self.net = self.Net(self.feature_size, self.n_layers, self.n_neurons)
         
-        optimizer = optim.SGD(self.net.parameters(), lr=0.2)
+        optimizer = optim.SGD(self.net.parameters(), lr=0.001)
         loss_func = nn.MSELoss()  # this is for regression mean squared loss
 
         plt.ion()   # something about plotting
 
-        for t in range(200):
+        for t in range(1000):
             prediction = self.net(self.feature)     # input x and predict based on x
             loss = loss_func(prediction, self.prop)     # must be (1. nn output, 2. target)
 
@@ -79,16 +79,15 @@ class torching():
                 self.predict = nn.Linear(n_neurons[0], 1)
                 
         def forward(self, x):
-            out = self.h1(x)
-            out = F.relu(out)
-            if self.n_layers > 1:
-                for hid in self.hidden:
-                    out = hid(out)
-                    out = F.relu(out)
-            else:
-                pass
+            out = F.relu(self.h1(x))
+#            if self.n_layers > 1:
+#                for hid in self.hidden:
+#                    out = hid(out)
+#                    out = F.relu(out)
+#            else:
+#                pass
             out = self.predict(out)
-            return x
+            return out
             
 x = autograd.Variable(torch.unsqueeze(torch.linspace(-1, 1, 100), dim=1), requires_grad=True)  # x data (tensor), shape=(100, 1)
 y = autograd.Variable(x.pow(2) + 0.2*torch.rand(x.size()), requires_grad=True)                # noisy y data (tensor), shape=(100, 1)
