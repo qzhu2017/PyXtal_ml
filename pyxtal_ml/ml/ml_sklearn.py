@@ -89,6 +89,9 @@ class method:
     def apply_feature_scaling(self, X):
         """
         feature scaling with an appropriate algorithm of your choice
+        
+        Returns:
+            xyz
         """
         X = eval(self.feature_scaling+'()').fit_transform(X)
         
