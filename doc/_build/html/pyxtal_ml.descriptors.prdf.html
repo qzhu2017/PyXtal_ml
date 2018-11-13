@@ -34,8 +34,43 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="pyxtal-ml-descriptors-prdf-module">
-<h1>pyxtal_ml.descriptors.prdf module<a class="headerlink" href="#pyxtal-ml-descriptors-prdf-module" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-pyxtal_ml.descriptors.prdf">
+<span id="pyxtal-ml-descriptors-prdf-module"></span><h1>pyxtal_ml.descriptors.prdf module<a class="headerlink" href="#module-pyxtal_ml.descriptors.prdf" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="pyxtal_ml.descriptors.prdf.PRDF">
+<em class="property">class </em><code class="descclassname">pyxtal_ml.descriptors.prdf.</code><code class="descname">PRDF</code><span class="sig-paren">(</span><em>crystal</em>, <em>symmetrize=True</em>, <em>R_max=6.0</em>, <em>R_bin=0.2</em>, <em>print_error=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyxtal_ml/descriptors/prdf.html#PRDF"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyxtal_ml.descriptors.prdf.PRDF" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Computes the pairwise RDF of a given crystal structure</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>crystal</strong> – A pymatgen crystal structure</li>
+<li><strong>symmetrize</strong> – bool, whether or not to symetrize the structure
+before computation</li>
+<li><strong>R_max</strong> – the cutoff distance</li>
+<li><strong>R_bin</strong> – bin length when computing the RDF</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="pyxtal_ml.descriptors.prdf.PRDF.PRDF">
+<code class="descname">PRDF</code><a class="headerlink" href="#pyxtal_ml.descriptors.prdf.PRDF.PRDF" title="Permalink to this definition">¶</a></dt>
+<dd><p>the pairwise radial distribution function integrals</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxtal_ml.descriptors.prdf.PRDF.prdf_dict">
+<code class="descname">prdf_dict</code><a class="headerlink" href="#pyxtal_ml.descriptors.prdf.PRDF.prdf_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>the dictionary of pairwise radial distribution
+function integrals</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 
 

@@ -34,8 +34,335 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="pyxtal-ml-descriptors-voronoi-descriptors-module">
-<h1>pyxtal_ml.descriptors.voronoi_descriptors module<a class="headerlink" href="#pyxtal-ml-descriptors-voronoi-descriptors-module" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-pyxtal_ml.descriptors.voronoi_descriptors">
+<span id="pyxtal-ml-descriptors-voronoi-descriptors-module"></span><h1>pyxtal_ml.descriptors.voronoi_descriptors module<a class="headerlink" href="#module-pyxtal_ml.descriptors.voronoi_descriptors" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors">
+<em class="property">class </em><code class="descclassname">pyxtal_ml.descriptors.voronoi_descriptors.</code><code class="descname">Voronoi_Descriptors</code><span class="sig-paren">(</span><em>crystal</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyxtal_ml/descriptors/voronoi_descriptors.html#Voronoi_Descriptors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Computes crystal structure and composition features
+using Voronoi polyhedra</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>crystal</strong> – A pymatgen crystal structure</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.crystal">
+<code class="descname">crystal</code><a class="headerlink" href="#pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.crystal" title="Permalink to this definition">¶</a></dt>
+<dd><p>A pymatgen crystal structure</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">comp; composition data of crystal</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.elements">
+<code class="descname">elements</code><a class="headerlink" href="#pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.elements" title="Permalink to this definition">¶</a></dt>
+<dd><p>the pymatgen element objects of the
+crystal constituents</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.polyhedra">
+<code class="descname">polyhedra</code><a class="headerlink" href="#pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.polyhedra" title="Permalink to this definition">¶</a></dt>
+<dd><p>the voronoi polyhedra corresponding to
+each site in the structure</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.shells">
+<code class="descname">shells</code><a class="headerlink" href="#pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.shells" title="Permalink to this definition">¶</a></dt>
+<dd><p>the shells to compute voronoi polyhedra over
+for chemical ordering parameters</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.Get_stats">
+<code class="descname">Get_stats</code><span class="sig-paren">(</span><em>array</em>, <em>weights=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyxtal_ml/descriptors/voronoi_descriptors.html#Voronoi_Descriptors.Get_stats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.Get_stats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the min, max, range, mean, and mean absolute deviation
+over a 1-d array</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>Array</strong> – a 1-d float array</li>
+<li><strong>weights</strong> – a numerical value to be used as a weight
+for the chemical environment attributes</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the stats described above</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.MAD">
+<em class="property">static </em><code class="descname">MAD</code><span class="sig-paren">(</span><em>array</em>, <em>weights=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyxtal_ml/descriptors/voronoi_descriptors.html#Voronoi_Descriptors.MAD"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.MAD" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the mean absolute deviation of a 1-d array</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>array</strong> – A 1-d array or list</li>
+<li><strong>weights</strong> – weights corresponding to each element of the
+array</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the weighted mean absolute deviation of the 1-d array</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.all">
+<code class="descname">all</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyxtal_ml/descriptors/voronoi_descriptors.html#Voronoi_Descriptors.all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.all" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes all Voronoi polyhedra features</p>
+<p>Calls all voronoi features and stacks them
+into a 1-d array</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.compute_polyhedra">
+<code class="descname">compute_polyhedra</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyxtal_ml/descriptors/voronoi_descriptors.html#Voronoi_Descriptors.compute_polyhedra"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.compute_polyhedra" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the voronoi polyhedron and specie of each atomic site,
+format as a tuple (polyhedron, specie), and store those tuples in
+a list as an attribute</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.get_all_nearest_neighbors">
+<em class="property">static </em><code class="descname">get_all_nearest_neighbors</code><span class="sig-paren">(</span><em>method</em>, <em>crystal</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyxtal_ml/descriptors/voronoi_descriptors.html#Voronoi_Descriptors.get_all_nearest_neighbors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.get_all_nearest_neighbors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the nearest neighbor list of a structure</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>method</strong> – method used to compute nearest_neighbors</li>
+<li><strong>crystal</strong> – pymatgen structure</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">nearest neighbors</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.get_bond_statistics">
+<code class="descname">get_bond_statistics</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyxtal_ml/descriptors/voronoi_descriptors.html#Voronoi_Descriptors.get_bond_statistics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.get_bond_statistics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the mean bond length and bond length variance
+of the crystal using Voronoi polyhedra</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">see Get_stats</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.get_chemical_descriptors_from_file">
+<em class="property">static </em><code class="descname">get_chemical_descriptors_from_file</code><span class="sig-paren">(</span><em>elm</em>, <em>weight</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyxtal_ml/descriptors/voronoi_descriptors.html#Voronoi_Descriptors.get_chemical_descriptors_from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.get_chemical_descriptors_from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls certain elemental properties from the Elements.json file
+to use as weighted chemical environment attributes</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>elm</strong> – a pymatgen element object</li>
+<li><strong>weight</strong> – a numerical value to be used as a weight for
+these attributes</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">an array of chemical environment attributes</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.get_chemical_descriptors_from_pymatgen">
+<em class="property">static </em><code class="descname">get_chemical_descriptors_from_pymatgen</code><span class="sig-paren">(</span><em>elm</em>, <em>weight</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyxtal_ml/descriptors/voronoi_descriptors.html#Voronoi_Descriptors.get_chemical_descriptors_from_pymatgen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.get_chemical_descriptors_from_pymatgen" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls certain elemental properties from Pymatgen to use
+as weighted chemical environment attributes</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>elm</strong> – a pymatgen element object</li>
+<li><strong>weight</strong> – a numerical value to be used as a weight
+for these attributes</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">an array of chemical environment attributes</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.get_chemical_ordering_parameters">
+<code class="descname">get_chemical_ordering_parameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyxtal_ml/descriptors/voronoi_descriptors.html#Voronoi_Descriptors.get_chemical_ordering_parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.get_chemical_ordering_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the mean chemical ordering parameter and chemical ordering
+parameter variance for all elements in the crystal using
+Voronoi polyhedra</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">[mean coordination number, coordination number variance]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.get_descr">
+<code class="descname">get_descr</code><span class="sig-paren">(</span><em>elm</em>, <em>weight</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyxtal_ml/descriptors/voronoi_descriptors.html#Voronoi_Descriptors.get_descr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.get_descr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls chemical attributes from pymatgen and a json file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>elm</strong> – a pymatgen element object</li>
+<li><strong>weight</strong> – a numerical value to be used as a weight
+for these attributes</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">an array of weighted chemical envronment attributes</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.get_effective_coordination_number">
+<code class="descname">get_effective_coordination_number</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyxtal_ml/descriptors/voronoi_descriptors.html#Voronoi_Descriptors.get_effective_coordination_number"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.get_effective_coordination_number" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the mean coordination number and coordination number variance
+for all elements in the crystal using Voronoi polyhedra</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">see Get_stats</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.get_environment_attributes">
+<code class="descname">get_environment_attributes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyxtal_ml/descriptors/voronoi_descriptors.html#Voronoi_Descriptors.get_environment_attributes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.get_environment_attributes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes some statistics of selected elemental properties
+using voronoi polyhedra</p>
+<p>These statistics include: mean, standard deviation, min, max, and range</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a list of property statistics in the crystal</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.get_packing_efficiency">
+<code class="descname">get_packing_efficiency</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyxtal_ml/descriptors/voronoi_descriptors.html#Voronoi_Descriptors.get_packing_efficiency"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.get_packing_efficiency" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the packing efficiency of the crystal using
+Voronoi polyhedra</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">[packing efficiency]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.get_volume_statistics">
+<code class="descname">get_volume_statistics</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyxtal_ml/descriptors/voronoi_descriptors.html#Voronoi_Descriptors.get_volume_statistics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.get_volume_statistics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the mean volume of all Voronoi polyhedra in the structure</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">[volume_variance / mean_volume]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.populate_element_dict">
+<code class="descname">populate_element_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyxtal_ml/descriptors/voronoi_descriptors.html#Voronoi_Descriptors.populate_element_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.populate_element_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>For features that depend on elements, populate a dictionary
+of empty lists with each element in the structure as a key</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>elements_list</strong> – a list of pymatgen element objects</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an dictionary of empty lists where the keys are pymatgen elements</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.weighted_average">
+<em class="property">static </em><code class="descname">weighted_average</code><span class="sig-paren">(</span><em>array</em>, <em>weights=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyxtal_ml/descriptors/voronoi_descriptors.html#Voronoi_Descriptors.weighted_average"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.weighted_average" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the weighted average of a 1-d array</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>array</strong> – a 1-d array or list</li>
+<li><strong>weights</strong> – weights corresponding to each element in the list</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the weighted average of the array</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 
 

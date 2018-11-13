@@ -10,7 +10,7 @@ Welcome to PyXtal_ML's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-
+Welcome to PyXtal ML documentation
 
 Indices and tables
 ==================

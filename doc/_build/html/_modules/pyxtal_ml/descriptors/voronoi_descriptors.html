@@ -1,0 +1,607 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>pyxtal_ml.descriptors.voronoi_descriptors &#8212; PyXtal_ML 0.1.dev documentation</title>
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">PyXtal_ML 0.1.dev documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pyxtal_ml.descriptors.voronoi_descriptors</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">pymatgen.analysis.local_env</span> <span class="k">import</span> <span class="n">VoronoiNN</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="k">import</span> <span class="n">Structure</span><span class="p">,</span> <span class="n">IStructure</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.periodic_table</span> <span class="k">import</span> <span class="n">Element</span><span class="p">,</span> <span class="n">Specie</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.bonds</span> <span class="k">import</span> <span class="n">get_bond_length</span>
+<span class="kn">from</span> <span class="nn">monty.serialization</span> <span class="k">import</span> <span class="n">loadfn</span>
+<span class="kn">import</span> <span class="nn">os.path</span> <span class="k">as</span> <span class="nn">op</span>
+<span class="kn">from</span> <span class="nn">optparse</span> <span class="k">import</span> <span class="n">OptionParser</span>
+
+<span class="n">filename</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s1">&#39;Elements.json&#39;</span><span class="p">)</span>
+<span class="n">ele_data</span> <span class="o">=</span> <span class="n">loadfn</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Voronoi_Descriptors"><a class="viewcode-back" href="../../../pyxtal_ml.descriptors.voronoi_descriptors.html#pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors">[docs]</a><span class="k">class</span> <span class="nc">Voronoi_Descriptors</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Computes crystal structure and composition features</span>
+<span class="sd">    using Voronoi polyhedra</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        crystal: A pymatgen crystal structure</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        crystal: A pymatgen crystal structure</span>
+<span class="sd">        comp; composition data of crystal</span>
+<span class="sd">        elements: the pymatgen element objects of the</span>
+<span class="sd">                  crystal constituents</span>
+<span class="sd">        polyhedra: the voronoi polyhedra corresponding to</span>
+<span class="sd">                   each site in the structure</span>
+<span class="sd">        shells: the shells to compute voronoi polyhedra over</span>
+<span class="sd">                for chemical ordering parameters</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">crystal</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Assign attributes and compute the Voronoi polyhedra of</span>
+<span class="sd">        the crystal structure using pymatgen functionality</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1"># attributes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">crystal</span> <span class="o">=</span> <span class="n">crystal</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">comp</span> <span class="o">=</span> <span class="n">crystal</span><span class="o">.</span><span class="n">composition</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shells</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="c1"># find elements using set intersection</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">elements</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+            <span class="nb">set</span><span class="p">(</span><span class="n">crystal</span><span class="o">.</span><span class="n">species</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">crystal</span><span class="o">.</span><span class="n">species</span><span class="p">))</span>
+
+        <span class="c1"># call compute polyhedra method to assign polyhedra attribute</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">compute_polyhedra</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Voronoi_Descriptors.all"><a class="viewcode-back" href="../../../pyxtal_ml.descriptors.voronoi_descriptors.html#pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.all">[docs]</a>    <span class="k">def</span> <span class="nf">all</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Computes all Voronoi polyhedra features</span>
+
+<span class="sd">        Calls all voronoi features and stacks them</span>
+<span class="sd">        into a 1-d array</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1"># call voronoi feature methods</span>
+        <span class="n">pef</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_packing_efficiency</span><span class="p">()</span>
+        <span class="n">vstat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_volume_statistics</span><span class="p">()</span>
+        <span class="n">ecn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_effective_coordination_number</span><span class="p">()</span>
+        <span class="n">bstat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_bond_statistics</span><span class="p">()</span>
+        <span class="n">cop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_chemical_ordering_parameters</span><span class="p">()</span>
+        <span class="n">ea</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_environment_attributes</span><span class="p">()</span>
+
+        <span class="c1"># stack into 1-d array</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">pef</span><span class="p">,</span> <span class="n">vstat</span><span class="p">,</span> <span class="n">ecn</span><span class="p">,</span> <span class="n">bstat</span><span class="p">,</span> <span class="n">cop</span><span class="p">,</span> <span class="n">ea</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">arr</span></div>
+
+<div class="viewcode-block" id="Voronoi_Descriptors.populate_element_dict"><a class="viewcode-back" href="../../../pyxtal_ml.descriptors.voronoi_descriptors.html#pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.populate_element_dict">[docs]</a>    <span class="k">def</span> <span class="nf">populate_element_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        For features that depend on elements, populate a dictionary</span>
+<span class="sd">        of empty lists with each element in the structure as a key</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            elements_list: a list of pymatgen element objects</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            an dictionary of empty lists where the keys are pymatgen elements</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="c1"># create an empty dictionary</span>
+        <span class="n">element_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c1"># iterate over element attribute to create</span>
+        <span class="c1"># a dictionary of empty lists with the constituent</span>
+        <span class="c1"># elements as keys</span>
+        <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">:</span>
+            <span class="n">element_dict</span><span class="p">[</span><span class="n">element</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">return</span> <span class="n">element_dict</span></div>
+
+<div class="viewcode-block" id="Voronoi_Descriptors.weighted_average"><a class="viewcode-back" href="../../../pyxtal_ml.descriptors.voronoi_descriptors.html#pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.weighted_average">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">weighted_average</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Compute the weighted average of a 1-d array</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            array:  a 1-d array or list</span>
+<span class="sd">            weights: weights corresponding to each element in the list</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            the weighted average of the array</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">weights</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Voronoi_Descriptors.MAD"><a class="viewcode-back" href="../../../pyxtal_ml.descriptors.voronoi_descriptors.html#pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.MAD">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">MAD</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Compute the mean absolute deviation of a 1-d array</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            array: A 1-d array or list</span>
+<span class="sd">            weights:  weights corresponding to each element of the</span>
+<span class="sd">                      array</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            the weighted mean absolute deviation of the 1-d array</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="n">mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">array</span><span class="p">)</span>
+        <span class="c1"># mean absolute deviation</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">mean</span><span class="p">)),</span> <span class="n">weights</span><span class="o">=</span><span class="n">weights</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Voronoi_Descriptors.get_all_nearest_neighbors"><a class="viewcode-back" href="../../../pyxtal_ml.descriptors.voronoi_descriptors.html#pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.get_all_nearest_neighbors">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_all_nearest_neighbors</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">crystal</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Get the nearest neighbor list of a structure</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            method: method used to compute nearest_neighbors</span>
+<span class="sd">            crystal:  pymatgen structure</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            nearest neighbors</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1"># check that the passed crystal is a pymatgen structure object</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">crystal</span><span class="p">,</span> <span class="n">Structure</span><span class="p">):</span>
+            <span class="c1"># make the structure an immutable object</span>
+            <span class="n">crystal</span> <span class="o">=</span> <span class="n">IStructure</span><span class="o">.</span><span class="n">from_sites</span><span class="p">(</span><span class="n">crystal</span><span class="p">)</span>
+
+        <span class="c1"># get the voronoi info of the crystal</span>
+        <span class="k">return</span> <span class="n">method</span><span class="o">.</span><span class="n">get_all_nn_info</span><span class="p">(</span><span class="n">crystal</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Voronoi_Descriptors.get_chemical_descriptors_from_file"><a class="viewcode-back" href="../../../pyxtal_ml.descriptors.voronoi_descriptors.html#pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.get_chemical_descriptors_from_file">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_chemical_descriptors_from_file</span><span class="p">(</span><span class="n">elm</span><span class="p">,</span> <span class="n">weight</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Calls certain elemental properties from the Elements.json file</span>
+<span class="sd">        to use as weighted chemical environment attributes</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            elm: a pymatgen element object</span>
+<span class="sd">            weight: a numerical value to be used as a weight for</span>
+<span class="sd">                    these attributes</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            an array of chemical environment attributes</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1"># convert the element object to a string for indexing of the json file</span>
+        <span class="n">elm</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">elm</span><span class="p">)</span>
+
+        <span class="c1"># compute the below elemental properties</span>
+        <span class="n">properties</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;nsvalence&#39;</span><span class="p">,</span> <span class="s1">&#39;npvalence&#39;</span><span class="p">,</span> <span class="s1">&#39;ndvalence&#39;</span><span class="p">,</span> <span class="s1">&#39;nfvalence&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;nsunfill&#39;</span><span class="p">,</span> <span class="s1">&#39;npunfill&#39;</span><span class="p">,</span> <span class="s1">&#39;ndunfill&#39;</span><span class="p">,</span> <span class="s1">&#39;nfunfill&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;first_ion_en&#39;</span><span class="p">]</span>
+
+        <span class="c1"># the current json file has only 82 elements, some are missing</span>
+        <span class="k">if</span> <span class="n">elm</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;Pa&#39;</span><span class="p">,</span> <span class="s1">&#39;Ac&#39;</span><span class="p">,</span> <span class="s1">&#39;Pu&#39;</span><span class="p">,</span> <span class="s1">&#39;Np&#39;</span><span class="p">,</span> <span class="s1">&#39;Am&#39;</span><span class="p">,</span> <span class="s1">&#39;Bk&#39;</span><span class="p">,</span> <span class="s1">&#39;Cf&#39;</span><span class="p">,</span> <span class="s1">&#39;Cm&#39;</span><span class="p">,</span> <span class="s1">&#39;Es&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;Fm&#39;</span><span class="p">,</span> <span class="s1">&#39;Lr&#39;</span><span class="p">,</span> <span class="s1">&#39;Md&#39;</span><span class="p">,</span> <span class="s1">&#39;No&#39;</span><span class="p">]:</span>
+            <span class="n">elm</span> <span class="o">=</span> <span class="s1">&#39;Th&#39;</span>
+        <span class="k">elif</span> <span class="n">elm</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;Eu&#39;</span><span class="p">,</span> <span class="s1">&#39;Pm&#39;</span><span class="p">]:</span>
+            <span class="n">elm</span> <span class="o">=</span> <span class="s1">&#39;La&#39;</span>
+        <span class="k">elif</span> <span class="n">elm</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;Xe&#39;</span><span class="p">,</span> <span class="s1">&#39;Rn&#39;</span><span class="p">]:</span>
+            <span class="n">elm</span> <span class="o">=</span> <span class="s1">&#39;Kr&#39;</span>
+        <span class="k">elif</span> <span class="n">elm</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;At&#39;</span><span class="p">]:</span>
+            <span class="n">elm</span> <span class="o">=</span> <span class="s1">&#39;I&#39;</span>
+        <span class="k">elif</span> <span class="n">elm</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;Fr&#39;</span><span class="p">]:</span>
+            <span class="n">elm</span> <span class="o">=</span> <span class="s1">&#39;Cs&#39;</span>
+        <span class="k">elif</span> <span class="n">elm</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;Ra&#39;</span><span class="p">]:</span>
+            <span class="n">elm</span> <span class="o">=</span> <span class="s1">&#39;Ba&#39;</span>
+
+        <span class="c1"># call the elemental specfic dictionary</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">ele_data</span><span class="p">[</span><span class="n">elm</span><span class="p">]</span>
+
+        <span class="c1"># populate an empty list with the above elemental properties</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">properties</span><span class="p">:</span>
+            <span class="c1"># gather the property and multiply by the weight</span>
+            <span class="n">arr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">prop</span><span class="p">]</span> <span class="o">*</span> <span class="n">weight</span><span class="p">)</span>
+
+        <span class="c1"># items 0-3 correspond to the occupancies of the valence structure</span>
+        <span class="n">arr</span> <span class="o">+=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">])]</span>  <span class="c1"># total valence</span>
+        <span class="c1"># items 4-7 correspond to the vacancies of the valence structure</span>
+        <span class="n">arr</span> <span class="o">+=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="mi">4</span><span class="p">:</span><span class="mi">8</span><span class="p">])]</span>  <span class="c1"># total unfilled</span>
+
+        <span class="k">return</span> <span class="n">arr</span></div>
+
+<div class="viewcode-block" id="Voronoi_Descriptors.get_chemical_descriptors_from_pymatgen"><a class="viewcode-back" href="../../../pyxtal_ml.descriptors.voronoi_descriptors.html#pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.get_chemical_descriptors_from_pymatgen">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_chemical_descriptors_from_pymatgen</span><span class="p">(</span><span class="n">elm</span><span class="p">,</span> <span class="n">weight</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Calls certain elemental properties from Pymatgen to use</span>
+<span class="sd">        as weighted chemical environment attributes</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            elm: a pymatgen element object</span>
+<span class="sd">            weight: a numerical value to be used as a weight</span>
+<span class="sd">                    for these attributes</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            an array of chemical environment attributes</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">element</span> <span class="o">=</span> <span class="n">elm</span><span class="o">.</span><span class="n">data</span>
+        <span class="n">properties</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Atomic no&#39;</span><span class="p">,</span> <span class="s1">&#39;Atomic mass&#39;</span><span class="p">,</span> <span class="s1">&#39;row&#39;</span><span class="p">,</span> <span class="s1">&#39;col&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;Mendeleev no&#39;</span><span class="p">,</span> <span class="s1">&#39;Atomic radius&#39;</span><span class="p">]</span>
+
+        <span class="n">arr</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">properties</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">prop</span> <span class="o">==</span> <span class="s1">&#39;row&#39;</span><span class="p">:</span>
+                <span class="n">arr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">elm</span><span class="o">.</span><span class="n">row</span> <span class="o">*</span> <span class="n">weight</span><span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">prop</span> <span class="o">==</span> <span class="s1">&#39;col&#39;</span><span class="p">:</span>
+                <span class="n">arr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">elm</span><span class="o">.</span><span class="n">group</span> <span class="o">*</span> <span class="n">weight</span><span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">arr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">element</span><span class="p">[</span><span class="n">prop</span><span class="p">]</span> <span class="o">*</span> <span class="n">weight</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">arr</span></div>
+
+<div class="viewcode-block" id="Voronoi_Descriptors.get_descr"><a class="viewcode-back" href="../../../pyxtal_ml.descriptors.voronoi_descriptors.html#pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.get_descr">[docs]</a>    <span class="k">def</span> <span class="nf">get_descr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elm</span><span class="p">,</span> <span class="n">weight</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Calls chemical attributes from pymatgen and a json file</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            elm: a pymatgen element object</span>
+<span class="sd">            weight: a numerical value to be used as a weight</span>
+<span class="sd">                    for these attributes</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            an array of weighted chemical envronment attributes</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">get_chemical_descriptors_from_file</span><span class="p">(</span><span class="n">elm</span><span class="p">,</span> <span class="n">weight</span><span class="p">),</span>
+                           <span class="bp">self</span><span class="o">.</span><span class="n">get_chemical_descriptors_from_pymatgen</span><span class="p">(</span><span class="n">elm</span><span class="p">,</span> <span class="n">weight</span><span class="p">))))</span></div>
+
+<div class="viewcode-block" id="Voronoi_Descriptors.Get_stats"><a class="viewcode-back" href="../../../pyxtal_ml.descriptors.voronoi_descriptors.html#pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.Get_stats">[docs]</a>    <span class="k">def</span> <span class="nf">Get_stats</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">array</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Compute the min, max, range, mean, and mean absolute deviation</span>
+<span class="sd">        over a 1-d array</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            Array: a 1-d float array</span>
+<span class="sd">            weights: a numerical value to be used as a weight</span>
+<span class="sd">                     for the chemical environment attributes</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            the stats described above</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="k">return</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">array</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">array</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">ptp</span><span class="p">(</span><span class="n">array</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">weighted_average</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">weights</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">MAD</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">weights</span><span class="p">)]</span></div>
+
+<div class="viewcode-block" id="Voronoi_Descriptors.compute_polyhedra"><a class="viewcode-back" href="../../../pyxtal_ml.descriptors.voronoi_descriptors.html#pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.compute_polyhedra">[docs]</a>    <span class="k">def</span> <span class="nf">compute_polyhedra</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Compute the voronoi polyhedron and specie of each atomic site,</span>
+<span class="sd">        format as a tuple (polyhedron, specie), and store those tuples in</span>
+<span class="sd">        a list as an attribute</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="c1"># call the voronoi object</span>
+        <span class="n">voronoi</span> <span class="o">=</span> <span class="n">VoronoiNN</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">polyhedra</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># declare polyhedra attribute</span>
+        <span class="c1"># populate the attribute with the polyhedron associated with each</span>
+        <span class="c1"># atomic site</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">crystal</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">polyhedra</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">voronoi</span><span class="o">.</span><span class="n">get_voronoi_polyhedra</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">crystal</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span>
+                                   <span class="bp">self</span><span class="o">.</span><span class="n">crystal</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">specie</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Voronoi_Descriptors.get_packing_efficiency"><a class="viewcode-back" href="../../../pyxtal_ml.descriptors.voronoi_descriptors.html#pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.get_packing_efficiency">[docs]</a>    <span class="k">def</span> <span class="nf">get_packing_efficiency</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Computes the packing efficiency of the crystal using</span>
+<span class="sd">        Voronoi polyhedra</span>
+
+<span class="sd">        returns:</span>
+<span class="sd">            [packing efficiency]</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">maximum_radii</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># find the minimum distance from the center of the polyhedron</span>
+        <span class="c1"># to the polyhedron faces</span>
+        <span class="k">for</span> <span class="n">polyhedron</span><span class="p">,</span> <span class="n">element</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">polyhedra</span><span class="p">:</span>
+            <span class="n">radii</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="k">for</span> <span class="n">face</span> <span class="ow">in</span> <span class="n">polyhedron</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="n">radii</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">face</span><span class="p">[</span><span class="s1">&#39;face_dist&#39;</span><span class="p">])</span>
+
+            <span class="n">maximum_radii</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">radii</span><span class="p">))</span>
+        <span class="c1"># sum up all of the sphere volumes corresponding to the</span>
+        <span class="c1"># minimum face distances</span>
+        <span class="k">return</span> <span class="p">[</span><span class="mi">4</span><span class="o">/</span><span class="mi">3</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">maximum_radii</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+                <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">crystal</span><span class="o">.</span><span class="n">volume</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Voronoi_Descriptors.get_volume_statistics"><a class="viewcode-back" href="../../../pyxtal_ml.descriptors.voronoi_descriptors.html#pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.get_volume_statistics">[docs]</a>    <span class="k">def</span> <span class="nf">get_volume_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Computes the mean volume of all Voronoi polyhedra in the structure</span>
+
+<span class="sd">        returns:</span>
+<span class="sd">            [volume_variance / mean_volume]</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">Volumes</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># find the volume associated with each polyhedron</span>
+        <span class="k">for</span> <span class="n">polyhedron</span><span class="p">,</span> <span class="n">element</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">polyhedra</span><span class="p">:</span>
+            <span class="n">volume</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">face</span> <span class="ow">in</span> <span class="n">polyhedron</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="n">volume</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">face</span><span class="p">[</span><span class="s1">&#39;volume&#39;</span><span class="p">])</span>
+
+            <span class="n">Volumes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">volume</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">MAD</span><span class="p">(</span><span class="n">Volumes</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">Volumes</span><span class="p">)]</span></div>
+
+<div class="viewcode-block" id="Voronoi_Descriptors.get_bond_statistics"><a class="viewcode-back" href="../../../pyxtal_ml.descriptors.voronoi_descriptors.html#pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.get_bond_statistics">[docs]</a>    <span class="k">def</span> <span class="nf">get_bond_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Computes the mean bond length and bond length variance</span>
+<span class="sd">        of the crystal using Voronoi polyhedra</span>
+
+<span class="sd">        returns:</span>
+<span class="sd">            see Get_stats</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="n">avg_bond_lengths</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">bond_length_var</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">polyhedron</span><span class="p">,</span> <span class="n">element</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">polyhedra</span><span class="p">:</span>
+            <span class="n">bond_lengths</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">face_areas</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">face</span> <span class="ow">in</span> <span class="n">polyhedron</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="c1"># call the bond lengths and face areas (weights)</span>
+                <span class="n">bond_lengths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">face</span><span class="p">[</span><span class="s1">&#39;face_dist&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
+                <span class="n">face_areas</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">face</span><span class="p">[</span><span class="s1">&#39;area&#39;</span><span class="p">])</span>
+
+            <span class="c1"># compute the weighted average of the bond lengths</span>
+            <span class="n">mean</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weighted_average</span><span class="p">(</span><span class="n">bond_lengths</span><span class="p">,</span> <span class="n">face_areas</span><span class="p">)</span>
+            <span class="n">avg_bond_lengths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mean</span><span class="p">)</span>
+            <span class="c1"># compute the weighted mean absolute deviation of the bond lengths</span>
+            <span class="c1"># divided by the mean</span>
+            <span class="n">bond_length_var</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">MAD</span><span class="p">(</span><span class="n">bond_lengths</span><span class="p">,</span> <span class="n">face_areas</span><span class="p">)</span> <span class="o">/</span> <span class="n">mean</span><span class="p">)</span>
+
+        <span class="c1"># normalize the average bond lengths by the mean</span>
+        <span class="n">avg_bond_lengths</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">avg_bond_lengths</span><span class="p">)</span>
+
+        <span class="sd">&#39;&#39;&#39; compute the mean absolute deviation, max and min of the average</span>
+<span class="sd">            bond lengths &#39;&#39;&#39;</span>
+        <span class="n">features</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">MAD</span><span class="p">(</span><span class="n">avg_bond_lengths</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">avg_bond_lengths</span><span class="p">),</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">avg_bond_lengths</span><span class="p">)]</span>
+
+        <span class="n">features</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Get_stats</span><span class="p">(</span><span class="n">bond_length_var</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">features</span></div>
+
+<div class="viewcode-block" id="Voronoi_Descriptors.get_effective_coordination_number"><a class="viewcode-back" href="../../../pyxtal_ml.descriptors.voronoi_descriptors.html#pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.get_effective_coordination_number">[docs]</a>    <span class="k">def</span> <span class="nf">get_effective_coordination_number</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Computes the mean coordination number and coordination number variance</span>
+<span class="sd">        for all elements in the crystal using Voronoi polyhedra</span>
+
+<span class="sd">        returns:</span>
+<span class="sd">            see Get_stats</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1"># populate a dictionary of empty lists with keys</span>
+        <span class="c1"># for each element in the crystal</span>
+        <span class="n">CN_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">populate_element_dict</span><span class="p">()</span>
+
+        <span class="c1"># find the coordination number for each elemet</span>
+        <span class="k">for</span> <span class="n">polyhedron</span><span class="p">,</span> <span class="n">element</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">polyhedra</span><span class="p">:</span>
+            <span class="n">face_area</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">face</span> <span class="ow">in</span> <span class="n">polyhedron</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="n">face_area</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">face</span><span class="p">[</span><span class="s1">&#39;area&#39;</span><span class="p">])</span>
+
+            <span class="n">face_area</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">face_area</span><span class="p">)</span>
+            <span class="c1"># square of the sum divided by the sum of squares</span>
+            <span class="n">CN_dict</span><span class="p">[</span><span class="n">element</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">face_area</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="p">((</span><span class="n">face_area</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()))</span>
+
+        <span class="n">CN_eff</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="sd">&#39;&#39;&#39; populate the a list with the average coordination numbers</span>
+<span class="sd">            associated with each element &#39;&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">CN</span> <span class="ow">in</span> <span class="n">CN_dict</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">CN_eff</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">CN</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Get_stats</span><span class="p">(</span><span class="n">CN_eff</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Voronoi_Descriptors.get_chemical_ordering_parameters"><a class="viewcode-back" href="../../../pyxtal_ml.descriptors.voronoi_descriptors.html#pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.get_chemical_ordering_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">get_chemical_ordering_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Computes the mean chemical ordering parameter and chemical ordering</span>
+<span class="sd">        parameter variance for all elements in the crystal using</span>
+<span class="sd">        Voronoi polyhedra</span>
+
+<span class="sd">        returns:</span>
+<span class="sd">            [mean coordination number, coordination number variance]</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">crystal</span><span class="o">.</span><span class="n">composition</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shells</span><span class="p">)</span>
+
+        <span class="c1"># Get a list of types</span>
+        <span class="n">elems</span><span class="p">,</span> <span class="n">fracs</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">crystal</span><span class="o">.</span><span class="n">composition</span><span class="o">.</span><span class="n">element_composition</span><span class="o">.</span>
+                           <span class="n">fractional_composition</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+
+        <span class="c1"># Precompute the list of NNs in the structure</span>
+        <span class="n">weight</span> <span class="o">=</span> <span class="s1">&#39;area&#39;</span>
+        <span class="n">voro</span> <span class="o">=</span> <span class="n">VoronoiNN</span><span class="p">(</span><span class="n">weight</span><span class="o">=</span><span class="n">weight</span><span class="p">)</span>
+        <span class="n">all_nn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_all_nearest_neighbors</span><span class="p">(</span><span class="n">voro</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">crystal</span><span class="p">)</span>
+
+        <span class="c1"># Evaluate each shell</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">shell</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">shells</span><span class="p">:</span>
+            <span class="c1"># Initialize an array to store the ordering parameters</span>
+            <span class="n">ordering</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">crystal</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">elems</span><span class="p">)))</span>
+
+            <span class="c1"># Get the ordering of each type of each atom</span>
+            <span class="k">for</span> <span class="n">site_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">crystal</span><span class="p">)):</span>
+                <span class="n">nns</span> <span class="o">=</span> <span class="n">voro</span><span class="o">.</span><span class="n">_get_nn_shell_info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">crystal</span><span class="p">,</span> <span class="n">all_nn</span><span class="p">,</span> <span class="n">site_idx</span><span class="p">,</span>
+                                              <span class="n">shell</span><span class="p">)</span>
+
+                <span class="c1"># Sum up the weights</span>
+                <span class="n">total_weight</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">nns</span><span class="p">)</span>
+
+                <span class="c1"># Get weight by type</span>
+                <span class="k">for</span> <span class="n">nn</span> <span class="ow">in</span> <span class="n">nns</span><span class="p">:</span>
+                    <span class="n">site_elem</span> <span class="o">=</span> <span class="n">nn</span><span class="p">[</span><span class="s1">&#39;site&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">specie</span><span class="o">.</span><span class="n">element</span> \
+                        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nn</span><span class="p">[</span><span class="s1">&#39;site&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">specie</span><span class="p">,</span> <span class="n">Specie</span><span class="p">)</span> <span class="k">else</span> \
+                        <span class="n">nn</span><span class="p">[</span><span class="s1">&#39;site&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">specie</span>
+                    <span class="n">elem_idx</span> <span class="o">=</span> <span class="n">elems</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">site_elem</span><span class="p">)</span>
+                    <span class="n">ordering</span><span class="p">[</span><span class="n">site_idx</span><span class="p">,</span> <span class="n">elem_idx</span><span class="p">]</span> <span class="o">+=</span> <span class="n">nn</span><span class="p">[</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span>
+
+                <span class="c1"># Compute the ordering parameter</span>
+                <span class="n">ordering</span><span class="p">[</span><span class="n">site_idx</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">ordering</span><span class="p">[</span><span class="n">site_idx</span><span class="p">,</span> <span class="p">:]</span> <span class="o">/</span> \
+                    <span class="n">total_weight</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">fracs</span><span class="p">)</span>
+
+            <span class="c1"># Compute the average ordering for the entire structure</span>
+            <span class="n">output</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">ordering</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+
+        <span class="k">return</span> <span class="n">output</span></div>
+
+<div class="viewcode-block" id="Voronoi_Descriptors.get_environment_attributes"><a class="viewcode-back" href="../../../pyxtal_ml.descriptors.voronoi_descriptors.html#pyxtal_ml.descriptors.voronoi_descriptors.Voronoi_Descriptors.get_environment_attributes">[docs]</a>    <span class="k">def</span> <span class="nf">get_environment_attributes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Computes some statistics of selected elemental properties</span>
+<span class="sd">        using voronoi polyhedra</span>
+
+<span class="sd">        These statistics include: mean, standard deviation, min, max, and range</span>
+
+<span class="sd">        returns:</span>
+<span class="sd">            a list of property statistics in the crystal</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="n">attributes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="sd">&#39;&#39;&#39; call selected chemical environment attributes</span>
+<span class="sd">          compute the differences of environment attributes in the structure</span>
+<span class="sd">          weight those differences using face areas of the polyhedra &#39;&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">polyhedron</span><span class="p">,</span> <span class="n">element</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">polyhedra</span><span class="p">:</span>
+
+            <span class="n">polyhedron_attributes</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">face_area</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">element_1</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">face</span> <span class="ow">in</span> <span class="n">polyhedron</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="n">area</span> <span class="o">=</span> <span class="n">face</span><span class="p">[</span><span class="s1">&#39;area&#39;</span><span class="p">]</span>
+                <span class="n">element_2</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="n">face</span><span class="p">[</span><span class="s1">&#39;site&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">specie</span><span class="p">)</span>
+                <span class="n">face_area</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">area</span><span class="p">)</span>
+                <span class="c1"># see get_descr method</span>
+                <span class="n">element_1_props</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_descr</span><span class="p">(</span><span class="n">element_1</span><span class="p">,</span> <span class="n">area</span><span class="p">)</span>
+
+                <span class="n">element_2_props</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_descr</span><span class="p">(</span><span class="n">element_2</span><span class="p">,</span> <span class="n">area</span><span class="p">)</span>
+                <span class="c1"># differences in properties</span>
+                <span class="n">polyhedron_attributes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="p">(</span><span class="n">element_1_props</span> <span class="o">-</span> <span class="n">element_2_props</span><span class="p">))</span>
+            <span class="c1"># normalize by the surface area of the polyhedron</span>
+            <span class="n">surface_area</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">face_area</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">att</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">polyhedron_attributes</span><span class="p">):</span>
+                <span class="n">polyhedron_attributes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="n">surface_area</span>
+
+            <span class="c1"># add the attribute to the list of attributes</span>
+            <span class="n">attributes</span> <span class="o">+=</span> <span class="n">polyhedron_attributes</span>
+
+        <span class="c1"># conver to array</span>
+        <span class="n">attributes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">attributes</span><span class="p">)</span>
+        <span class="n">delta_stats</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># iterate over columns ( each property corresponds to a row )</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">attributes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]):</span>
+            <span class="c1"># see get stats</span>
+            <span class="n">delta_stats</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Get_stats</span><span class="p">(</span><span class="n">attributes</span><span class="p">[:,</span> <span class="n">i</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">delta_stats</span></div></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="c1"># ------------------------ Options -------------------------------------</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">OptionParser</span><span class="p">()</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;-c&quot;</span><span class="p">,</span> <span class="s2">&quot;--crystal&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;structure&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s2">&quot;crystal from file, cif or poscar, REQUIRED&quot;</span><span class="p">,</span>
+                      <span class="n">metavar</span><span class="o">=</span><span class="s2">&quot;crystal&quot;</span><span class="p">)</span>
+
+    <span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;cif&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">fileformat</span> <span class="o">=</span> <span class="s1">&#39;cif&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">fileformat</span> <span class="o">=</span> <span class="s1">&#39;poscar&#39;</span>
+
+    <span class="n">test</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span>
+    <span class="n">voro</span> <span class="o">=</span> <span class="n">Voronoi_Descriptors</span><span class="p">(</span><span class="n">test</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">voro</span><span class="o">.</span><span class="n">all</span><span class="p">())</span>
+    <span class="n">test</span><span class="o">.</span><span class="n">make_supercell</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+    <span class="n">voro</span> <span class="o">=</span> <span class="n">Voronoi_Descriptors</span><span class="p">(</span><span class="n">test</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">voro</span><span class="o">.</span><span class="n">all</span><span class="p">())</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;voro.get_packing_efficiency()&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">voro</span><span class="o">.</span><span class="n">get_packing_efficiency</span><span class="p">())</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;voro.get_volume_statistics()&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">voro</span><span class="o">.</span><span class="n">get_volume_statistics</span><span class="p">())</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;voro.get_effective_coordination_number()&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">voro</span><span class="o">.</span><span class="n">get_effective_coordination_number</span><span class="p">())</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;voro.get_bond_statistics()&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">voro</span><span class="o">.</span><span class="n">get_bond_statistics</span><span class="p">())</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;voro.get_chemical_ordering_parameters()&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">voro</span><span class="o">.</span><span class="n">get_chemical_ordering_parameters</span><span class="p">())</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;voro.get_environment_attributes()&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">voro</span><span class="o">.</span><span class="n">get_environment_attributes</span><span class="p">())</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">PyXtal_ML 0.1.dev documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Qiang Zhu, Howard Yanxon, David Zagaceta.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
+    </div>
+  </body>
+</html>

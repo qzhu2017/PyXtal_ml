@@ -1,0 +1,166 @@
+ANN:
+  cv: 10
+  params:
+    hidden_layer_sizes:
+    - !!python/tuple
+      - 50
+      - 3
+    learning_rate:
+    - invscaling
+    solver:
+    - lbfgs
+ENet:
+  cv: 10
+  params:
+    alpha:
+    - 1000.0
+    - 100
+    - 10
+    - 1
+    - 0.1
+    - 0.01
+    - 0.001
+    l1_ratio:
+    - 1
+    - 0.5
+    - 0
+GPR:
+  cv: 10
+  params:
+    kernel:
+    - !!python/object:sklearn.gaussian_process.kernels.WhiteKernel
+      noise_level: 1.0
+      noise_level_bounds: &id001 !!python/tuple
+      - 1.0e-05
+      - 100000.0
+    - !!python/object:sklearn.gaussian_process.kernels.ExpSineSquared
+      length_scale: 1.0
+      length_scale_bounds: &id002 !!python/tuple
+      - 1.0e-05
+      - 100000.0
+      periodicity: 1.0
+      periodicity_bounds: &id003 !!python/tuple
+      - 1.0e-05
+      - 100000.0
+    - !!python/object:sklearn.gaussian_process.kernels.Sum
+      k1: !!python/object:sklearn.gaussian_process.kernels.WhiteKernel
+        noise_level: 1.0
+        noise_level_bounds: *id001
+      k2: !!python/object:sklearn.gaussian_process.kernels.ExpSineSquared
+        length_scale: 1.0
+        length_scale_bounds: *id002
+        periodicity: 1.0
+        periodicity_bounds: *id003
+GradientBoosting:
+  cv: 10
+  params:
+    learning_rate:
+    - 0.01
+    - 0.1
+    - 1
+    - 10
+    n_estimators:
+    - 100
+    - 500
+    - 1000
+    - 1500
+    - 2500
+    - 3000
+    - 4000
+    - 5000
+KNN:
+  cv: 10
+  params:
+    leaf_size:
+    - 30
+    - 100
+    n_neighbors:
+    - 3
+    - 4
+    p:
+    - 1.0
+    - 2.0
+KRR:
+  cv: 10
+  params:
+    alpha:
+    - 1000.0
+    - 100
+    - 10
+    - 1
+    - 0.1
+    - 0.01
+    - 0.001
+    gamma:
+    - -5
+    - 1
+    - 5
+    kernel:
+    - rbf
+    - laplacian
+    - linear
+Lasso:
+  cv: 10
+  params:
+    alpha:
+    - 1000.0
+    - 100
+    - 10
+    - 1
+    - 0.1
+    - 0.01
+    - 0.001
+RF:
+  cv: 10
+  params:
+    n_estimators:
+    - 10
+    - 30
+    - 60
+    - 90
+    - 150
+    - 250
+SVR:
+  cv: 10
+  params:
+    C:
+    - 1
+    - 10
+    - 100
+    - 1000
+    - 10000
+    epsilon:
+    - 0.01
+    - 0.1
+    - 1
+    - 10.0
+    - 100.0
+    gamma:
+    - 0.01
+    - 0.1
+    - 1
+    - 10
+    - 100
+StochasticGD:
+  cv: 10
+  params:
+    alpha:
+    - 100000.0
+    - 10000.0
+    - 1000.0
+    - 100
+    - 10
+    - 1
+    - 0.1
+    - 0.01
+    - 0.001
+    - 0.0001
+    - 1.0e-05
+    learning_rate:
+    - optimal
+    - constant
+    - invscaling
+    - adaptive
+    penalty:
+    - l2
+    - elasticnet
