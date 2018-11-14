@@ -19,7 +19,7 @@ hidden_layers = {"n_layers": 1, "n_neurons": [10]}
 
 # Running the user-defined values. Don't tresspass beyond this point.
 runner = run(jsonfile=jsonfile, feature=feature, prop=prop, N_sample=N_sample, library=library,
-            algorithm=algorithm, feature_scaling=feature_scaling, level=level, 
+            algo=algorithm, feature_scaling=feature_scaling, level=level, 
             pipeline=pipeline, hidden_layers=hidden_layers)
 runner.load_data()
 runner.convert_data_1D() #choose cpu number if you want to active this function
