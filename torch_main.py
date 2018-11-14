@@ -7,7 +7,7 @@ feature = 'PRDF'
 feature_scaling = False
 prop = 'formation_energy'
 N_sample = 300
-library = 'SkLearn' # SkLearn
+library = 'PyTorch' # SkLearn
 algorithm = 'ANN' # or dl
 
 # Option 1: If you want to use an algorithm from Scikit-learn, please enter the following
