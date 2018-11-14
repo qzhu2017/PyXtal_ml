@@ -7,7 +7,8 @@ feature = 'PRDF'
 feature_scaling = False
 prop = 'formation_energy'
 N_sample = 300
-algorithm = 'PyTorch_ANN' # or dl
+library = 'PyTorch' #sklearn
+algorithm = 'ANN' # or dl
 
 # Option 1: If you want to use an algorithm from Scikit-learn, please enter the following
 level = 'light'
@@ -17,7 +18,9 @@ pipeline = False
 hidden_layers = {"n_layers": 1, "n_neurons": [10]}
 
 # Running the user-defined values. Don't tresspass beyond this point.
-runner = run(jsonfile=jsonfile, feature=feature, prop=prop, N_sample=N_sample)
+runner = run(jsonfile=jsonfile, feature=feature, prop=prop, N_sample=N_sample, library=library,
+            algorithm=algorithm, feature_scaling=feature_scaling, level=level, 
+            pipeline=pipeline, hidden_layers=hidden_layers)
 runner.load_data()
 runner.convert_data_1D() #choose cpu number if you want to active this function
 runner.choose_feature(keys=feature) #choose feature combinations if you want
