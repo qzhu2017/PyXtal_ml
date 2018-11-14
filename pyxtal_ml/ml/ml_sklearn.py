@@ -49,9 +49,6 @@ class method:
     """
 
     def __init__(self, algo, feature, prop, tag, pipeline = False, feature_scaling = False, test_size = 0.3, **kwargs):
-        """
-
-        """
         self.algo = algo
         self.prop = prop
         self.tag = tag
@@ -88,10 +85,10 @@ class method:
 
     def apply_feature_scaling(self, X):
         """
-        feature scaling with an appropriate algorithm of your choice
+        feature scaling with an appropriate algorithm of your choice.
         
         Returns:
-            xyz
+            scaled features.
         """
         X = eval(self.feature_scaling+'()').fit_transform(X)
         
@@ -100,7 +97,8 @@ class method:
 
     def read_dict(self):
         """
-        reading from **kwargs argument to determine the comprehensiveness level of training and its parameters
+        reading from **kwargs argument to determine the comprehensiveness 
+        level of training and its parameters.
         """
         for key, value in self.dict.items():
             if value in self.parameters_level:
