@@ -15,7 +15,7 @@ level = 'light'
 pipeline = False
 
 # Option 2: If you want to use an algorithm from PyTorch, please enter the following
-hidden_layers = {"n_layers": 2, "n_neurons": [10]}
+hidden_layers = {"n_layers": 3, "n_neurons": [50]}
 
 # Running the user-defined values. Don't tresspass beyond this point.
 runner = run(jsonfile=jsonfile, feature=feature, prop=prop, N_sample=N_sample, library=library,
