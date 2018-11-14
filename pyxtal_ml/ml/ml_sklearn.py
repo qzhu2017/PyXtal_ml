@@ -28,7 +28,7 @@ import os.path as op
 rcParams.update({'figure.autolayout': True})
 plt.style.use("bmh")
 sys.path.append('../')
-yaml_path = op.join(op.dirname(__file__), 'default_params.yaml')
+yaml_path = op.join(op.dirname(__file__), 'sklearn_params.yaml')
 
 class method:
     """
@@ -38,12 +38,12 @@ class method:
     and the tag consists of the names of features and properties.
 
     Args:
-        algo: A string consists of machine learning algorithm defined in algo_options.
-        feature: A list of materials' feature.
-        prop: An array of materials' property.
-        tag: A dict of property and features names.
-        pipeline: Add extra machine learning algorithms to be run one after another.
-        test_size: a default argument of 0.3 means 30% of data is used for testing
+        algo: A string consists of machine learning algorithm defined in algo_options
+        feature: A list of materials' feature
+        prop: An array of materials' property
+        tag: A dict of property and features names
+        pipeline: Add extra machine learning algorithms to be run one after another 
+        test_size: a default argument of 0.3 means 30% of data is used for testing 
             the machine learning model.
         kwargs: A dictionary of dictionaries of machine learning parameters.
     """
@@ -62,12 +62,13 @@ class method:
         self.pipeline_options = ['VT', 'VarianceThreshold', 'PCA']
         self.parameters_level = ['light', 'medium', 'tight']
         
-        # Check if feature scaling has value
+        # Check if feature_scaling has value
         if self.feature_scaling != False:
             self.feature = self.apply_feature_scaling(feature)
         else:
             self.feature = feature
         
+        # Split feature to training and testing datasets
         if self.algo in self.algo_options:
             # Split data into training and test sets
             self.X_train, self.X_test, self.Y_train, self.Y_test = train_test_split(self.feature, self.prop, test_size = self.test_size, random_state = 0)
@@ -77,18 +78,18 @@ class method:
                     self.algos_params = yaml.load(stream)
                 except yaml.YAMLError as exc:
                     print(exc)
-
         else:
             print('Warning: The Machine Learning algorithm is not available.')
+            
         self.ml()
         
 
     def apply_feature_scaling(self, X):
         """
-        feature scaling with an appropriate algorithm of your choice.
+        feature scaling with an appropriate algorithm of your choice
         
         Returns:
-            scaled features.
+            xyz
         """
         X = eval(self.feature_scaling+'()').fit_transform(X)
         
@@ -97,8 +98,7 @@ class method:
 
     def read_dict(self):
         """
-        reading from **kwargs argument to determine the comprehensiveness 
-        level of training and its parameters.
+        reading from **kwargs argument to determine the comprehensiveness level of training and its parameters
         """
         for key, value in self.dict.items():
             if value in self.parameters_level:
