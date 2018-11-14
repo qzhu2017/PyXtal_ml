@@ -38,12 +38,12 @@ class method:
     and the tag consists of the names of features and properties.
 
     Args:
-        algo: A string consists of machine learning algorithm defined in algo_options
-        feature: A list of materials' feature
-        prop: An array of materials' property
-        tag: A dict of property and features names
-        pipeline: Add extra machine learning algorithms to be run one after another 
-        test_size: a default argument of 0.3 means 30% of data is used for testing 
+        algo: A string consists of machine learning algorithm defined in algo_options.
+        feature: A list of materials' feature.
+        prop: An array of materials' property.
+        tag: A dict of property and features names.
+        pipeline: Add extra machine learning algorithms to be run one after another.
+        test_size: a default argument of 0.3 means 30% of data is used for testing
             the machine learning model.
         kwargs: A dictionary of dictionaries of machine learning parameters.
     """
