@@ -13,25 +13,32 @@ from sklearn.preprocessing import (MinMaxScaler, minmax_scale, MaxAbsScaler, max
 from pyxtal_ml.descriptors.descriptors import descriptor
 from pyxtal_ml.datasets.collection import Collection
 from pyxtal_ml.ml.ml_sklearn import method
+from pyxtal_ml.ml.dl_pytorch import dl_torch
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from progressbar import ProgressBar
 from optparse import OptionParser
 import warnings
 warnings.filterwarnings("ignore")
 
-def f(x):
-    return x*x
-
 class run:
     """
-    a class of production runs of pyxtal_ml
-    Attributes:
+    A class of production runs of pyxtal_ml.
+    
+    Args:
+        file:
+        feature:
+        prop:
+        N_sample:
+        library:
         algo:
-        time:
+        feature_scaling:
+        level:
+        pipeline:
+        hidden_layers:
     """
 
-    def __init__(self, jsonfile, N_sample=None, feature='Chem+RDF', 
-                 prop='formation_energy', level='light'):
+    def __init__(self, jsonfile, feature, prop, N_sample, library, algo, feature_scaling=False,
+                 level=False, pipeline=False, hidden_layers=False):
         """
         Args:
             algo: algorithm in ['KRR', 'KNN', ....]
@@ -40,16 +47,23 @@ class run:
             level: 'light', 'medium', 'tight'
             file: source json file
         """
+        self.file = jsonfile
         self.feature0 = feature
         self.prop = prop
-        self.level = level
         self.N_sample = N_sample
-        self.file = jsonfile
+        self.library = library
+        self.algo = algo
+        self.feature_scaling = feature_scaling
+        self.level = level
+        self.pipeline = pipeline
+        self.hidden_layers = hidden_layers
+        
+        # For timing
         self.time = {}
 
     def load_data(self):
         """
-        obtain the struc/prop data from source 
+        Obtain the struc/prop data from source.
         """
         start = time()
         self.strucs, self.props = Collection(self.file, self.prop, self.N_sample).extract_struc_prop()
@@ -58,9 +72,8 @@ class run:
 
     def convert_data_1D(self, parallel=False, progress=True):
         """
-        convert the structures to descriptors in the format of 1D array
+        Convert the structures to descriptors in the format of 1D array.
         """
-
         start = time()
         if progress:
             import tqdm
@@ -92,7 +105,12 @@ class run:
         self.features = feas
 
     def calc_feas(self, struc, print_error=False):
-        res={}
+        """
+        print defective dataset.
+        
+        Returns:
+            defective feature dataset.
+        """
         try:
             feas = descriptor(struc, self.feature0)
         except:
@@ -103,7 +121,7 @@ class run:
 
     def choose_feature(self, keys=None):
         """
-        convert the structures to descriptors in the format of 1D array
+        Convert the structures to descriptors in the format of 1D array.
         """
         X = []
         Y = []
@@ -119,18 +137,27 @@ class run:
         else:
             self.feature = keys
 
-    def ml_train(self, algo='KRR', pipeline = False, feature_scaling=False, plot=False, print_info=True, save=False):
+    def ml_train(self, algo, plot=False, print_info=True, save=False):
         """
-        build machine learning model for X/Y set
+        Build machine learning model for X/Y set.
+        
+        Args:
+            plot: include plotting. (default = False)
+            print_info: print training and results information. (default = True)
+            save: save the training simulation for future usage. (default = False)
         """
-        self.algo = algo
-        self.pipeline = pipeline
-        self.feature_scaling = feature_scaling
         print('\nML learning with {} algorithm'.format(self.algo))
         tag = {'prop': self.prop, 'feature':self.feature}
         start = time()
-        ml = method(feature=self.X, prop=self.Y, algo=self.algo, tag=tag, 
-                pipeline = self.pipeline, feature_scaling = self.feature_scaling, params=self.level)
+        
+        if self.library == 'SkLearn':
+            ml = method(feature=self.X, prop=self.Y, algo=self.algo, tag=tag, 
+                        pipeline=self.pipeline, feature_scaling=self.feature_scaling, params=self.level)
+        elif self.library == 'PyTorch':
+            ml = dl_torch(feature=self.X, prop=self.Y, tag=tag, hidden_layers=self.hidden_layers)
+        else:
+            pass
+        
         end = time()
         self.time['ml'] = end-start
         if plot:
@@ -173,6 +200,9 @@ class run:
         df = df.sort_values(['dY','Space group','Nsites'], ascending=[True, True, True])
         print('\nThe following structures have relatively high error compared to the reference values')
         print(tabulate(df, headers='keys', tablefmt='psql'))
+        
+def f(x):
+    return x*x
 
 if __name__ == "__main__":
     # -------------------------------- Options -------------------------
@@ -199,5 +229,3 @@ if __name__ == "__main__":
     runner.convert_data_1D()
     runner.ml_train()
     runner.print_outliers()
-
-
