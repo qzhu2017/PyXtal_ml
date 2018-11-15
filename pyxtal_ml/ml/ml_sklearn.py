@@ -12,11 +12,6 @@ from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import (RBF, WhiteKernel, Matern, RationalQuadratic, 
                                                 ExpSineSquared, DotProduct, 
                                                 ConstantKernel)
-from sklearn.preprocessing import (MinMaxScaler, minmax_scale, MaxAbsScaler, maxabs_scale, KernelCenterer,
-                            StandardScaler, RobustScaler, robust_scale, Normalizer, Binarizer,
-                            PolynomialFeatures, FunctionTransformer, PowerTransformer,
-                            QuantileTransformer, quantile_transform, OrdinalEncoder, OneHotEncoder,
-                            KBinsDiscretizer)
 from sklearn.neural_network import MLPRegressor
 import yaml
 import numpy as np
@@ -48,12 +43,11 @@ class method:
         kwargs: A dictionary of dictionaries of machine learning parameters.
     """
 
-    def __init__(self, algo, feature, prop, tag, pipeline = False, feature_scaling = False, test_size = 0.3, **kwargs):
+    def __init__(self, algo, feature, prop, tag, pipeline = False, test_size = 0.3, **kwargs):
         self.algo = algo
         self.prop = prop
         self.tag = tag
         self.pipeline = pipeline
-        self.feature_scaling = feature_scaling
         self.test_size = test_size
         self.dict = kwargs
         self.algo_options = ['KNN', 'KneighborsRegressor', 'KRR', 'KernelRidge', 'GB', 'GradientBoosting', 
@@ -61,12 +55,6 @@ class method:
                 'Lasso', 'ElasticNet', 'ENet', 'GaussianProcessRegressor', 'GPR']
         self.pipeline_options = ['VT', 'VarianceThreshold', 'PCA']
         self.parameters_level = ['light', 'medium', 'tight']
-        
-        # Check if feature_scaling has value
-        if self.feature_scaling != False:
-            self.feature = self.apply_feature_scaling(feature)
-        else:
-            self.feature = feature
         
         # Split feature to training and testing datasets
         if self.algo in self.algo_options:
@@ -82,19 +70,6 @@ class method:
             print('Warning: The Machine Learning algorithm is not available.')
             
         self.ml()
-        
-
-    def apply_feature_scaling(self, X):
-        """
-        feature scaling with an appropriate algorithm of your choice
-        
-        Returns:
-            xyz
-        """
-        X = eval(self.feature_scaling+'()').fit_transform(X)
-        
-        return X
-
 
     def read_dict(self):
         """
