@@ -106,10 +106,10 @@ class run:
 
     def calc_feas(self, struc, print_error=False):
         """
-        print defective dataset.
+        Calculate user-defined features to a set of descriptors.
         
         Returns:
-            defective feature dataset.
+            an object of calculated descriptors or an empty array.
         """
         try:
             feas = descriptor(struc, self.feature0)
@@ -125,10 +125,23 @@ class run:
         """
         X = []
         Y = []
+        feature_scaling_length = [438, 756, 103, 1194, 541, 859, 1297]
         for fea, y0 in zip(self.features, self.props):
             if y0 != None and fea:
                 X.append(fea.merge(keys=keys))
                 Y.append(y0)
+        
+        X = np.asarray(X)
+        feature_counting = fea.feature_counting
+        print(X[:,:feature_counting])
+        
+        if self.feature_scaling != False:
+            if feature_counting in feature_scaling_length:
+                X[:,:feature_counting] = self.apply_feature_scaling(X[:,:feature_counting])
+            else:
+                pass
+        print('here')
+        print(X[:,:feature_counting])
 
         self.X = X
         self.Y = Y
@@ -136,7 +149,7 @@ class run:
             self.feature = self.feature0
         else:
             self.feature = keys
-
+    
     def ml_train(self, algo, plot=False, print_info=True, save=False):
         """
         Build machine learning model for X/Y set.
@@ -149,10 +162,10 @@ class run:
         print('\nML learning with {} algorithm'.format(self.algo))
         tag = {'prop': self.prop, 'feature':self.feature}
         start = time()
-        
+
         if self.library == 'SkLearn':
             ml = method(feature=self.X, prop=self.Y, algo=self.algo, tag=tag, 
-                        pipeline=self.pipeline, feature_scaling=self.feature_scaling, params=self.level)
+                        pipeline=self.pipeline, params=self.level)
         elif self.library == 'PyTorch':
             ml = dl_torch(feature=self.X, prop=self.Y, tag=tag, hidden_layers=self.hidden_layers)
         else:
@@ -168,6 +181,18 @@ class run:
             from sklearn.externals import joblib
             joblib.dump(ml.estimator, algo+'.joblib')
         self.ml = ml
+
+    def apply_feature_scaling(self, X):
+        """
+        Feature scaling with the user-defined algorithm.
+        Apply this function to uncorrelated arrays of feature.
+
+        Returns:
+            arrays of scaled feature.
+        """
+        X = eval(self.feature_scaling+'()').fit_transform(X)
+
+        return X
 
     def print_time(self):
         """
