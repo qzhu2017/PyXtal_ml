@@ -1,3 +1,11 @@
+import numpy as np
+from pymatgen.core.structure import Structure
+from optparse import OptionParser
+from sklearn.preprocessing import (MinMaxScaler, minmax_scale, MaxAbsScaler, maxabs_scale, KernelCenterer,
+                            StandardScaler, RobustScaler, robust_scale, Normalizer, Binarizer, 
+                            PolynomialFeatures, FunctionTransformer, PowerTransformer, 
+                            QuantileTransformer, quantile_transform, OrdinalEncoder, OneHotEncoder, 
+                            KBinsDiscretizer)
 from pyxtal_ml.descriptors.RDF import RDF
 from pyxtal_ml.descriptors.ADF import ADF
 from pyxtal_ml.descriptors.chem import Chem
@@ -5,10 +13,6 @@ from pyxtal_ml.descriptors.charge import Charge
 from pyxtal_ml.descriptors.DDF import DDF
 from pyxtal_ml.descriptors.prdf import PRDF
 from pyxtal_ml.descriptors.voronoi_descriptors import Voronoi_Descriptors
-from optparse import OptionParser
-import numpy as np
-from pymatgen.core.structure import Structure
-
 
 class descriptor:
     """Collection of molecular data.
@@ -21,11 +25,12 @@ class descriptor:
         name: the type of collection to get. Defaults to "molecules"
     """
 
-    def __init__(self, crystal, libs='all'):
+    def __init__(self, crystal, libs='all', feature_scaling = False):
         self.libs = libs
         self.struc = crystal
+        self.feature_scaling = feature_scaling
         self.descriptor = {}
-        options = ['RDF', 'ADF', 'DDF', 'Chem', 'Charge', 'Voronoi', 'PRDF']
+        options = ['Chem', 'Voronoi', 'Charge', 'RDF', 'ADF', 'DDF', 'PRDF']
         self.libs = []
         if libs == 'all':
             self.libs = options
@@ -37,41 +42,77 @@ class descriptor:
         #    if lib in ['Packing_efficiency, Volume_stats, Bond_stats, Coord_number, Chemical_ordering, Environment_attibutes']:
         #        voro = Voronoi_Descriptors(self.struc)
         #        break
-
-        for lib in self.libs:
-            #voro = Voronoi_Descriptors(self.struc)
-            if lib == 'RDF':
-                self.descriptor['RDF'] = RDF(self.struc).RDF[1, :]
-            elif lib == 'ADF':
-                self.descriptor['ADF'] = ADF(self.struc).all
-            elif lib == 'DDF':
-                self.descriptor['DDF'] = DDF(self.struc).DDF
-            elif lib == 'Chem':
-                self.descriptor['Chem'] = Chem(self.struc).mean_chem
-            elif lib == 'Charge':
-                self.descriptor['Charge'] = Charge(self.struc).mean_chg
-            elif lib == 'Voronoi':
-                self.descriptor['Voronoi'] = Voronoi_Descriptors(
-                    self.struc).all()
-            elif lib == 'PRDF':
-                self.descriptor['PRDF'] = PRDF(self.struc).PRDF
-            # elif lib == 'Packing_efficiency':
-            #    self.descriptor['Packing_efficiency'] = voro.get_packing_efficiency(
-            #    )
-            # elif lib == 'Volume_stats':
-            #    self.descriptor['Volume_stats'] = voro.get_volume_statistics()
-            # elif lib == 'Bond_stats':
-            #    self.descriptor['Bond_stats'] = voro.get_bond_statistics()
-            # elif lib == 'Coord_number':
-            #    self.descriptor['Coord_number'] = voro.get_effective_coordination_number(
-            #    )
-            # elif lib == 'Chemical_ordering':
-            #    self.descriptor['Chemical_ordering'] = voro.get_chemical_ordering_parameters(
-            #    )
-            # elif lib == 'Environment_attributes':
-            #    self.descriptor['Environment_attributes'] = voro.get_environment_attributes(
-            #    )
-
+        if self.feature_scaling != False:
+            for lib in self.libs:
+                #voro = Voronoi_Descriptors(self.struc)
+                if lib == 'RDF':
+                    self.descriptor['RDF'] = RDF(self.struc).RDF[1, :]
+                    self.descriptor['RDF'] = self.apply_feature_scaling_array(self.descriptor['RDF'])
+                elif lib == 'ADF':
+                    self.descriptor['ADF'] = ADF(self.struc).all
+                    self.descriptor['ADF'] = self.apply_feature_scaling_array(self.descriptor['ADF']) 
+                elif lib == 'DDF':
+                    self.descriptor['DDF'] = DDF(self.struc).DDF
+                    self.descriptor['DDF'] = self.apply_feature_scaling_array(self.descriptor['DDF']) 
+                elif lib == 'Chem':
+                    self.descriptor['Chem'] = Chem(self.struc).mean_chem
+                elif lib == 'Charge':
+                    self.descriptor['Charge'] = Charge(self.struc).mean_chg
+                elif lib == 'Voronoi':
+                    self.descriptor['Voronoi'] = Voronoi_Descriptors(
+                        self.struc).all()
+                elif lib == 'PRDF':
+                    self.descriptor['PRDF'] = PRDF(self.struc).PRDF
+                    self.descriptor['PRDF'] = self.apply_feature_scaling_array(self.descriptor['PRDF'])
+                # elif lib == 'Packing_efficiency':
+                #    self.descriptor['Packing_efficiency'] = voro.get_packing_efficiency(
+                #    )
+                # elif lib == 'Volume_stats':
+                #    self.descriptor['Volume_stats'] = voro.get_volume_statistics()
+                # elif lib == 'Bond_stats':
+                #    self.descriptor['Bond_stats'] = voro.get_bond_statistics()
+                # elif lib == 'Coord_number':
+                #    self.descriptor['Coord_number'] = voro.get_effective_coordination_number(
+                #    )
+                # elif lib == 'Chemical_ordering':
+                #    self.descriptor['Chemical_ordering'] = voro.get_chemical_ordering_parameters(
+                #    )
+                # elif lib == 'Environment_attributes':
+                #    self.descriptor['Environment_attributes'] = voro.get_environment_attributes()
+        else:
+            for lib in self.libs:
+                #voro = Voronoi_Descriptors(self.struc)
+                if lib == 'RDF':
+                    self.descriptor['RDF'] = RDF(self.struc).RDF[1, :]
+                elif lib == 'ADF':
+                    self.descriptor['ADF'] = ADF(self.struc).all
+                elif lib == 'DDF':
+                    self.descriptor['DDF'] = DDF(self.struc).DDF
+                elif lib == 'Chem':
+                    self.descriptor['Chem'] = Chem(self.struc).mean_chem
+                elif lib == 'Charge':
+                    self.descriptor['Charge'] = Charge(self.struc).mean_chg
+                elif lib == 'Voronoi':
+                    self.descriptor['Voronoi'] = Voronoi_Descriptors(
+                        self.struc).all()
+                elif lib == 'PRDF':
+                    self.descriptor['PRDF'] = PRDF(self.struc).PRDF
+                # elif lib == 'Packing_efficiency':
+                #    self.descriptor['Packing_efficiency'] = voro.get_packing_efficiency(
+                #    )
+                # elif lib == 'Volume_stats':
+                #    self.descriptor['Volume_stats'] = voro.get_volume_statistics()
+                # elif lib == 'Bond_stats':
+                #    self.descriptor['Bond_stats'] = voro.get_bond_statistics()
+                # elif lib == 'Coord_number':
+                #    self.descriptor['Coord_number'] = voro.get_effective_coordination_number(
+                #    )
+                # elif lib == 'Chemical_ordering':
+                #    self.descriptor['Chemical_ordering'] = voro.get_chemical_ordering_parameters(
+                #    )
+                # elif lib == 'Environment_attributes':
+                #    self.descriptor['Environment_attributes'] = voro.get_environment_attributes()
+ 
     def merge(self, keys=None):
         if keys is None:
             keys0 = self.descriptor.keys()
@@ -79,6 +120,8 @@ class descriptor:
             keys0 = []
             for key in keys.split('+'):
                 keys0.append(key)
+
+        keys0, self.feature_counting = self.sort_features(keys0)
 
         arr = []
         for key in keys0:
@@ -89,8 +132,54 @@ class descriptor:
             else:
                 arr = np.hstack((arr, self.descriptor[key]))
         #print(np.shape(arr))
+
         return arr
 
+    def sort_features(self, features):
+        options = ['Chem', 'Voronoi', 'Charge']
+        feature_counting = 0
+        featuring_options = []
+        featuring_noptions = []
+        for feat in features:
+            if feat == 'Chem':
+                featuring_options.append(feat)
+                feature_counting += 438
+            elif feat == 'Charge':
+                featuring_options.append(feat)
+                feature_counting += 756
+            elif feat == 'Voronoi':
+                featuring_options.append(feat)
+                feature_counting += 103
+            else:
+                featuring_noptions.append(feat)
+        feature = featuring_options+featuring_noptions
+
+        return features, feature_counting
+
+#    def apply_feature_scaling(self, X):
+#        """
+#        Feature scaling with the user-defined algorithm.
+#        Apply this function to uncorrelated arrays of feature.
+#
+#        Returns:
+#            arrays of scaled feature.
+#       """
+#        X = eval(self.feature_scaling+'()').fit_transform(X)
+#
+#        return X
+
+    def apply_feature_scaling_array(self, X):
+        """
+        Feature scaling with the user-defined algorithm.
+        Apply this function to correlated arrays of feature.
+        E.g. partial radial distribution function.
+
+        Returns:
+            arrays of scaled feature.
+        """
+        X = eval(self.feature_scaling+'()').fit_transform(X)
+
+        return X
 
 if __name__ == "__main__":
     # -------------------------------- Options -------------------------
