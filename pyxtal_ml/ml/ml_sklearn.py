@@ -78,8 +78,6 @@ class method:
         elif algo in ['ANN', 'MLPRegressor']:
             self.algo = 'MLPRegressor'
 
-        print(self.algo)
-        
         # Split feature to training and testing datasets
         if self.algo in self.algo_options:
             # Split data into training and test sets
@@ -88,7 +86,6 @@ class method:
             with open(yaml_path, 'r') as stream:
                 try:
                     self.algos_params = yaml.load(stream)
-                    print(self.algos_params)
                 except yaml.YAMLError as exc:
                     print(exc)
         else:
