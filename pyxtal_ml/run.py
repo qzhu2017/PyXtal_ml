@@ -133,15 +133,12 @@ class run:
         
         X = np.asarray(X)
         feature_counting = fea.feature_counting
-        print(X[:,:feature_counting])
         
         if self.feature_scaling != False:
             if feature_counting in feature_scaling_length:
                 X[:,:feature_counting] = self.apply_feature_scaling(X[:,:feature_counting])
             else:
                 pass
-        print('here')
-        print(X[:,:feature_counting])
 
         self.X = X
         self.Y = Y

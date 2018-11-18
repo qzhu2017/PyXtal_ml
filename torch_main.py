@@ -3,10 +3,10 @@ from pkg_resources import resource_filename
 
 # Please define your values in here, option 1, and option 2.
 jsonfile = resource_filename("pyxtal_ml", "datasets/nonmetal_MP_8049.json")
-feature = 'RDF+Chem'
-feature_scaling = 'StandardScaler'
+feature = 'Chem'
+feature_scaling = 'MinMaxScaler'
 prop = 'formation_energy'
-N_sample = 10
+N_sample = 300
 library = 'SkLearn' # SkLearn
 algorithm = 'KRR' # or dl
 
