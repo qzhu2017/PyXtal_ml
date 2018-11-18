@@ -44,7 +44,6 @@ class method:
     """
 
     def __init__(self, algo, feature, prop, tag, pipeline = False, test_size = 0.3, **kwargs):
-        self.algo = algo
         self.feature = feature
         self.prop = prop
         self.tag = tag
@@ -56,6 +55,28 @@ class method:
                 'Lasso', 'ElasticNet', 'ENet', 'GaussianProcessRegressor', 'GPR']
         self.pipeline_options = ['VT', 'VarianceThreshold', 'PCA']
         self.parameters_level = ['light', 'medium', 'tight']
+        
+        # Convert the algorithm to Scikit-learn names.
+        if algo in ['KNN', 'KNeighborsRegressor']:
+            self.algo = 'KNeighborsRegressor'
+        elif algo in ['KRR', 'KernelRidge']:
+            self.algo = 'KernelRidge'
+        elif algo in ['GB', 'GradientBoostingRegressor']:
+            self.algo = 'GradientBosstingRegressor'
+        elif algo in ['RF', 'RandomForestRegressor']:
+            self.algo = 'RandomForestRegressor'
+        elif algo in ['SGD', 'SGDRegressor']:
+            self.algo = 'SGDRegressor'
+        elif algo in ['SVR']:
+            self.algo = 'SVR'
+        elif algo in ['ENet', 'ElasticNet']:
+            self.algo = 'ElasticNet'
+        elif algo in ['LASSO']:
+            self.algo = 'LASSO'
+        elif algo in ['GPR', 'GaussianProcessRegressor']:
+            self.algo = 'GaussianProcessRegressor'
+        elif algo in ['ANN', 'MLPRegressor']:
+            self.algo = 'MLPRegressor'
         
         # Split feature to training and testing datasets
         if self.algo in self.algo_options:
@@ -129,23 +150,23 @@ class method:
         self.read_dict()
 
         # Main classifier
-        if self.algo in ['KNN', 'KNeighborsRegressor']:
+        if self.algo in ['KNeighborsRegressor']:
             self.grid, self.CV = self.get_params_for_gridsearch(self.level, self.params)
             clf = KNeighborsRegressor()
            
-        elif self.algo in ['KRR', 'KernelRidge']:
+        elif self.algo in ['KernelRidge']:
             self.grid, self.CV = self.get_params_for_gridsearch(self.level, self.params)
             clf = KernelRidge()
 
-        elif self.algo in ['GB', 'GradientBoostingRegressor']:
+        elif self.algo in ['GradientBoostingRegressor']:
             self.grid, self.CV = self.get_params_for_gridsearch(self.level, self.params)
             clf = GradientBoostingRegressor()
         
-        elif self.algo in ['RandomForestRegressor', 'RF']:
+        elif self.algo in ['RandomForestRegressor']:
             self.grid, self.CV = self.get_params_for_gridsearch(self.level, self.params)
             clf = RandomForestRegressor()
 
-        elif self.algo in ['SGDRegressor', 'SGD']:
+        elif self.algo in ['SGDRegressor']:
             self.grid, self.CV = self.get_params_for_gridsearch(self.level, self.params)
             clf = SGDRegressor()
         
@@ -153,7 +174,7 @@ class method:
             self.grid, self.CV = self.get_params_for_gridsearch(self.level, self.params)
             clf = SVR()
 
-        elif self.algo in ['ElasticNet', 'ENet']:
+        elif self.algo in ['ElasticNet']:
             self.grid, self.CV = self.get_params_for_gridsearch(self.level, self.params)
             clf = ElasticNet()
 
@@ -161,17 +182,13 @@ class method:
             self.grid, self.CV = self.get_params_for_gridsearch(self.level, self.params)
             clf = Lasso()
 
-        elif self.algo in ['GaussianProcessRegressor', 'GRP']:
-            self.grid, self.CV = self.get_params_for_gridsearch(self.level, self.params)
-            clf = GaussianProcessRegressor()
-
-        elif self.algo in ['MLPRegressor', 'ANN']:
+        elif self.algo in ['MLPRegressor']:
             self.grid, self.CV = self.get_params_for_gridsearch(self.level, self.params)
             clf = MLPRegressor()
 
-        elif self.algo in ['GaussianProcessRegressor', 'GPR']:
+        elif self.algo in ['GaussianProcessRegressor']:
             self.grid, self.CV = self.get_params_for_gridsearch(self.level, self.params)
-            clf = GaussianProcessRegressor(alpha = 1000.0)
+            clf = GaussianProcessRegressor()
         
         # Extra classifier
         if self.pipeline in self.pipeline_options:
