@@ -45,6 +45,7 @@ class method:
 
     def __init__(self, algo, feature, prop, tag, pipeline = False, test_size = 0.3, **kwargs):
         self.algo = algo
+        self.feature = feature
         self.prop = prop
         self.tag = tag
         self.pipeline = pipeline
