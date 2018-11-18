@@ -1,15 +1,4 @@
-ANN:
-  cv: 10
-  params:
-    hidden_layer_sizes:
-    - !!python/tuple
-      - 50
-      - 3
-    learning_rate:
-    - invscaling
-    solver:
-    - lbfgs
-ENet:
+ElasticNet:
   cv: 10
   params:
     alpha:
@@ -24,7 +13,7 @@ ENet:
     - 1
     - 0.5
     - 0
-GPR:
+GaussianProcessRegressor:
   cv: 10
   params:
     kernel:
@@ -51,7 +40,7 @@ GPR:
         length_scale_bounds: *id002
         periodicity: 1.0
         periodicity_bounds: *id003
-GradientBoosting:
+GradientBoostingRegressor:
   cv: 10
   params:
     learning_rate:
@@ -68,7 +57,7 @@ GradientBoosting:
     - 3000
     - 4000
     - 5000
-KNN:
+KNeighborsRegressor:
   cv: 10
   params:
     leaf_size:
@@ -80,7 +69,7 @@ KNN:
     p:
     - 1.0
     - 2.0
-KRR:
+KernelRidge:
   cv: 10
   params:
     alpha:
@@ -110,7 +99,18 @@ Lasso:
     - 0.1
     - 0.01
     - 0.001
-RF:
+MLPRegressor:
+  cv: 10
+  params:
+    hidden_layer_sizes:
+    - !!python/tuple
+      - 50
+      - 3
+    learning_rate:
+    - invscaling
+    solver:
+    - lbfgs
+RandomForestRegressor:
   cv: 10
   params:
     n_estimators:
@@ -120,28 +120,7 @@ RF:
     - 90
     - 150
     - 250
-SVR:
-  cv: 10
-  params:
-    C:
-    - 1
-    - 10
-    - 100
-    - 1000
-    - 10000
-    epsilon:
-    - 0.01
-    - 0.1
-    - 1
-    - 10.0
-    - 100.0
-    gamma:
-    - 0.01
-    - 0.1
-    - 1
-    - 10
-    - 100
-StochasticGD:
+SGDRegressor:
   cv: 10
   params:
     alpha:
@@ -164,3 +143,24 @@ StochasticGD:
     penalty:
     - l2
     - elasticnet
+SVR:
+  cv: 10
+  params:
+    C:
+    - 1
+    - 10
+    - 100
+    - 1000
+    - 10000
+    epsilon:
+    - 0.01
+    - 0.1
+    - 1
+    - 10.0
+    - 100.0
+    gamma:
+    - 0.01
+    - 0.1
+    - 1
+    - 10
+    - 100
