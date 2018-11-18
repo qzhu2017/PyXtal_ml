@@ -50,7 +50,7 @@ class method:
         self.pipeline = pipeline
         self.test_size = test_size
         self.dict = kwargs
-        self.algo_options = ['KNN', 'KneighborsRegressor', 'KRR', 'KernelRidge', 'GB', 'GradientBoosting', 
+        self.algo_options = ['KNN', 'KneighborsRegressor', 'KRR', 'KernelRidge', 'GB', 'GradientBoostingRegressor',
                 'RF', 'RandomForestRegressor', 'SGD', 'SGDRegressor', 'MLPRegressor', 'ANN', 'SVR', 
                 'Lasso', 'ElasticNet', 'ENet', 'GaussianProcessRegressor', 'GPR']
         self.pipeline_options = ['VT', 'VarianceThreshold', 'PCA']
@@ -62,7 +62,7 @@ class method:
         elif algo in ['KRR', 'KernelRidge']:
             self.algo = 'KernelRidge'
         elif algo in ['GB', 'GradientBoostingRegressor']:
-            self.algo = 'GradientBosstingRegressor'
+            self.algo = 'GradientBoostingRegressor'
         elif algo in ['RF', 'RandomForestRegressor']:
             self.algo = 'RandomForestRegressor'
         elif algo in ['SGD', 'SGDRegressor']:
@@ -77,6 +77,8 @@ class method:
             self.algo = 'GaussianProcessRegressor'
         elif algo in ['ANN', 'MLPRegressor']:
             self.algo = 'MLPRegressor'
+
+        print(self.algo)
         
         # Split feature to training and testing datasets
         if self.algo in self.algo_options:
@@ -86,6 +88,7 @@ class method:
             with open(yaml_path, 'r') as stream:
                 try:
                     self.algos_params = yaml.load(stream)
+                    print(self.algos_params)
                 except yaml.YAMLError as exc:
                     print(exc)
         else:
@@ -100,7 +103,7 @@ class method:
         for key, value in self.dict.items():
             if value in self.parameters_level:
                 self.level = value                          # light, medium, or tight
-                self.params = self.algos_params[self.algo]  # import ml parameters pre-defined in default_params.yaml
+                self.params = self.algos_params[self.algo]  # import ml parameters pre-defined in sklearn_params.yaml
                 break
             else:
                 self.level = None
