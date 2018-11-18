@@ -160,10 +160,10 @@ class run:
         tag = {'prop': self.prop, 'feature':self.feature}
         start = time()
 
-        if self.library == 'SkLearn':
+        if self.library in ['SkLearn', 'sklearn']:
             ml = method(feature=self.X, prop=self.Y, algo=self.algo, tag=tag, 
                         pipeline=self.pipeline, params=self.level)
-        elif self.library == 'PyTorch':
+        elif self.library in ['PyTorch', 'pytorch']:
             ml = dl_torch(feature=self.X, prop=self.Y, tag=tag, hidden_layers=self.hidden_layers)
         else:
             pass
