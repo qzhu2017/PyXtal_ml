@@ -1,20 +1,28 @@
 from pyxtal_ml.run import run
 from pkg_resources import resource_filename
-import numpy as np
-from sklearn.gaussian_process.kernels import WhiteKernel, ExpSineSquared
 
+# Please define your values in here, option 1, and option 2.
 jsonfile = resource_filename("pyxtal_ml", "datasets/nonmetal_MP_8049.json")
-algos = ['ANN']
-N_sample = 300
 feature = 'Chem'
 feature_scaling = 'MinMaxScaler'
-level = 'tight' #{'my_params': {"kernel": [ExpSineSquared(l, p) for l in np.logspace(-2, 2, 10) for p in np.logspace(0, 2, 10)]}, 'CV': 4}
+prop = 'formation_energy'
+N_sample = 300
+library = 'SkLearn' # SkLearn
+algorithm = 'KRR' # or dl
+
+# Option 1: If you want to use an algorithm from Scikit-learn, please enter the following
+level = 'light'
 pipeline = False
 
-runner = run(N_sample=N_sample, jsonfile=jsonfile, level=level, feature=feature)
+# Option 2: If you want to use an algorithm from PyTorch, please enter the following
+hidden_layers = {"n_layers": 3, "n_neurons": [50]}
+
+# Running the user-defined values. Don't tresspass beyond this point.
+runner = run(jsonfile=jsonfile, feature=feature, prop=prop, N_sample=N_sample, library=library,
+            algo=algorithm, feature_scaling=feature_scaling, level=level, 
+            pipeline=pipeline, hidden_layers=hidden_layers)
 runner.load_data()
 runner.convert_data_1D() #choose cpu number if you want to active this function
-runner.choose_feature(keys='Chem') #choose feature combinations if you want
-for algo in algos:
-    runner.ml_train(algo=algo, pipeline=pipeline, feature_scaling = feature_scaling)
+runner.choose_feature(keys=feature) #choose feature combinations if you want
+runner.ml_train(algo=algorithm)
 runner.print_time()
