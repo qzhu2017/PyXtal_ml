@@ -22,7 +22,7 @@ class dl_torch():
     
     """    
     def __init__(self, feature, prop, tag, hidden_layers, 
-                 n_epoch = 1000, learning_rate = 0.00001, test_size = 0.3):
+                 n_epoch = 300, learning_rate = 1e-3, test_size = 0.3):
         self.feature = np.asarray(feature)
         self.prop = np.asarray(prop)
         self.tag = tag
@@ -40,7 +40,8 @@ class dl_torch():
         self.X_train = self.X_train.type(torch.FloatTensor)
         self.X_test = torch.tensor(self.X_test, requires_grad = True)
         self.X_test = self.X_test.type(torch.FloatTensor)
-        self.Y_train = torch.tensor(self.Y_train, requires_grad = True)
+        self.Y_train = np.reshape(self.Y_train, [len(self.Y_train), 1])
+        self.Y_train = torch.tensor(self.Y_train) #, requires_grad = True)
         self.Y_train = self.Y_train.type(torch.FloatTensor)
         self.Y_test = torch.tensor(self.Y_test, requires_grad = True)
         self.Y_test = self.Y_test.type(torch.FloatTensor)
@@ -52,17 +53,20 @@ class dl_torch():
         self.model = self.Linear_Torching(self.feature_size, self.n_layers, self.n_neurons)
         
         # Learning parameter for NN
-        optimizer = optim.SGD(self.model.parameters(), lr = self.learning_rate)
+        #optimizer = optim.SGD(self.model.parameters(), lr = self.learning_rate)
+        optimizer = optim.Adam(self.model.parameters(), lr = self.learning_rate, amsgrad=True)
         loss_func = nn.MSELoss()
 
         # Training step
         for t in range(self.n_epoch):
-            optimizer.zero_grad()
             
             self.y_train = self.model(self.X_train)
             loss = loss_func(self.y_train, self.Y_train)
+            if t%100 == 0:
+                print('Step: {0:4d}, {1:6.4f} '.format(t, loss.item()))
             
-            loss.backward(retain_graph=True)
+            optimizer.zero_grad()
+            loss.backward()#retain_graph=True)
             optimizer.step()
         
         # Evaluation
@@ -122,13 +126,14 @@ class dl_torch():
                 self.predict = nn.Linear(n_neurons[0], 1)
                 
         def forward(self, x):
-            out = F.relu(self.h1(x))
+            #out = F.relu(self.h1(x))
             if self.n_layers > 1:
                 for hid in self.hidden:
                     out = hid(out)
                     out = F.relu(out)
             else:
                 pass
+            out = self.h1(x).clamp(min=0)
             out = self.predict(out)
             return out
         
