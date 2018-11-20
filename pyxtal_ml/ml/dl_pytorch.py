@@ -27,11 +27,12 @@ class dl_torch():
     
     """    
     def __init__(self, feature, prop, tag, hidden_layers, 
-                 n_epoch = 300, learning_rate = 1e-3, test_size = 0.3):
+                 n_epoch = 300, batch_size = 64, learning_rate = 1e-3, test_size = 0.3):
         self.feature = np.asarray(feature)
         self.prop = np.asarray(prop)
         self.tag = tag
         self.n_epoch = n_epoch
+        self.batch_size = batch_size
         self.learning_rate = learning_rate
         self.test_size = test_size
         self.feature_size = len(self.feature[1])
@@ -39,21 +40,14 @@ class dl_torch():
         
         # Split data into training and testing sets
         self.X_train, self.X_test, self.Y_train, self.Y_test = train_test_split(self.feature, self.prop, test_size = self.test_size, random_state = 0)
-        #Dset = np.column_stack((self.X_train, self.Y_train))
         Dset = dataset(np.column_stack((self.X_train, self.Y_train)))
         train_loader = DataLoader(dataset=Dset,
-                batch_size = 32, shuffle = True)
+                batch_size = self.batch_size,
+                shuffle = True)
 
         # From numpy to torch tensor
-        self.X_train = torch.tensor(self.X_train, requires_grad = True)
-        self.X_train = self.X_train.type(torch.FloatTensor)
         self.X_test = torch.tensor(self.X_test, requires_grad = True)
         self.X_test = self.X_test.type(torch.FloatTensor)
-        self.Y_train = np.reshape(self.Y_train, [len(self.Y_train), 1])
-        self.Y_train = torch.tensor(self.Y_train)
-        self.Y_train = self.Y_train.type(torch.FloatTensor)
-        self.Y_test = torch.tensor(self.Y_test)
-        self.Y_test = self.Y_test.type(torch.FloatTensor)
         
         # Read the hidden layers information
         self.n_layers, self.n_neurons = hidden_layers.values()
@@ -66,19 +60,23 @@ class dl_torch():
         loss_func = nn.MSELoss()
 
         # Training step
-        for t in range(self.n_epoch):
+        for epoch in range(self.n_epoch):
             for i, data in enumerate(train_loader, 0):
-                inputs, labels = data
-                inputs, labels = Variable(inputs).float(), Variable(labels).float()
+                X_train, Y_train = data
+                X_train, Y_train = Variable(X_train).float(), Variable(Y_train).float()
 
-                self.y_train = self.model(inputs)
-                loss = loss_func(self.y_train, labels)
+                self.y_train = self.model(X_train)
+                loss = loss_func(self.y_train, Y_train)
                 
-                print('Number of epoch: ', self.n_epoch, i, loss.data[0])
+                #print('Number of epoch: ', t, i, loss.data[0])
             
                 optimizer.zero_grad()
-                loss.backward()#retain_graph=True)
+                loss.backward()
                 optimizer.step()
+
+                print('Train epoch: {} [{}/{} ({:.0f}%)]\t\t\t Loss:{:.6f}'.format(
+                    epoch, i*len(X_train), len(train_loader.dataset),
+                    100.*i/len(train_loader), loss.data[0]))
         
         # Evaluation
         self.model.eval()
@@ -86,10 +84,7 @@ class dl_torch():
             self.y_test = self.model(self.X_test)
             
         # From torch tensor back to numpy
-        self.X_train = self.X_train.data.numpy()
         self.X_test = self.X_test.data.numpy()
-        self.Y_train = self.Y_train.data.numpy()
-        self.Y_test = self.Y_test.data.numpy()
         self.y_test = self.y_test.data.numpy()
             
         # Metrics
