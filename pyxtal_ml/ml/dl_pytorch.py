@@ -26,7 +26,7 @@ class dl_torch():
         test_size: percentage of test datasets. (default = 0.3)
     
     """    
-    def __init__(self, feature, prop, tag, hidden_layers, 
+    def __init__(self, feature, prop, algo, tag, hidden_layers, 
                  n_epoch = 300, batch_size = 64, learning_rate = 1e-3, test_size = 0.3):
         self.feature = np.asarray(feature)
         self.prop = np.asarray(prop)
@@ -36,7 +36,7 @@ class dl_torch():
         self.learning_rate = learning_rate
         self.test_size = test_size
         self.feature_size = len(self.feature[1])
-        self.algo = 'PyTorch'
+        self.algo = 'PyTorch '+ algo
         
         # Split data into training and testing sets
         self.X_train, self.X_test, self.Y_train, self.Y_test = train_test_split(self.feature, self.prop, test_size = self.test_size, random_state = 0)
@@ -61,22 +61,21 @@ class dl_torch():
 
         # Training step
         for epoch in range(self.n_epoch):
+            self.model.train()
             for i, data in enumerate(train_loader, 0):
                 X_train, Y_train = data
-                X_train, Y_train = Variable(X_train).float(), Variable(Y_train).float()
+                X_train, Y_train = X_train, Y_train
 
                 self.y_train = self.model(X_train)
                 loss = loss_func(self.y_train, Y_train)
-                
-                #print('Number of epoch: ', t, i, loss.data[0])
-            
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
 
-                print('Train epoch: {} [{}/{} ({:.0f}%)]\t\t\t Loss:{:.6f}'.format(
-                    epoch, i*len(X_train), len(train_loader.dataset),
-                    100.*i/len(train_loader), loss.data[0]))
+                if i % 10 == 0:
+                    print('Train epoch: {} [{}/{} ({:.0f}%)]\t\t\t Loss:{:.6f}'.format(
+                        epoch, i*len(X_train), len(train_loader.dataset),
+                        100.*i/len(train_loader), loss.data[0]))
         
         # Evaluation
         self.model.eval()

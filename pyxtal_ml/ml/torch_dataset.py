@@ -12,8 +12,8 @@ class dataset(data.Dataset):
     def __init__(self, xy):
         self.xy = xy
         self.len = xy.shape[0]
-        self.X_train = torch.from_numpy(self.xy[:, 0:-1])
-        self.Y_train = torch.from_numpy(self.xy[:, [-1]])
+        self.X_train = torch.from_numpy(self.xy[:, 0:-1]).float()
+        self.Y_train = torch.from_numpy(self.xy[:, [-1]]).float()
 
     def __getitem__(self, index):
         return self.X_train[index], self.Y_train[index]
