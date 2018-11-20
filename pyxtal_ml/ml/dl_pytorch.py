@@ -5,6 +5,7 @@ from sklearn.metrics import mean_absolute_error, r2_score
 import torch
 from torch import nn, optim
 import torch.nn.functional as F
+from torch.utils import data
 
 class dl_torch():
     """
@@ -41,9 +42,9 @@ class dl_torch():
         self.X_test = torch.tensor(self.X_test, requires_grad = True)
         self.X_test = self.X_test.type(torch.FloatTensor)
         self.Y_train = np.reshape(self.Y_train, [len(self.Y_train), 1])
-        self.Y_train = torch.tensor(self.Y_train) #, requires_grad = True)
+        self.Y_train = torch.tensor(self.Y_train)
         self.Y_train = self.Y_train.type(torch.FloatTensor)
-        self.Y_test = torch.tensor(self.Y_test, requires_grad = True)
+        self.Y_test = torch.tensor(self.Y_test)
         self.Y_test = self.Y_test.type(torch.FloatTensor)
         
         # Read the hidden layers information
@@ -53,7 +54,6 @@ class dl_torch():
         self.model = self.Linear_Torching(self.feature_size, self.n_layers, self.n_neurons)
         
         # Learning parameter for NN
-        #optimizer = optim.SGD(self.model.parameters(), lr = self.learning_rate)
         optimizer = optim.Adam(self.model.parameters(), lr = self.learning_rate, amsgrad=True)
         loss_func = nn.MSELoss()
 
@@ -126,7 +126,7 @@ class dl_torch():
                 self.predict = nn.Linear(n_neurons[0], 1)
                 
         def forward(self, x):
-            #out = F.relu(self.h1(x))
+            out = F.relu(self.h1(x))
             if self.n_layers > 1:
                 for hid in self.hidden:
                     out = hid(out)
