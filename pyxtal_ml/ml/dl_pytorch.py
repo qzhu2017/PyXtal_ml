@@ -53,8 +53,9 @@ class dl_torch():
         self.n_layers, self.n_neurons = hidden_layers.values()
         
         # Building Neural Network architecture using Net class
-        self.model = self.Linear_Torching(self.feature_size, self.n_layers, self.n_neurons)
-        
+        self.model = self.Linear_ANN(self.feature_size, self.n_layers, self.n_neurons)
+        #self.model = self.CNN(self.feature_size, self.n_layers, self.n_neurons)
+
         # Learning parameter for NN
         optimizer = optim.Adam(self.model.parameters(), lr = self.learning_rate, amsgrad=True)
         loss_func = nn.MSELoss()
@@ -94,7 +95,7 @@ class dl_torch():
         x = torch.FloatTensor(x)
         return x
 
-    class Linear_Torching(nn.Module):
+    class Linear_ANN(nn.Module):
         """
         A class for the neural network (NN) architecture defined by users. This 
         NN is adopted from PyTorch. In this model, linear NN is implemented.
@@ -138,26 +139,68 @@ class dl_torch():
                     out = F.relu(out)
             else:
                 pass
-            out = self.h1(x).clamp(min=0)
+                #out = self.h1(x).clamp(min=0)
             out = self.predict(out)
             return out
+
+    #class CNN(nn.Module):
+    #    """
+    #    This is not working yet. I will fix this once I have the crystal graph descriptor working.
+    #    """
+    #    def __init__(self, feature_size, n_layers, n_neurons):
+    #        super().__init__()
+    #        self.feature_size = feature_size
+    #        self.n_layers = n_layers
+    #        self.n_neurons = n_neurons
+    #        self.conv1 = nn.Conv1d(1, 10, kernel_size=3)
+    #        self.mp1=nn.MaxPool2d(2)
+    #        if n_layers > 1:
+    #            if len(n_neurons) > 1:          # different sizes of neurons in layers
+    #                self.h1 = nn.Linear(feature_size, n_neurons[0])
+    #                self.hidden = []
+    #                for i in range(n_layers-1):
+    #                    self.hidden.append(nn.Linear(n_neurons[i], n_neurons[i+1]))
+    #                self.predict = nn.Linear(n_neurons[n_layers-1], 1)
+    #            else:                           # same size of neurons in layers
+    #                self.h1 = nn.Linear(feature_size, n_neurons[0])
+    #                self.hidden = []
+    #                for i in range(n_layers-1):
+    #                    self.hidden.append(nn.Linear(n_neurons[0], n_neurons[0]))
+    #                self.predict = nn.Linear(n_neurons[0],1)
+    #        else:
+    #            self.h1 = nn.Linear(feature_size, n_neurons[0])
+    #            self.predict = nn.Linear(n_neurons[0],1)
+    #    
+    #    def forward(self,x):
+    #        in_size = x.size(0)
+    #        out = F.relu(self.mp1(self.conv1(x)))
+    #        out = out.view(in_size, -1)
+    #        out = F.relu(self.h1(x))
+    #        if self.n_layers > 1:
+    #            for hid in self.hidden:
+    #                out = hid(out)
+    #                out = F.relu(out)
+    #        else:
+    #            pass
+    #        out = self.predict(out)
+    #        return out           
         
-        def plot_correlation(self, figname=None, figsize=(12,8)):
-            """
-            Plot the correlation between prediction and target values.
-            """
-            plt.figure(figsize=figsize)
-            plt.scatter(self.y_test, self.Y_test, c='green', label='test')
-            plt.scatter(self.y_train, self.Y_train, c='blue', label='train')
-            plt.title('{0:d} materials, r$^2$ = {1:.4f}, Algo: {2:s}'.format(len(self.prop), self.r2, self.algo))
-            plt.xlabel('Prediction')
-            plt.ylabel(self.tag['prop'])
-            plt.legend()
-            if figname is None:
-                plt.show()
-            else:
-                plt.savefig(figname)
-                plt.close()
+    def plot_correlation(self, figname=None, figsize=(12,8)):
+        """
+        Plot the correlation between prediction and target values.
+        """
+        plt.figure(figsize=figsize)
+        plt.scatter(self.y_test, self.Y_test, c='green', label='test')
+        plt.scatter(self.y_train, self.Y_train, c='blue', label='train')
+        plt.title('{0:d} materials, r$^2$ = {1:.4f}, Algo: {2:s}'.format(len(self.prop), self.r2, self.algo))
+        plt.xlabel('Prediction')
+        plt.ylabel(self.tag['prop'])
+        plt.legend()
+        if figname is None:
+            plt.show()
+        else:
+            plt.savefig(figname)
+            plt.close()
             
     def plot_distribution(self, figname=None, figsize=(12,8)):
         """
