@@ -5,7 +5,11 @@ from sklearn.metrics import mean_absolute_error, r2_score
 import torch
 from torch import nn, optim
 import torch.nn.functional as F
+from torch.autograd import Variable
 from torch.utils import data
+from torch.utils.data import DataLoader
+from pyxtal_ml.ml.torch_dataset import dataset
+
 
 class dl_torch():
     """
@@ -35,7 +39,11 @@ class dl_torch():
         
         # Split data into training and testing sets
         self.X_train, self.X_test, self.Y_train, self.Y_test = train_test_split(self.feature, self.prop, test_size = self.test_size, random_state = 0)
-        
+        #Dset = np.column_stack((self.X_train, self.Y_train))
+        Dset = dataset(np.column_stack((self.X_train, self.Y_train)))
+        train_loader = DataLoader(dataset=Dset,
+                batch_size = 32, shuffle = True)
+
         # From numpy to torch tensor
         self.X_train = torch.tensor(self.X_train, requires_grad = True)
         self.X_train = self.X_train.type(torch.FloatTensor)
@@ -59,15 +67,18 @@ class dl_torch():
 
         # Training step
         for t in range(self.n_epoch):
+            for i, data in enumerate(train_loader, 0):
+                inputs, labels = data
+                inputs, labels = Variable(inputs).float(), Variable(labels).float()
+
+                self.y_train = self.model(inputs)
+                loss = loss_func(self.y_train, labels)
+                
+                print('Number of epoch: ', self.n_epoch, i, loss.data[0])
             
-            self.y_train = self.model(self.X_train)
-            loss = loss_func(self.y_train, self.Y_train)
-            if t%100 == 0:
-                print('Step: {0:4d}, {1:6.4f} '.format(t, loss.item()))
-            
-            optimizer.zero_grad()
-            loss.backward()#retain_graph=True)
-            optimizer.step()
+                optimizer.zero_grad()
+                loss.backward()#retain_graph=True)
+                optimizer.step()
         
         # Evaluation
         self.model.eval()

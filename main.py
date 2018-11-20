@@ -7,8 +7,8 @@ feature = 'Chem'
 feature_scaling = 'MinMaxScaler'
 prop = 'formation_energy'
 N_sample = 300
-library = 'SkLearn' # SkLearn
-algorithm = 'KRR' # or dl
+library = 'pytorch' # SkLearn
+algorithm = 'dl' # or dl
 
 # Option 1: If you want to use an algorithm from Scikit-learn, please enter the following
 level = 'light'
