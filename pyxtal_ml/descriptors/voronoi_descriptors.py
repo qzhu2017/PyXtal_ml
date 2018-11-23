@@ -3,6 +3,8 @@ import numpy as np
 from pymatgen.core.structure import Structure, IStructure
 from pymatgen.core.periodic_table import Element, Specie
 from pymatgen.core.bonds import get_bond_length
+from pymatgen.analysis.local_env import get_neighbors_of_site_with_index
+from scipy.special import sph_harm
 from monty.serialization import loadfn
 import os.path as op
 from optparse import OptionParser
@@ -60,13 +62,15 @@ class Voronoi_Descriptors(object):
         bstat = self.get_bond_statistics()
         cop = self.get_chemical_ordering_parameters()
         ea = self.get_environment_attributes()
+        q4 = self.q4()
+        q6 = self.q6()
 
         # stack into 1-d array
-        arr = np.hstack((pef, vstat, ecn, bstat, cop, ea))
+        arr = np.hstack((pef, vstat, ecn, bstat, cop, ea, q4, q6))
 
         return arr
 
-    def populate_element_dict(self):
+    def _populate_element_dict(self):
         '''
         For features that depend on elements, populate a dictionary
         of empty lists with each element in the structure as a key
@@ -90,7 +94,7 @@ class Voronoi_Descriptors(object):
         return element_dict
 
     @staticmethod
-    def weighted_average(array, weights=None):
+    def _weighted_average(array, weights=None):
         '''
         Compute the weighted average of a 1-d array
 
@@ -105,7 +109,7 @@ class Voronoi_Descriptors(object):
         return np.average(array, weights=weights)
 
     @staticmethod
-    def MAD(array, weights=None):
+    def _MAD(array, weights=None):
         '''
         Compute the mean absolute deviation of a 1-d array
 
@@ -123,7 +127,7 @@ class Voronoi_Descriptors(object):
         return np.average(np.abs(np.subtract(array, mean)), weights=weights)
 
     @staticmethod
-    def get_all_nearest_neighbors(method, crystal):
+    def _get_all_nearest_neighbors(method, crystal):
         '''
         Get the nearest neighbor list of a structure
 
@@ -143,7 +147,7 @@ class Voronoi_Descriptors(object):
         return method.get_all_nn_info(crystal)
 
     @staticmethod
-    def get_chemical_descriptors_from_file(elm, weight):
+    def _get_chemical_descriptors_from_file(elm, weight):
         '''
         Calls certain elemental properties from the Elements.json file
         to use as weighted chemical environment attributes
@@ -196,7 +200,7 @@ class Voronoi_Descriptors(object):
         return arr
 
     @staticmethod
-    def get_chemical_descriptors_from_pymatgen(elm, weight):
+    def _get_chemical_descriptors_from_pymatgen(elm, weight):
         '''
         Calls certain elemental properties from Pymatgen to use
         as weighted chemical environment attributes
@@ -227,7 +231,7 @@ class Voronoi_Descriptors(object):
 
         return arr
 
-    def get_descr(self, elm, weight):
+    def _get_descr(self, elm, weight):
         '''
         Calls chemical attributes from pymatgen and a json file
 
@@ -240,10 +244,10 @@ class Voronoi_Descriptors(object):
             an array of weighted chemical envronment attributes
         '''
 
-        return (np.hstack((self.get_chemical_descriptors_from_file(elm, weight),
-                           self.get_chemical_descriptors_from_pymatgen(elm, weight))))
+        return (np.hstack((self._get_chemical_descriptors_from_file(elm, weight),
+                           self._get_chemical_descriptors_from_pymatgen(elm, weight))))
 
-    def Get_stats(self, array, weights=None):
+    def _Get_stats(self, array, weights=None):
         '''
         Compute the min, max, range, mean, and mean absolute deviation
         over a 1-d array
@@ -258,7 +262,7 @@ class Voronoi_Descriptors(object):
         '''
 
         return [np.amin(array), np.amax(array), np.ptp(array),
-                self.weighted_average(array, weights), self.MAD(array, weights)]
+                self._weighted_average(array, weights), self._MAD(array, weights)]
 
     def compute_polyhedra(self):
         '''
@@ -317,7 +321,7 @@ class Voronoi_Descriptors(object):
 
             Volumes.append(np.sum(volume))
 
-        return [self.MAD(Volumes) / np.mean(Volumes)]
+        return [self._MAD(Volumes) / np.mean(Volumes)]
 
     def get_bond_statistics(self):
         '''
@@ -340,21 +344,21 @@ class Voronoi_Descriptors(object):
                 face_areas.append(face['area'])
 
             # compute the weighted average of the bond lengths
-            mean = self.weighted_average(bond_lengths, face_areas)
+            mean = self._weighted_average(bond_lengths, face_areas)
             avg_bond_lengths.append(mean)
             # compute the weighted mean absolute deviation of the bond lengths
             # divided by the mean
-            bond_length_var.append(self.MAD(bond_lengths, face_areas) / mean)
+            bond_length_var.append(self._MAD(bond_lengths, face_areas) / mean)
 
         # normalize the average bond lengths by the mean
         avg_bond_lengths /= np.mean(avg_bond_lengths)
 
         ''' compute the mean absolute deviation, max and min of the average
             bond lengths '''
-        features = [self.MAD(avg_bond_lengths), np.amin(avg_bond_lengths),
+        features = [self._MAD(avg_bond_lengths), np.amin(avg_bond_lengths),
                     np.amax(avg_bond_lengths)]
 
-        features += self.Get_stats(bond_length_var)
+        features += self._Get_stats(bond_length_var)
 
         return features
 
@@ -368,7 +372,7 @@ class Voronoi_Descriptors(object):
         '''
         # populate a dictionary of empty lists with keys
         # for each element in the crystal
-        CN_dict = self.populate_element_dict()
+        CN_dict = self._populate_element_dict()
 
         # find the coordination number for each elemet
         for polyhedron, element in self.polyhedra:
@@ -387,7 +391,7 @@ class Voronoi_Descriptors(object):
         for CN in CN_dict.values():
             CN_eff.append(np.mean(CN))
 
-        return self.Get_stats(CN_eff)
+        return self._Get_stats(CN_eff)
 
     def get_chemical_ordering_parameters(self):
         '''
@@ -408,7 +412,7 @@ class Voronoi_Descriptors(object):
         # Precompute the list of NNs in the structure
         weight = 'area'
         voro = VoronoiNN(weight=weight)
-        all_nn = self.get_all_nearest_neighbors(voro, self.crystal)
+        all_nn = self._get_all_nearest_neighbors(voro, self.crystal)
 
         # Evaluate each shell
         output = []
@@ -466,9 +470,9 @@ class Voronoi_Descriptors(object):
                 element_2 = Element(face['site'].specie)
                 face_area.append(area)
                 # see get_descr method
-                element_1_props = self.get_descr(element_1, area)
+                element_1_props = self._get_descr(element_1, area)
 
-                element_2_props = self.get_descr(element_2, area)
+                element_2_props = self._get_descr(element_2, area)
                 # differences in properties
                 polyhedron_attributes.append(
                     (element_1_props - element_2_props))
@@ -487,12 +491,133 @@ class Voronoi_Descriptors(object):
         # iterate over columns ( each property corresponds to a row )
         for i, _ in enumerate(attributes[0, :]):
             # see get stats
-            delta_stats += self.Get_stats(attributes[:, i])
+            delta_stats += self._Get_stats(attributes[:, i])
 
         return delta_stats
 
+    def _ql(self, l):
+        '''
+        Calculates the Steinhardt bond order paramters for each
+        site in the crystal structure
 
-if __name__ == "__main__":
+        See P Steinhardt et al.  Phys. Rev. B 28, 784 1983
+
+        Args:
+            l:  the free integer parameter for the Steinhardt
+                bond order parameters
+
+        Returns:
+            bond_order_params: complex float
+        '''
+
+        bond_order_params = []
+        '''iterate over sites in crystal structure
+           and calculate the bond order parameter for
+           each site'''
+        for index, site in enumerate(self.crystal):
+            '''get all nearest neighbors of each site using
+               the voronoi polyhedra to determine the nearest
+               neighbors'''
+            neighbors = get_neighbors_of_site_with_index(
+                self.crystal, index, approach='voronoi')
+            # calculate the bond order parameters
+            bond_order_params += [np.sqrt((4 * np.pi)/(2*l+1)
+                                          * self._scalar_product(site, neighbors, l))]
+
+        return bond_order_params
+
+    def _scalar_product(self, site, neighbors, l):
+        '''
+        Calculates the scalar product between two
+        complex vectors using the conjugate
+
+        Args:
+            site:  a pymatgen crystal site
+
+            neighbors: a list of neighbors
+                 corresponding to the site
+
+            l:  free integer parameter
+
+        Returns:  The scalar product of two complex vectors, float
+        '''
+        # list of m values from -l to l
+        M = self._mvalues(l)
+        # declare memory
+        q = np.empty(len(M), dtype=np.complex128)
+        # calculate the complex vectors by iterating over m
+        for i, m in enumerate(M):
+            q[i] = self._qlm(site, neighbors, l, m)
+
+        '''
+           take the scalar product (vector * conjugates) and sum them
+           to calculate the scalar product, this will be a real number
+           so change the data type to float
+        '''
+        return float(np.sum(q*np.conjugate(q)))
+
+    @staticmethod
+    def _qlm(site, neighbors, l, m):
+        '''
+           Calculates the complex vector associated with an atomic site and
+           one of its neighbors
+
+           Args:
+               site: a pymatgen crystal site
+               neighbors: a neighbor list corresponding to the site
+               l:  free integer parameter
+               m:  single value of the free integer paramter set [-l,l]
+
+            Returns:
+                the complex vector of the input site (complex)
+
+            '''
+        # initiate variable as a complex number
+        q = 0. + 0j
+        # take the neighbor count
+        neighbors_count = len(neighbors)
+        # iterate over neighbors
+        for neighbor in neighbors:
+            # find the position vector of the site/neighbor pair
+            r_vec = neighbor.coords - site.coords
+            # arccos(z/norm(r))
+            theta = np.arccos(r_vec[2] / np.linalg.norm(r_vec))
+            # arctan(y/x)
+            phi = np.arctan(r_vec[1] / r_vec[0])
+            '''
+            calculate the spherical harmonic associated with
+            the neighbor and add to q
+            '''
+            q += sph_harm(m, l, theta, phi)
+        # normalize by number of neighbors
+        return q / neighbors_count
+
+    @staticmethod
+    def _mvalues(k):
+        '''
+        Generates the closed set [-k, k]
+        as a python list
+        '''
+        return [k-i for i in range(2*k+1)]
+
+    def q4(self):
+        '''
+        Calculates the Steinhardt bond order parameter q4
+        for further details see _ql
+        '''
+        q4 = self._ql(4)
+        return self._Get_stats(q4)
+
+    def q6(self):
+        '''
+        Calculates the Steinhardt bond order parameter q6
+        for further details see _ql
+        '''
+        q6 = self._ql(6)
+        return self._Get_stats(q6)
+
+
+if __name__ == '__main__':
     # ------------------------ Options -------------------------------------
     parser = OptionParser()
     parser.add_option("-c", "--crystal", dest="structure", default='',
