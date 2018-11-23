@@ -579,21 +579,32 @@ class Voronoi_Descriptors(object):
         for neighbor in neighbors:
             # find the position vector of the site/neighbor pair
             r_vec = neighbor.coords - site.coords
+            r_mag = np.linalg.norm(r_vec)
             # arccos(z/norm(r))
-            theta = np.arccos(r_vec[2] / np.linalg.norm(r_vec))
-            # arctan(y/x)
-            phi = np.arctan(r_vec[1] / r_vec[0])
-            if np.isnan(theta) or np.isnan(phi) == True:
-                print('Error in angle \n', self.crystal)
-                raise ValueError
+            theta = np.arccos(r_vec[2] / r_mag)
+            if abs((r_vec[2] / r_mag) - 1.0) < 10.**(-8.):
+                theta = 0.0
+            elif abs((r_vec[2] / r_mag) + 1.0) < 10.**(-8.):
+                theta = np.pi
+
+            # phi
+            if r_vec[0] < 0.:
+                phi = np.pi + np.arctan(r_vec[1] / r_vec[0])
+            elif 0. < r_vec[0] and r_vec[1] < 0.:
+                phi = 2 * np.pi + np.arctan(r_vec[1] / r_vec[0])
+            elif 0. < r_vec[0] and 0. <= r_vec[1]:
+                phi = np.arctan(r_vec[1] / r_vec[0])
+            elif r_vec[0] == 0. and 0. < r_vec[1]:
+                phi = 0.5 * np.pi
+            elif r_vec[0] == 0. and r_vec[1] < 0.:
+                phi = 1.5 * np.pi
+            else:
+                phi = 0.
             '''
             calculate the spherical harmonic associated with
             the neighbor and add to q
             '''
             q += sph_harm(m, l, theta, phi)
-            if np.isnan(q) == True:
-                print('Error in harmonic \n', self.crystal)
-                raise ValueError
         # normalize by number of neighbors
         return q / neighbors_count
 
