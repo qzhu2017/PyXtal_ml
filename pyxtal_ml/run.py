@@ -164,7 +164,8 @@ class run:
             ml = method(feature=self.X, prop=self.Y, algo=self.algo, tag=tag, 
                         pipeline=self.pipeline, params=self.level)
         elif self.library in ['PyTorch', 'pytorch']:
-            ml = dl_torch(feature=self.X, prop=self.Y, tag=tag, hidden_layers=self.hidden_layers)
+            ml = dl_torch(feature=self.X, prop=self.Y, algo=self.algo, tag=tag, 
+                          hidden_layers=self.hidden_layers)
         else:
             pass
         
