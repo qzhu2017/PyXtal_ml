@@ -584,7 +584,8 @@ class Voronoi_Descriptors(object):
         '''
         return float(np.sum(q*np.conjugate(q)))
 
-    def _qlm(self, site, neighbors, l, m):
+    @staticmethod
+    def _qlm(site, neighbors, l, m):
         '''
            Calculates the complex vector associated with an atomic site and
            one of its neighbors
