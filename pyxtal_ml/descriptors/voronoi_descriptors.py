@@ -45,7 +45,7 @@ class Voronoi_Descriptors(object):
             set(crystal.species).intersection(crystal.species))
 
         # call compute polyhedra method to assign polyhedra attribute
-        self.compute_polyhedra()
+        self._compute_polyhedra()
 
     def all(self):
         '''
@@ -263,7 +263,7 @@ class Voronoi_Descriptors(object):
         return [np.amin(array), np.amax(array), np.ptp(array),
                 self._weighted_average(array, weights), self._MAD(array, weights)]
 
-    def compute_polyhedra(self):
+    def _compute_polyhedra(self):
         '''
         Compute the voronoi polyhedron and specie of each atomic site,
         format as a tuple (polyhedron, specie), and store those tuples in
