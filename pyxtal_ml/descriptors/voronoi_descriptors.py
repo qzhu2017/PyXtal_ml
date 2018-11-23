@@ -38,11 +38,10 @@ class Voronoi_Descriptors(object):
         the crystal structure using pymatgen functionality
         '''
         # attributes
-        self.crystal = crystal
-        self.comp = crystal.composition
-        self.shells = (1, 2, 3)
+        self._crystal = crystal
+        self._shells = (1, 2, 3)
         # find elements using set intersection
-        self.elements = list(
+        self._elements = list(
             set(crystal.species).intersection(crystal.species))
 
         # call compute polyhedra method to assign polyhedra attribute
@@ -88,7 +87,7 @@ class Voronoi_Descriptors(object):
         # iterate over element attribute to create
         # a dictionary of empty lists with the constituent
         # elements as keys
-        for element in self.elements:
+        for element in self._elements:
             element_dict[element] = []
 
         return element_dict
@@ -273,12 +272,12 @@ class Voronoi_Descriptors(object):
 
         # call the voronoi object
         voronoi = VoronoiNN()
-        self.polyhedra = []  # declare polyhedra attribute
+        self._polyhedra = []  # declare polyhedra attribute
         # populate the attribute with the polyhedron associated with each
         # atomic site
-        for i, _ in enumerate(self.crystal):
-            self.polyhedra.append((voronoi.get_voronoi_polyhedra(self.crystal, i),
-                                   self.crystal[i].specie))
+        for i, _ in enumerate(self._crystal):
+            self._polyhedra.append((voronoi.get_voronoi_polyhedra(self._crystal, i),
+                                    self._crystal[i].specie))
 
     def get_packing_efficiency(self):
         '''
@@ -292,7 +291,7 @@ class Voronoi_Descriptors(object):
 
         # find the minimum distance from the center of the polyhedron
         # to the polyhedron faces
-        for polyhedron, element in self.polyhedra:
+        for polyhedron, element in self._polyhedra:
             radii = []
 
             for face in polyhedron.values():
@@ -302,7 +301,7 @@ class Voronoi_Descriptors(object):
         # sum up all of the sphere volumes corresponding to the
         # minimum face distances
         return [4/3 * np.pi * np.power(maximum_radii, 3).sum()
-                / self.crystal.volume]
+                / self._crystal.volume]
 
     def get_volume_statistics(self):
         '''
@@ -314,7 +313,7 @@ class Voronoi_Descriptors(object):
         Volumes = []
 
         # find the volume associated with each polyhedron
-        for polyhedron, element in self.polyhedra:
+        for polyhedron, element in self._polyhedra:
             volume = []
             for face in polyhedron.values():
                 volume.append(face['volume'])
@@ -335,7 +334,7 @@ class Voronoi_Descriptors(object):
         avg_bond_lengths = []
         bond_length_var = []
 
-        for polyhedron, element in self.polyhedra:
+        for polyhedron, element in self._polyhedra:
             bond_lengths = []
             face_areas = []
             for face in polyhedron.values():
@@ -375,7 +374,7 @@ class Voronoi_Descriptors(object):
         CN_dict = self._populate_element_dict()
 
         # find the coordination number for each elemet
-        for polyhedron, element in self.polyhedra:
+        for polyhedron, element in self._polyhedra:
             face_area = []
             for face in polyhedron.values():
                 face_area.append(face['area'])
@@ -402,27 +401,27 @@ class Voronoi_Descriptors(object):
         returns:
             [mean coordination number, coordination number variance]
         '''
-        if len(self.crystal.composition) == 1:
-            return [0]*len(self.shells)
+        if len(self._crystal.composition) == 1:
+            return [0]*len(self._shells)
 
         # Get a list of types
-        elems, fracs = zip(*self.crystal.composition.element_composition.
+        elems, fracs = zip(*self._crystal.composition.element_composition.
                            fractional_composition.items())
 
         # Precompute the list of NNs in the structure
         weight = 'area'
         voro = VoronoiNN(weight=weight)
-        all_nn = self._get_all_nearest_neighbors(voro, self.crystal)
+        all_nn = self._get_all_nearest_neighbors(voro, self._crystal)
 
         # Evaluate each shell
         output = []
-        for shell in self.shells:
+        for shell in self._shells:
             # Initialize an array to store the ordering parameters
-            ordering = np.zeros((len(self.crystal), len(elems)))
+            ordering = np.zeros((len(self._crystal), len(elems)))
 
             # Get the ordering of each type of each atom
-            for site_idx in range(len(self.crystal)):
-                nns = voro._get_nn_shell_info(self.crystal, all_nn, site_idx,
+            for site_idx in range(len(self._crystal)):
+                nns = voro._get_nn_shell_info(self._crystal, all_nn, site_idx,
                                               shell)
 
                 # Sum up the weights
@@ -460,7 +459,7 @@ class Voronoi_Descriptors(object):
         ''' call selected chemical environment attributes
           compute the differences of environment attributes in the structure
           weight those differences using face areas of the polyhedra '''
-        for polyhedron, element in self.polyhedra:
+        for polyhedron, element in self._polyhedra:
 
             polyhedron_attributes = []
             face_area = []
@@ -514,12 +513,12 @@ class Voronoi_Descriptors(object):
         '''iterate over sites in crystal structure
            and calculate the bond order parameter for
            each site'''
-        for index, site in enumerate(self.crystal):
+        for index, site in enumerate(self._crystal):
             '''get all nearest neighbors of each site using
                the voronoi polyhedra to determine the nearest
                neighbors'''
             neighbors = get_neighbors_of_site_with_index(
-                self.crystal, index, approach='voronoi')
+                self._crystal, index, approach='voronoi')
             # calculate the bond order parameters
             bond_order_params += [np.sqrt((4 * np.pi)/(2*l+1)
                                           * self._scalar_product(site, neighbors, l))]
