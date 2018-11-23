@@ -21,15 +21,44 @@ class Voronoi_Descriptors(object):
     Args:
         crystal: A pymatgen crystal structure
 
-    Attributes:
-        crystal: A pymatgen crystal structure
-        comp; composition data of crystal
-        elements: the pymatgen element objects of the
-                  crystal constituents
-        polyhedra: the voronoi polyhedra corresponding to
-                   each site in the structure
-        shells: the shells to compute voronoi polyhedra over
-                for chemical ordering parameters
+    Methods:
+        get_packing_efficiency:
+            calculates the packing efficiency of a cell
+
+        get_volume_statistics:
+            calculates the mean absolute deviation of the volume enclosed
+            by each voronoi polyhedron in the cell normalized by the mean
+            volume
+
+        get_bond_statistics:
+            calculates various statistics of the bond lengths and bond length
+            variations in cell
+
+        get_effective_coordination_number:
+            calculates various statistics about the coordination numbers of all
+            constituent elements in the crystal
+
+        get_chemical_ordering_parameters:
+            computes the mean chemical ordering parameter and parameter
+            variance
+
+        get_environment_attributes:
+            Calculates various statistics of selected elemental properties
+            associated with each site in the crystal
+
+        q4:
+            calculates the Steinhardt bond order parameter q4
+            see P. Steinhardt et al. Phys Rev. B 28, 784 198
+
+        q6:
+            calculates the Steinhardt bond order parameter q6
+            see P. Steinhardt et al. Phys Rev. B 28, 784 19833
+
+        all:
+            calculates all of the above and stacks the results into a
+            1-d column array
+
+
     '''
 
     def __init__(self, crystal):
