@@ -556,8 +556,7 @@ class Voronoi_Descriptors(object):
         '''
         return float(np.sum(q*np.conjugate(q)))
 
-    @staticmethod
-    def _qlm(site, neighbors, l, m):
+    def _qlm(self, site, neighbors, l, m):
         '''
            Calculates the complex vector associated with an atomic site and
            one of its neighbors
@@ -585,7 +584,7 @@ class Voronoi_Descriptors(object):
             # arctan(y/x)
             phi = np.arctan(r_vec[1] / r_vec[0])
             if np.isnan(theta) or np.isnan(phi) == True:
-                print('Error in angle \n', self.crystal)
+                print('Error in angle \n')
                 raise ValueError
             '''
             calculate the spherical harmonic associated with
@@ -593,7 +592,7 @@ class Voronoi_Descriptors(object):
             '''
             q += sph_harm(m, l, theta, phi)
             if np.isnan(q) == True:
-                print('Error in harmonic \n', self.crystal)
+                print('Error in harmonic \n')
                 raise ValueError
         # normalize by number of neighbors
         return q / neighbors_count
