@@ -584,7 +584,7 @@ class Voronoi_Descriptors(object):
             # arctan(y/x)
             phi = np.arctan(r_vec[1] / r_vec[0])
             if np.isnan(theta) or np.isnan(phi) == True:
-                print('Error in angle \n')
+                print('Error in angle \n', self.crystal)
                 raise ValueError
             '''
             calculate the spherical harmonic associated with
@@ -592,7 +592,7 @@ class Voronoi_Descriptors(object):
             '''
             q += sph_harm(m, l, theta, phi)
             if np.isnan(q) == True:
-                print('Error in harmonic \n')
+                print('Error in harmonic \n', self.crystal)
                 raise ValueError
         # normalize by number of neighbors
         return q / neighbors_count
