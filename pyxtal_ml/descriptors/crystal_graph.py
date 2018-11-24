@@ -3,6 +3,7 @@ import os
 import json
 import warnings
 import numpy as np
+from optparse import OptionParser
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.core.structure import Structure
 
@@ -95,7 +96,7 @@ class crystalgraph():
     --------------------------------------------------------------------------
     """
     def __init__(self, crystal, jsonfile='atom_init.json',
-                 max_neighbor=12, radius=8, dmin=0, step=0.2):
+                 max_neighbor=12, radius=9, dmin=0, step=0.1):
         finder = SpacegroupAnalyzer(crystal, symprec=0.06,
                                     angle_tolerance=5)
         self.crystal = finder.get_conventional_standard_structure()
@@ -112,7 +113,6 @@ class crystalgraph():
         elem_fea_init = ElementJSONInitializer(self.elem_init_file)
         elem_fea = []
         for i in self.crystal.species:
-            print(i)
             elem_fea.append(elem_fea_init.get_elem_fea(i.number))
         self.elem_fea = np.array(elem_fea)
 
