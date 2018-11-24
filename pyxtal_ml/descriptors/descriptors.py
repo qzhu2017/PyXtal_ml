@@ -13,7 +13,7 @@ from pyxtal_ml.descriptors.charge import Charge
 from pyxtal_ml.descriptors.DDF import DDF
 from pyxtal_ml.descriptors.prdf import PRDF
 from pyxtal_ml.descriptors.voronoi_descriptors import Voronoi_Descriptors
-
+from pyxtal_ml.descriptors.crystal_graph import crystalgraph
 
 class descriptor:
     """Collection of molecular data.
@@ -64,6 +64,8 @@ class descriptor:
                     self.descriptor['PRDF'] = PRDF(self.struc).PRDF
                     self.descriptor['PRDF'] = self.apply_feature_scaling_array(
                         self.descriptor['PRDF'])
+                elif lib == 'cg':
+                    self.descriptor['cg'] = crystalgraph(self.struc).crystal_graph
         else:
             for lib in self.libs:
                 if lib == 'RDF':
@@ -81,6 +83,8 @@ class descriptor:
                         self.struc).all()
                 elif lib == 'PRDF':
                     self.descriptor['PRDF'] = PRDF(self.struc).PRDF
+                elif lib == 'cg':
+                    self.descriptor['cg'] = crystalgraph(self.struc).crystal_graph
 
     def merge(self, keys=None):
         if keys is None:
