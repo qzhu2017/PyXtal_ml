@@ -106,8 +106,14 @@ class crystalgraph():
         self.elem_init_file = os.path.join(self.directory, jsonfile)
         self.gaussd = GaussianDistance(dmin=dmin,dmax=self.radius,step=step)
         
+        # get element feature & neighbor feature
         self.get_elem_fea()
         self.get_neighbor_fea()
+        
+        # crystal graph for a structure
+        self.crystal_graph = np.vstack((self.elem_fea, self.all_neighbor))
+        
+        
         
     def get_elem_fea(self):
         elem_fea_init = ElementJSONInitializer(self.elem_init_file)
@@ -147,10 +153,22 @@ class crystalgraph():
                                              neighbor[:self.max_neighbor])))
                 neighbor_fea_site.append(list(map(lambda x: x[1],
                                                   neighbor[:self.max_neighbor])))
-                
+        
+        # Reshaping neighbor_fea
         neighbor_fea = np.array(neighbor_fea)
-        self.neighbor_fea = self.gaussd.expand(neighbor_fea)
-        self.neighbor_fea_site = np.array(neighbor_fea_site)
+        neighbor_fea = self.gaussd.expand(neighbor_fea)
+        shape_nf = neighbor_fea.shape
+        shape_nf_01 = shape_nf[0]*shape_nf[1]
+        self.neighbor_fea = np.reshape(neighbor_fea,(shape_nf_01, shape_nf[3]))
+        
+        # Reshaping neighbor_fea_site
+        neighbor_fea_site = np.array(neighbor_fea_site)
+        self.neighbor_fea_site = np.ravel(neighbor_fea_site)
+        
+        # Put neighbor_fea & neighbor_fea_site together
+        self.all_neighbor = np.column_stack((self.neighbor_fea,
+                                             self.neighbor_fea_site))
+        
         
 if __name__ == '__main__':
     # ------------------------ Options -------------------------------------
