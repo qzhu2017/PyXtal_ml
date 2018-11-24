@@ -633,7 +633,7 @@ class Voronoi_Descriptors(object):
             calculate the spherical harmonic associated with
             the neighbor and add to q
             '''
-            q += sph_harm(m, l, theta, phi)
+            q += sph_harm(m, l, phi, theta)
         # normalize by number of neighbors
         return q / neighbors_count
 
@@ -682,16 +682,16 @@ if __name__ == '__main__':
     test.make_supercell([2, 2, 2])
     voro = Voronoi_Descriptors(test)
     print(voro.q4(), voro.q6())
-    
-    #print('voro.get_packing_efficiency()')
-    #print(voro.get_packing_efficiency())
-    #print('voro.get_volume_statistics()')
-    #print(voro.get_volume_statistics())
-    #print('voro.get_effective_coordination_number()')
-    #print(voro.get_effective_coordination_number())
-    #print('voro.get_bond_statistics()')
-    #print(voro.get_bond_statistics())
-    #print('voro.get_chemical_ordering_parameters()')
-    #print(voro.get_chemical_ordering_parameters())
-    #print('voro.get_environment_attributes()')
-    #print(voro.get_environment_attributes())
+
+    # print('voro.get_packing_efficiency()')
+    # print(voro.get_packing_efficiency())
+    # print('voro.get_volume_statistics()')
+    # print(voro.get_volume_statistics())
+    # print('voro.get_effective_coordination_number()')
+    # print(voro.get_effective_coordination_number())
+    # print('voro.get_bond_statistics()')
+    # print(voro.get_bond_statistics())
+    # print('voro.get_chemical_ordering_parameters()')
+    # print(voro.get_chemical_ordering_parameters())
+    # print('voro.get_environment_attributes()')
+    # print(voro.get_environment_attributes())
