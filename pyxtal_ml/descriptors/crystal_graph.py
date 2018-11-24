@@ -1,12 +1,9 @@
 from __future__ import print_function, division
 import os
-import csv
-import re
 import json
-import functools
-import random
 import warnings
 import numpy as np
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.core.structure import Structure
 
 class GaussianDistance():
@@ -72,10 +69,105 @@ class ElementJSONInitializer(ElementInitializer):
         for key, value in elem_embedding.items():
             self._embedding[key] = np.array(value, dtype=float)
     
-class crystal_graph():
+class crystalgraph():
     """
-    Constructing crystal graph for a given crystal structure.
+    A class to compute the connectivity graph for a crystal, created based on
+    https://github.com/txie-93/cgcnn/blob/master/cgcnn/data.py
     
     Args:
-        directory
+        crystal: crystal class from pymatgen
+        jsonfile: atom_init.json file
+        max_neighbor (int): the maximum number of neighbor for each atom.
+        radius (float): the cutoff distance for Gaussian function.
+        dmin: starting distance for Gaussian function.
+        step(float): incremental in step for Gaussian function.
+        
+    --------------------------------------------------------------------------
+    Remarks:
+        Atom_fea is an encoded vector with binary numbers using 
+        one hot encoding.
+        For discrete values, the feature are encoded according to the
+        category that the value belongs to; 
+        for continuous values, the range of property values is
+        evenly divided to 10 categories and the vectors are encoded 
+        accordingly. The full list of atom and bond properties as well as 
+        their ranges are in Table S2 and Table S3 of the PRL paper.
+    --------------------------------------------------------------------------
     """
+    def __init__(self, crystal, jsonfile='atom_init.json',
+                 max_neighbor=12, radius=8, dmin=0, step=0.2):
+        finder = SpacegroupAnalyzer(crystal, symprec=0.06,
+                                    angle_tolerance=5)
+        self.crystal = finder.get_conventional_standard_structure()
+        self.directory = 'pyxtal_ml/descriptors/'
+        self.max_neighbor = max_neighbor
+        self.radius = radius
+        self.elem_init_file = os.path.join(self.directory, jsonfile)
+        self.gaussd = GaussianDistance(dmin=dmin,dmax=self.radius,step=step)
+        
+        self.get_elem_fea()
+        self.get_neighbor_fea()
+        
+    def get_elem_fea(self):
+        elem_fea_init = ElementJSONInitializer(self.elem_init_file)
+        elem_fea = []
+        for i in self.crystal.species:
+            print(i)
+            elem_fea.append(elem_fea_init.get_elem_fea(i.number))
+        self.elem_fea = np.array(elem_fea)
+
+        
+    def get_neighbor_fea(self, crystal):
+        """
+        compute the crystal graph.
+        Args:
+            crystal: crystal structure information
+        
+        """
+        all_neighbors = crystal.get_all_neighbors(self.radius,
+                                                  include_index=True)
+        all_neighbors = [sorted(neighbor, key=lambda x:x[1])
+                        for neighbor in all_neighbors] # sort by distance
+        
+        neighbor_fea, neighbor_fea_site = [], []
+        for neighbor in all_neighbors:
+            if len(neighbor) < self.max_neighbor:
+                warnings.warn('{} not find enough neigbors to build graph. '
+                              'If this happens frequently, please consider '
+                              'increasing the radius.'.format(
+                                      self.cyrstal.composition.formula))
+                neighbor_fea.append(list(map(lambda x: x[1],neighbor)) + 
+                                    [self.radius + 1.] * 
+                                    (self.max_neighbor - len(neighbor)))
+                neighbor_fea_site.append(list(map(lambda x: x[2], neighbor)) +
+                                         [0] * 
+                                         (self.max_neighbor-len(neighbor)))
+            else:
+                neighbor_fea.append(list(map(lambda x: x[1], 
+                                             neighbor[:self.max_neighbor])))
+                neighbor_fea_site.append(list(map(lambda x: x[1],
+                                                  neighbor[:self.max_neighbor])))
+                
+        neighbor_fea = np.array(neighbor_fea)
+        self.neighbor_fea = self.gaussd.expand(neighbor_fea)
+        self.neighbor_fea_site = np.array(neighbor_fea_site)
+        
+if __name__ == '__main__':
+    # ------------------------ Options -------------------------------------
+    parser = OptionParser()
+    parser.add_option("-c", "--crystal", dest="structure", default='',
+                      help="crystal from file, cif or poscar, REQUIRED",
+                      metavar="crystal")
+
+    (options, args) = parser.parse_args()
+
+    if options.structure.find('cif') > 0:
+        fileformat = 'cif'
+    else:
+        fileformat = 'poscar'
+
+    test = Structure.from_file(options.structure)
+    cg = crystalgraph(test)
+    print('\n atom_fea_id:\n', cg.elem_fea)
+    print('\n nbr_fea:\n', cg.neighbor_fea)
+    print('\n nbr_fea_id:\n', cg.neighbor_fea_site)
