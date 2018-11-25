@@ -117,7 +117,8 @@ class crystalgraph():
                 if crystal_graph[row,col] < 1e-5:
                     crystal_graph[row,col] = 0
                 zeros[row,col] = crystal_graph[row,col]
-        self.crystal_graph = zeros
+        crystal_graph = zeros
+        self.crystal_graph = crystal_graph.reshape(1,1200,92)
         
     def get_elem_fea(self):
         elem_fea_init = ElementJSONInitializer(self.elem_init_file)
