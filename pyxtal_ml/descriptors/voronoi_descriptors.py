@@ -670,14 +670,17 @@ class Voronoi_Descriptors(object):
             neighbors = get_neighbors_of_site_with_index(
                 self._crystal, index, approach='voronoi')
             wli = 0 + 0j
-            for m1, m2, m3 in combinations_with_replacement(m_values, 3):
-                if m1 + m2 + m3 == 0:
-                    w3j = float(wigner_3j(l, l, l, m1, m2, m3))
-                    q1 = self._qlm(site, neighbors, l, m1)
-                    q2 = self._qlm(site, neighbors, l, m2)
-                    q3 = self._qlm(site, neighbors, l, m3)
-                    q = q1*q2*q3
-                    wli += w3j * q  # q1* q2* q3
+            #for m1, m2, m3 in combinations_with_replacement(m_values, 3):
+            for m1 in range(-l, l+1):
+                for m2 in range(-l, l+1):
+                    for m3 in range(-l, l+1):
+                        if m1 + m2 + m3 == 0:
+                            w3j = float(wigner_3j(l, l, l, m1, m2, m3))
+                            q1 = self._qlm(site, neighbors, l, m1)
+                            q2 = self._qlm(site, neighbors, l, m2)
+                            q3 = self._qlm(site, neighbors, l, m3)
+                            q = q1*q2*q3
+                            wli += w3j * q  # q1* q2* q3
             if wli != 0 + 0j:
                 bond_order_params += [wli /
                                       (self._scalar_product(site, neighbors, l)**(3/2))]
@@ -710,7 +713,7 @@ if __name__ == '__main__':
     test = Structure.from_file(options.structure)
     voro = Voronoi_Descriptors(test)
     for i in range(2, 13):
-        print("{0:4d} {1:8.4f}".format(i, voro._ql(i)[0]))
+        print("{0:4d} {1:8.4f}".format(i, voro._wl(i)[0].real))
     # test.make_supercell([2, 2, 2])
     # voro = Voronoi_Descriptors(test)
     # print(voro.q4(), voro.q6())
