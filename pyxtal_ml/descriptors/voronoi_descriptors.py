@@ -1,5 +1,7 @@
 from pymatgen.analysis.local_env import VoronoiNN
 import numpy as np
+from itertools import combinations_with_replacement
+from sympy.physics.wigner import wigner_3j
 from pymatgen.core.structure import Structure, IStructure
 from pymatgen.core.periodic_table import Element, Specie
 from pymatgen.core.bonds import get_bond_length
@@ -643,7 +645,7 @@ class Voronoi_Descriptors(object):
         Generates the closed set [-k, k]
         as a python list
         '''
-        return [k-i for i in range(2*k+1)]
+        return np.arange(-k, k+1, 1)
 
     def q4(self):
         '''
@@ -660,6 +662,35 @@ class Voronoi_Descriptors(object):
         '''
         q6 = self._ql(6)
         return self._Get_stats(q6)
+
+    def _wl(self, l):
+        bond_order_params = []
+        m_values = self._mvalues(l)
+        for index, site in enumerate(self._crystal):
+            neighbors = get_neighbors_of_site_with_index(
+                self._crystal, index, approach='voronoi')
+            wli = 0 + 0j
+            for m1, m2, m3 in combinations_with_replacement(m_values, 3):
+                if m1 + m2 + m3 == 0:
+                    w3j = float(wigner_3j(l, l, l, m1, m2, m3))
+                    q1 = self._qlm(site, neighbors, l, m1)
+                    q2 = self._qlm(site, neighbors, l, m2)
+                    q3 = self._qlm(site, neighbors, l, m3)
+                    q = q1*q2*q3
+                    wli += w3j * q  # q1* q2* q3
+            if wli != 0 + 0j:
+                bond_order_params += [wli /
+                                      (self._scalar_product(site, neighbors, l)**(3/2))]
+
+        return bond_order_params
+
+    def w4(self):
+        w4 = self._wl(4)
+        return self._Get_stats(w4)
+
+    def w6(self):
+        w6 = self._wl(6)
+        return self._Get_stats(w6)
 
 
 if __name__ == '__main__':
@@ -678,7 +709,7 @@ if __name__ == '__main__':
 
     test = Structure.from_file(options.structure)
     voro = Voronoi_Descriptors(test)
-    for i in range(2,13):
+    for i in range(2, 13):
         print("{0:4d} {1:8.4f}".format(i, voro._ql(i)[0]))
     # test.make_supercell([2, 2, 2])
     # voro = Voronoi_Descriptors(test)
