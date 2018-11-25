@@ -224,9 +224,6 @@ class run:
         print('\nThe following structures have relatively high error compared to the reference values')
         print(tabulate(df, headers='keys', tablefmt='psql'))
         
-def f(x):
-    return x*x
-
 if __name__ == "__main__":
     # -------------------------------- Options -------------------------
     parser = OptionParser()
