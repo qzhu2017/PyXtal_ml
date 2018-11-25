@@ -1,6 +1,6 @@
 from pymatgen.analysis.local_env import VoronoiNN
 import numpy as np
-from itertools import combinations_with_replacement
+from itertools import product
 from sympy.physics.wigner import wigner_3j
 from pymatgen.core.structure import Structure, IStructure
 from pymatgen.core.periodic_table import Element, Specie
@@ -670,17 +670,14 @@ class Voronoi_Descriptors(object):
             neighbors = get_neighbors_of_site_with_index(
                 self._crystal, index, approach='voronoi')
             wli = 0 + 0j
-            #for m1, m2, m3 in combinations_with_replacement(m_values, 3):
-            for m1 in range(-l, l+1):
-                for m2 in range(-l, l+1):
-                    for m3 in range(-l, l+1):
-                        if m1 + m2 + m3 == 0:
-                            w3j = float(wigner_3j(l, l, l, m1, m2, m3))
-                            q1 = self._qlm(site, neighbors, l, m1)
-                            q2 = self._qlm(site, neighbors, l, m2)
-                            q3 = self._qlm(site, neighbors, l, m3)
-                            q = q1*q2*q3
-                            wli += w3j * q  # q1* q2* q3
+            for m1, m2, m3 in product(m_values, repeat=3):
+                if m1 + m2 + m3 == 0:
+                    w3j = float(wigner_3j(l, l, l, m1, m2, m3))
+                    q1 = self._qlm(site, neighbors, l, m1)
+                    q2 = self._qlm(site, neighbors, l, m2)
+                    q3 = self._qlm(site, neighbors, l, m3)
+                    q = q1*q2*q3
+                    wli += w3j * q
             if wli != 0 + 0j:
                 bond_order_params += [wli /
                                       (self._scalar_product(site, neighbors, l)**(3/2))]
