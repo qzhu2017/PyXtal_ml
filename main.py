@@ -3,12 +3,12 @@ from pkg_resources import resource_filename
 
 # Please define your values in here, option 1, and option 2.
 jsonfile = resource_filename("pyxtal_ml", "datasets/nonmetal_MP_8049.json")
-feature = 'Chem'
-feature_scaling = 'MinMaxScaler'
+feature = 'cg'
+feature_scaling = False #'MinMaxScaler'
 prop = 'formation_energy'
-N_sample = 300
+N_sample = 100
 library = 'pytorch' # SkLearn
-algorithm = 'dl' # or dl
+algorithm = 'cnn' # or dl
 
 # Option 1: If you want to use an algorithm from Scikit-learn, please enter the following
 level = 'light'
