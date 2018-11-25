@@ -6,7 +6,6 @@ import numpy as np
 from optparse import OptionParser
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.core.structure import Structure
-np.set_printoptions(threshold=np.inf)
 
 class GaussianDistance():
     """
@@ -119,7 +118,6 @@ class crystalgraph():
                     crystal_graph[row,col] = 0
                 zeros[row,col] = crystal_graph[row,col]
         self.crystal_graph = zeros
-        print(self.crystal_graph.shape)        
         
     def get_elem_fea(self):
         elem_fea_init = ElementJSONInitializer(self.elem_init_file)
@@ -134,7 +132,6 @@ class crystalgraph():
         compute the crystal graph.
         Args:
             crystal: crystal structure information
-        
         """
         all_neighbors = crystal.get_all_neighbors(self.radius,
                                                   include_index=True)
