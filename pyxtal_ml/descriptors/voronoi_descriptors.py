@@ -678,10 +678,11 @@ if __name__ == '__main__':
 
     test = Structure.from_file(options.structure)
     voro = Voronoi_Descriptors(test)
-    print(voro.q4(), voro.q6())
-    test.make_supercell([2, 2, 2])
-    voro = Voronoi_Descriptors(test)
-    print(voro.q4(), voro.q6())
+    for i in range(2,13):
+        print("{0:4d} {1:8.4f}".format(i, voro._ql(i)[0]))
+    # test.make_supercell([2, 2, 2])
+    # voro = Voronoi_Descriptors(test)
+    # print(voro.q4(), voro.q6())
 
     # print('voro.get_packing_efficiency()')
     # print(voro.get_packing_efficiency())
