@@ -107,13 +107,9 @@ class crystalgraph():
         self.gaussd = GaussianDistance(dmin=dmin,dmax=self.radius,step=step)
         
         # get element feature & neighbor feature
-        self.get_elem_fea()
-        self.get_neighbor_fea()
-        
-        # crystal graph for a structure
-        self.crystal_graph = np.vstack((self.elem_fea, self.all_neighbor))
-        
-        
+        elem_fea = self.get_elem_fea()
+        _, _, neighbor_fea = self.get_neighbor_fea(self.crystal)
+        self.crystal_graph = np.vstack((elem_fea, neighbor_fea))
         
     def get_elem_fea(self):
         elem_fea_init = ElementJSONInitializer(self.elem_init_file)
@@ -121,7 +117,7 @@ class crystalgraph():
         for i in self.crystal.species:
             elem_fea.append(elem_fea_init.get_elem_fea(i.number))
         self.elem_fea = np.array(elem_fea)
-
+        return self.elem_fea
         
     def get_neighbor_fea(self, crystal):
         """
@@ -134,7 +130,6 @@ class crystalgraph():
                                                   include_index=True)
         all_neighbors = [sorted(neighbor, key=lambda x:x[1])
                         for neighbor in all_neighbors] # sort by distance
-        
         neighbor_fea, neighbor_fea_site = [], []
         for neighbor in all_neighbors:
             if len(neighbor) < self.max_neighbor:
@@ -151,16 +146,17 @@ class crystalgraph():
             else:
                 neighbor_fea.append(list(map(lambda x: x[1], 
                                              neighbor[:self.max_neighbor])))
-                neighbor_fea_site.append(list(map(lambda x: x[1],
-                                                  neighbor[:self.max_neighbor])))
-        
+                neighbor_fea_site.append(list
+                                         (map(lambda x: x[1],
+                                              neighbor[:self.max_neighbor])))
+
         # Reshaping neighbor_fea
         neighbor_fea = np.array(neighbor_fea)
         neighbor_fea = self.gaussd.expand(neighbor_fea)
         shape_nf = neighbor_fea.shape
         shape_nf_01 = shape_nf[0]*shape_nf[1]
-        self.neighbor_fea = np.reshape(neighbor_fea,(shape_nf_01, shape_nf[3]))
-        
+        self.neighbor_fea = neighbor_fea.reshape((shape_nf_01, shape_nf[2]))
+
         # Reshaping neighbor_fea_site
         neighbor_fea_site = np.array(neighbor_fea_site)
         self.neighbor_fea_site = np.ravel(neighbor_fea_site)
@@ -169,6 +165,7 @@ class crystalgraph():
         self.all_neighbor = np.column_stack((self.neighbor_fea,
                                              self.neighbor_fea_site))
         
+        return self.neighbor_fea, self.neighbor_fea_site, self.all_neighbor
         
 if __name__ == '__main__':
     # ------------------------ Options -------------------------------------
