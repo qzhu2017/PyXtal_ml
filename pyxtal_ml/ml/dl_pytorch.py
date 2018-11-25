@@ -8,8 +8,7 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 from torch.utils import data
 from torch.utils.data import DataLoader
-from pyxtal_ml.ml.torch_dataset import dataset
-
+from pyxtal_ml.ml.torch_dataset import dataset, dataset_3d
 
 class dl_torch():
     """
@@ -26,8 +25,9 @@ class dl_torch():
         test_size: percentage of test datasets. (default = 0.3)
     
     """    
-    def __init__(self, feature, prop, algo, tag, hidden_layers, 
-                 n_epoch = 300, batch_size = 64, learning_rate = 1e-3, test_size = 0.3):
+    def __init__(self, feature, prop, algo, tag, hidden_layers,
+                 n_epoch = 300, batch_size = 64, learning_rate = 1e-3,
+                 test_size = 0.3):
         self.feature = np.asarray(feature)
         self.prop = np.asarray(prop)
         self.tag = tag
@@ -35,15 +35,22 @@ class dl_torch():
         self.batch_size = batch_size
         self.learning_rate = learning_rate
         self.test_size = test_size
-        self.feature_size = len(self.feature[1])
+        self.feature_size = self.feature.shape[1] #len(self.feature[1])
         self.algo = 'PyTorch '+ algo
         
         # Split data into training and testing sets
         self.X_train, self.X_test, self.Y_train, self.Y_test = train_test_split(self.feature, self.prop, test_size = self.test_size, random_state = 0)
-        Dset = dataset(np.column_stack((self.X_train, self.Y_train)))
-        train_loader = DataLoader(dataset=Dset,
-                batch_size = self.batch_size,
-                shuffle = True)
+        
+        if len(self.X_train.shape) <= 2:
+            Dset = dataset(np.column_stack((self.X_train, self.Y_train)))
+            train_loader = DataLoader(dataset=Dset,
+                                      batch_size = self.batch_size,
+                                      shuffle = True)
+        else:
+            Dset = dataset_3d(self.X_train, self.Y_train)
+            train_loader = DataLoader(dataset=Dset,
+                                      batch_size = self.batch_size,
+                                      shuffle = True)
 
         # From numpy to torch tensor
         self.X_test = torch.tensor(self.X_test, requires_grad = True)
@@ -53,30 +60,58 @@ class dl_torch():
         self.n_layers, self.n_neurons = hidden_layers.values()
         
         # Building Neural Network architecture using Net class
-        self.model = self.Linear_ANN(self.feature_size, self.n_layers, self.n_neurons)
-        #self.model = self.CNN(self.feature_size, self.n_layers, self.n_neurons)
+        if algo == 'linear':
+            self.model = self.Linear_ANN(self.feature_size,
+                                         self.n_layers, self.n_neurons)
+            # Learning parameter for NN
+            optimizer = optim.Adam(self.model.parameters(),
+                               lr = self.learning_rate, amsgrad=True)
+            loss_func = nn.MSELoss()
 
-        # Learning parameter for NN
-        optimizer = optim.Adam(self.model.parameters(), lr = self.learning_rate, amsgrad=True)
-        loss_func = nn.MSELoss()
+            # Training step
+            for epoch in range(self.n_epoch):
+                self.model.train()
+                for i, datas in enumerate(train_loader, 0):
+                    X_train, Y_train = datas
+                    print(Y_train.shape)
 
-        # Training step
-        for epoch in range(self.n_epoch):
-            self.model.train()
-            for i, data in enumerate(train_loader, 0):
-                X_train, Y_train = data
-                X_train, Y_train = X_train, Y_train
+                    self.y_train = self.model(X_train)
+                    loss = loss_func(self.y_train, Y_train)
+                    optimizer.zero_grad()
+                    loss.backward()
+                    optimizer.step()
 
-                self.y_train = self.model(X_train)
-                loss = loss_func(self.y_train, Y_train)
-                optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
+                    if i % 10 == 0:
+                        print('Train epoch: {} [{}/{} ({:.0f}%)]\t\t\t Loss:{:.6f}'.format(
+                                epoch, i*len(X_train), len(train_loader.dataset),
+                                100.*i/len(train_loader), loss.data[0]))
+                        
+        elif algo == 'cnn':
+            self.model = self.CNN(self.feature_size,
+                                  self.n_layers, self.n_neurons)
 
-                if i % 10 == 0:
-                    print('Train epoch: {} [{}/{} ({:.0f}%)]\t\t\t Loss:{:.6f}'.format(
-                        epoch, i*len(X_train), len(train_loader.dataset),
-                        100.*i/len(train_loader), loss.data[0]))
+            # Learning parameter for NN
+            optimizer = optim.Adam(self.model.parameters(),
+                                   lr = self.learning_rate, amsgrad=True)
+            loss_func = nn.MSELoss()
+
+            # Training step
+            for epoch in range(self.n_epoch):
+                self.model.train()
+                for i, datas in enumerate(train_loader, 0):
+                    X_train, Y_train = datas
+                    Y_train = Y_train.reshape((len(Y_train),1))
+
+                    self.y_train = self.model(X_train)
+                    loss = loss_func(self.y_train, Y_train)
+                    optimizer.zero_grad()
+                    loss.backward()
+                    optimizer.step()
+                    
+                    if i % 10 == 0:
+                        print('Train epoch: {} [{}/{} ({:.0f}%)]\t\t\t Loss:{:.6f}'.format(
+                                epoch, i*len(X_train), len(train_loader.dataset),
+                                100.*i/len(train_loader), loss.data[0]))
         
         # Evaluation
         self.model.eval()
@@ -103,7 +138,8 @@ class dl_torch():
         Args:
             feature_size: number of features to be fed into the input neuron.
             n_layers: number of deep neural layers.
-            n_neurons: number of neurons in each layers. This is in an array form.
+            n_neurons: number of neurons in each layers. This is in an array
+            form.
         
         """
         def __init__(self, feature_size, n_layers, n_neurons):
@@ -113,18 +149,20 @@ class dl_torch():
             self.n_neurons = n_neurons
             
             if n_layers > 1:
-                if len(n_neurons) > 1:              # different sizes of neurons in layers
+                if len(n_neurons) > 1:  # different sizes of neurons in layers
                     self.h1 = nn.Linear(feature_size, n_neurons[0])
                     self.hidden = []
                     for i in range(n_layers-1):
-                        self.hidden.append(nn.Linear(n_neurons[i], n_neurons[i+1]))
+                        self.hidden.append(nn.Linear(n_neurons[i],
+                                                     n_neurons[i+1]))
                     self.predict = nn.Linear(n_neurons[n_layers-1], 1)
                     
-                else:                               # same size of neurons in layers
+                else:                   # same size of neurons in layers
                     self.h1 = nn.Linear(feature_size, n_neurons[0])
                     self.hidden = []
                     for i in range(n_layers-1):
-                        self.hidden.append(nn.Linear(n_neurons[0], n_neurons[0]))
+                        self.hidden.append(nn.Linear(n_neurons[0],
+                                                     n_neurons[0]))
                     self.predict = nn.Linear(n_neurons[0], 1)
                     
             else:
@@ -139,51 +177,53 @@ class dl_torch():
                     out = F.relu(out)
             else:
                 pass
-                #out = self.h1(x).clamp(min=0)
             out = self.predict(out)
             return out
 
-    #class CNN(nn.Module):
-    #    """
-    #    This is not working yet. I will fix this once I have the crystal graph descriptor working.
-    #    """
-    #    def __init__(self, feature_size, n_layers, n_neurons):
-    #        super().__init__()
-    #        self.feature_size = feature_size
-    #        self.n_layers = n_layers
-    #        self.n_neurons = n_neurons
-    #        self.conv1 = nn.Conv1d(1, 10, kernel_size=3)
-    #        self.mp1=nn.MaxPool2d(2)
-    #        if n_layers > 1:
-    #            if len(n_neurons) > 1:          # different sizes of neurons in layers
-    #                self.h1 = nn.Linear(feature_size, n_neurons[0])
-    #                self.hidden = []
-    #                for i in range(n_layers-1):
-    #                    self.hidden.append(nn.Linear(n_neurons[i], n_neurons[i+1]))
-    #                self.predict = nn.Linear(n_neurons[n_layers-1], 1)
-    #            else:                           # same size of neurons in layers
-    #                self.h1 = nn.Linear(feature_size, n_neurons[0])
-    #                self.hidden = []
-    #                for i in range(n_layers-1):
-    #                    self.hidden.append(nn.Linear(n_neurons[0], n_neurons[0]))
-    #                self.predict = nn.Linear(n_neurons[0],1)
-    #        else:
-    #            self.h1 = nn.Linear(feature_size, n_neurons[0])
-    #            self.predict = nn.Linear(n_neurons[0],1)
-    #    
-    #    def forward(self,x):
-    #        in_size = x.size(0)
-    #        out = F.relu(self.mp1(self.conv1(x)))
-    #        out = out.view(in_size, -1)
-    #        out = F.relu(self.h1(x))
-    #        if self.n_layers > 1:
-    #            for hid in self.hidden:
-    #                out = hid(out)
-    #                out = F.relu(out)
-    #        else:
-    #            pass
-    #        out = self.predict(out)
-    #        return out           
+    class CNN(nn.Module):
+        """
+        This is not working yet. I will fix this once I have the crystal graph descriptor working.
+        """
+        def __init__(self, feature_size, n_layers, n_neurons):
+            super().__init__()
+            self.feature_size = 243950 #feature_size
+            self.n_layers = n_layers
+            self.n_neurons = n_neurons
+            self.conv1 = nn.Conv2d(1, 10, kernel_size=10)
+            self.mp1=nn.MaxPool2d(2)
+            
+            if n_layers > 1:
+                if len(n_neurons) > 1:          # different sizes of neurons in layers
+                    self.h1 = nn.Linear(self.feature_size, n_neurons[0])
+                    self.hidden = []
+                    for i in range(n_layers-1):
+                        self.hidden.append(nn.Linear(n_neurons[i], n_neurons[i+1]))
+                    self.predict = nn.Linear(n_neurons[n_layers-1], 1)
+                else:                           # same size of neurons in layers
+                    self.h1 = nn.Linear(self.feature_size, n_neurons[0])
+                    self.hidden = []
+                    for i in range(n_layers-1):
+                        self.hidden.append(nn.Linear(n_neurons[0], n_neurons[0]))
+                    self.predict = nn.Linear(n_neurons[0],1)
+            else:
+                self.h1 = nn.Linear(self.feature_size, n_neurons[0])
+                self.predict = nn.Linear(n_neurons[0],1)
+        
+        def forward(self,x):
+            out = self.conv1(x)
+            out = self.mp1(out)
+            out = F.relu(out)
+            out = out.flatten(start_dim=1)
+            out = self.h1(out)
+            out = F.relu(out)
+            if self.n_layers > 1:
+                for hid in self.hidden:
+                    out = hid(out)
+                    out = F.relu(out)
+            else:
+                pass
+            out = self.predict(out)
+            return out           
         
     def plot_correlation(self, figname=None, figsize=(12,8)):
         """
@@ -192,7 +232,8 @@ class dl_torch():
         plt.figure(figsize=figsize)
         plt.scatter(self.y_test, self.Y_test, c='green', label='test')
         plt.scatter(self.y_train, self.Y_train, c='blue', label='train')
-        plt.title('{0:d} materials, r$^2$ = {1:.4f}, Algo: {2:s}'.format(len(self.prop), self.r2, self.algo))
+        plt.title('{0:d} materials, r$^2$ = {1:.4f}, Algo: {2:s}'.format(
+                len(self.prop), self.r2, self.algo))
         plt.xlabel('Prediction')
         plt.ylabel(self.tag['prop'])
         plt.legend()
@@ -215,7 +256,6 @@ class dl_torch():
             plt.savefig(figname)
             plt.close()
        
-
     def print_summary(self):
         """
         print the paramters and performances
