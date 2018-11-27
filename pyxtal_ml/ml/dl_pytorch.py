@@ -4,6 +4,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, r2_score
 import torch
 from torch import nn, optim
+from torch.nn import Conv1d, Conv2d, Conv3d, MaxPool1d, MaxPool2d, MaxPool3d
 import torch.nn.functional as F
 from torch.autograd import Variable
 from torch.utils import data
@@ -25,12 +26,13 @@ class dl_torch():
         test_size: percentage of test datasets. (default = 0.3)
     
     """    
-    def __init__(self, feature, prop, algo, tag, hidden_layers,
+    def __init__(self, feature, prop, algo, tag, hidden_layers, conv_layers=None,
                  n_epoch = 300, batch_size = 64, learning_rate = 1e-3,
                  test_size = 0.3):
         self.feature = np.asarray(feature)
         self.prop = np.asarray(prop)
         self.tag = tag
+        self.conv_layers = conv_layers
         self.n_epoch = n_epoch
         self.batch_size = batch_size
         self.learning_rate = learning_rate
@@ -88,7 +90,8 @@ class dl_torch():
                         
         elif algo == 'cnn':
             self.model = self.CNN(self.feature_size,
-                                  self.n_layers, self.n_neurons)
+                                  self.n_layers, self.n_neurons,
+                                  self.conv_layers)
 
             # Learning parameter for NN
             optimizer = optim.Adam(self.model.parameters(),
@@ -186,14 +189,28 @@ class dl_torch():
         or deep CNN. This model needs convolutional parameters and
         fully-connected layers and neurons.
         """
-        def __init__(self, feature_size, n_layers, n_neurons):
+        def __init__(self, feature_size, n_layers, n_neurons, conv_layers):
             super().__init__()
-            self.feature_size = 243950 #feature_size
+            self.feature_size = 940 # how to determine this feature size
             self.n_layers = n_layers
             self.n_neurons = n_neurons
-            self.conv1 = nn.Conv2d(1, 10, kernel_size=10)
-            self.mp1=nn.MaxPool2d(2)
             
+            # Defining convolutional layers
+            self.conv = []
+            self.maxpool = []
+            for k, v in conv_layers.items():
+                if k == 'conv':
+                    for i in v:
+                        self.conv.append(eval(i))
+                elif k == 'maxpool':
+                    for i in v:
+                        self.maxpool.append(eval(i))
+
+            # Defining convolutional layers
+            #self.conv1 = nn.Conv2d(1, 10, kernel_size=10)
+            #self.mp1=nn.MaxPool2d(2)
+            
+            # Defining fully-connected layers
             if n_layers > 1:
                 if len(n_neurons) > 1:          # different sizes of neurons in layers
                     self.h1 = nn.Linear(self.feature_size, n_neurons[0])
@@ -212,10 +229,30 @@ class dl_torch():
                 self.predict = nn.Linear(n_neurons[0],1)
         
         def forward(self,x):
-            out = self.conv1(x)
-            out = self.mp1(out)
+            # Run convolutional layers
+            out = self.conv[0](x)
+            out = self.maxpool[0](out)
             out = F.relu(out)
+            if len(self.maxpool) > 1:
+                for i in range(1, len(self.conv)):
+                    out = self.conv[i](out)
+                    out = self.maxpool[i](out)
+                    out = F.relu(out)
+            elif len(self.maxpool) == 1 and len(self.conv) > 1:
+                for i in range(1,len(self.conv)):
+                    out = self.conv[i](out)
+                    out = self.maxpool[0](out)
+                    out = F.relu(out)
+            else:
+                pass
+                    
+
+            #out = self.conv1(x)
+            #out = self.mp1(out)
+            #out = F.relu(out)
             out = out.flatten(start_dim=1)
+            
+            # Run fully-connected layers
             out = self.h1(out)
             out = F.relu(out)
             if self.n_layers > 1:

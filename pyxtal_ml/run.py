@@ -38,7 +38,7 @@ class run:
     """
 
     def __init__(self, jsonfile, feature, prop, N_sample, library, algo, feature_scaling=False,
-                 level=False, pipeline=False, hidden_layers=False):
+                 level=False, pipeline=False, hidden_layers=None, conv_layers=None):
         """
         Args:
             algo: algorithm in ['KRR', 'KNN', ....]
@@ -57,7 +57,8 @@ class run:
         self.level = level
         self.pipeline = pipeline
         self.hidden_layers = hidden_layers
-        
+        self.conv_layers = conv_layers
+
         # For timing
         self.time = {}
 
@@ -165,7 +166,8 @@ class run:
                         pipeline=self.pipeline, params=self.level)
         elif self.library in ['PyTorch', 'pytorch']:
             ml = dl_torch(feature=self.X, prop=self.Y, algo=self.algo, tag=tag, 
-                          hidden_layers=self.hidden_layers)
+                          hidden_layers=self.hidden_layers,
+                          conv_layers=self.conv_layers)
         else:
             pass
         
