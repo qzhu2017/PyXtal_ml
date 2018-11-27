@@ -94,6 +94,9 @@ class descriptor:
                 elif lib == 'cg':
                     self.descriptor['cg'] = crystalgraph(
                         self.struc).crystal_graph
+                elif lib == 'bond_order':
+                    self.descriptor['bond_order'] = steinhardt_params(
+                        self.struc).params
 
     def merge(self, keys=None):
         if keys is None:
