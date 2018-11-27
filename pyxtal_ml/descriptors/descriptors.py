@@ -14,6 +14,8 @@ from pyxtal_ml.descriptors.DDF import DDF
 from pyxtal_ml.descriptors.prdf import PRDF
 from pyxtal_ml.descriptors.voronoi_descriptors import Voronoi_Descriptors
 from pyxtal_ml.descriptors.crystal_graph import crystalgraph
+from pyxtal_ml.descriptors.bond_order_params import steinhardt_params
+
 
 class descriptor:
     """Collection of molecular data.
@@ -31,7 +33,8 @@ class descriptor:
         self.struc = crystal
         self.feature_scaling = feature_scaling
         self.descriptor = {}
-        options = ['Chem', 'Voronoi', 'Charge', 'RDF', 'ADF', 'DDF', 'PRDF']
+        options = ['Chem', 'Voronoi', 'Charge',
+                   'RDF', 'ADF', 'DDF', 'PRDF', 'bond_order']
         self.libs = []
         if libs == 'all':
             self.libs = options
@@ -65,7 +68,12 @@ class descriptor:
                     self.descriptor['PRDF'] = self.apply_feature_scaling_array(
                         self.descriptor['PRDF'])
                 elif lib == 'cg':
-                    self.descriptor['cg'] = crystalgraph(self.struc).crystal_graph
+                    self.descriptor['cg'] = crystalgraph(
+                        self.struc).crystal_graph
+                elif lib == 'bond_order':
+                    self.descriptor['bond_order'] = steinhardt_params(
+                        self.struc).params
+
         else:
             for lib in self.libs:
                 if lib == 'RDF':
@@ -84,7 +92,8 @@ class descriptor:
                 elif lib == 'PRDF':
                     self.descriptor['PRDF'] = PRDF(self.struc).PRDF
                 elif lib == 'cg':
-                    self.descriptor['cg'] = crystalgraph(self.struc).crystal_graph
+                    self.descriptor['cg'] = crystalgraph(
+                        self.struc).crystal_graph
 
     def merge(self, keys=None):
         if keys is None:
