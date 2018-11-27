@@ -92,11 +92,9 @@ class Voronoi_Descriptors(object):
         bstat = self.get_bond_statistics()
         cop = self.get_chemical_ordering_parameters()
         ea = self.get_environment_attributes()
-        q4 = self.q4()
-        q6 = self.q6()
 
         # stack into 1-d array
-        arr = np.hstack((pef, vstat, ecn, bstat, cop, ea, q4, q6))
+        arr = np.hstack((pef, vstat, ecn, bstat, cop, ea))
 
         return arr
 
@@ -525,173 +523,6 @@ class Voronoi_Descriptors(object):
 
         return delta_stats
 
-    def _ql(self, l):
-        '''
-        Calculates the Steinhardt bond order paramters for each
-        site in the crystal structure
-
-        See P Steinhardt et al.  Phys. Rev. B 28, 784 1983
-
-        Args:
-            l:  the free integer parameter for the Steinhardt
-                bond order parameters
-
-        Returns:
-            bond_order_params: complex float
-        '''
-
-        bond_order_params = []
-        '''iterate over sites in crystal structure
-           and calculate the bond order parameter for
-           each site'''
-        for index, site in enumerate(self._crystal):
-            '''get all nearest neighbors of each site using
-               the voronoi polyhedra to determine the nearest
-               neighbors'''
-            neighbors = get_neighbors_of_site_with_index(
-                self._crystal, index, approach='voronoi')
-            # calculate the bond order parameters
-            bond_order_params += [np.sqrt((4 * np.pi)/(2*l+1)
-                                          * self._scalar_product(site, neighbors, l))]
-
-        return bond_order_params
-
-    def _scalar_product(self, site, neighbors, l):
-        '''
-        Calculates the scalar product between two
-        complex vectors using the conjugate
-
-        Args:
-            site:  a pymatgen crystal site
-
-            neighbors: a list of neighbors
-                 corresponding to the site
-
-            l:  free integer parameter
-
-        Returns:  The scalar product of two complex vectors, float
-        '''
-        # list of m values from -l to l
-        M = self._mvalues(l)
-        # declare memory
-        q = np.empty(len(M), dtype=np.complex128)
-        # calculate the complex vectors by iterating over m
-        for i, m in enumerate(M):
-            q[i] = self._qlm(site, neighbors, l, m)
-
-        '''
-           take the scalar product (vector * conjugates) and sum them
-           to calculate the scalar product, this will be a real number
-           so change the data type to float
-        '''
-        return float(np.sum(q*np.conjugate(q)))
-
-    @staticmethod
-    def _qlm(site, neighbors, l, m):
-        '''
-           Calculates the complex vector associated with an atomic site and
-           one of its neighbors
-
-           Args:
-               site: a pymatgen crystal site
-               neighbors: a neighbor list corresponding to the site
-               l:  free integer parameter
-               m:  single value of the free integer paramter set [-l,l]
-
-            Returns:
-                the complex vector of the input site (complex)
-
-            '''
-        # initiate variable as a complex number
-        q = 0. + 0j
-        # take the neighbor count
-        neighbors_count = len(neighbors)
-        # iterate over neighbors
-        for neighbor in neighbors:
-            # find the position vector of the site/neighbor pair
-            r_vec = neighbor.coords - site.coords
-            r_mag = np.linalg.norm(r_vec)
-            # arccos(z/norm(r))
-            theta = np.arccos(r_vec[2] / r_mag)
-            if abs((r_vec[2] / r_mag) - 1.0) < 10.**(-8.):
-                theta = 0.0
-            elif abs((r_vec[2] / r_mag) + 1.0) < 10.**(-8.):
-                theta = np.pi
-
-            # phi
-            if r_vec[0] < 0.:
-                phi = np.pi + np.arctan(r_vec[1] / r_vec[0])
-            elif 0. < r_vec[0] and r_vec[1] < 0.:
-                phi = 2 * np.pi + np.arctan(r_vec[1] / r_vec[0])
-            elif 0. < r_vec[0] and 0. <= r_vec[1]:
-                phi = np.arctan(r_vec[1] / r_vec[0])
-            elif r_vec[0] == 0. and 0. < r_vec[1]:
-                phi = 0.5 * np.pi
-            elif r_vec[0] == 0. and r_vec[1] < 0.:
-                phi = 1.5 * np.pi
-            else:
-                phi = 0.
-            '''
-            calculate the spherical harmonic associated with
-            the neighbor and add to q
-            '''
-            q += sph_harm(m, l, phi, theta)
-        # normalize by number of neighbors
-        return q / neighbors_count
-
-    @staticmethod
-    def _mvalues(k):
-        '''
-        Generates the closed set [-k, k]
-        as a python list
-        '''
-        return np.arange(-k, k+1, 1)
-
-    def q4(self):
-        '''
-        Calculates the Steinhardt bond order parameter q4
-        for further details see _ql
-        '''
-        q4 = self._ql(4)
-        return self._Get_stats(q4)
-
-    def q6(self):
-        '''
-        Calculates the Steinhardt bond order parameter q6
-        for further details see _ql
-        '''
-        q6 = self._ql(6)
-        return self._Get_stats(q6)
-
-    def _wl(self, l):
-        bond_order_params = []
-        m_values = self._mvalues(l)
-        for index, site in enumerate(self._crystal):
-            neighbors = get_neighbors_of_site_with_index(
-                self._crystal, index, approach='voronoi')
-            wli = 0 + 0j
-            for m1, m2, m3 in product(m_values, repeat=3):
-                if m1 + m2 + m3 == 0:
-                    w3j = float(wigner_3j(l, l, l, m1, m2, m3))
-                    q1 = self._qlm(site, neighbors, l, m1)
-                    q2 = self._qlm(site, neighbors, l, m2)
-                    q3 = self._qlm(site, neighbors, l, m3)
-                    q = q1*q2*q3
-                    wli += w3j * q
-            if wli != 0 + 0j:
-                bond_order_params += [wli /
-                                      (self._scalar_product(site, neighbors, l)**(3/2))]
-
-        return bond_order_params
-
-    def w4(self):
-        w4 = self._wl(4)
-        return self._Get_stats(w4)
-
-    def w6(self):
-        w6 = self._wl(6)
-        return self._Get_stats(w6)
-
 
 if __name__ == '__main__':
     # ------------------------ Options -------------------------------------
@@ -709,12 +540,8 @@ if __name__ == '__main__':
 
     test = Structure.from_file(options.structure)
     voro = Voronoi_Descriptors(test)
-    for i in range(2, 13):
-        print("{0:4d} {1:8.4f}".format(i, voro._wl(i)[0].real))
-    # test.make_supercell([2, 2, 2])
-    # voro = Voronoi_Descriptors(test)
-    # print(voro.q4(), voro.q6())
-
+    test.make_supercell([2, 2, 2])
+    voro = Voronoi_Descriptors(test)
     # print('voro.get_packing_efficiency()')
     # print(voro.get_packing_efficiency())
     # print('voro.get_volume_statistics()')
