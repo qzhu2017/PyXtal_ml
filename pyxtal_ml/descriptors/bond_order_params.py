@@ -17,7 +17,7 @@ class steinhardt_params(object):
         L: maximum degree of order parameter
     '''
 
-    def __init__(self, crystal, L=12):
+    def __init__(self, crystal, L=6):
         # all bond order parameters up to maximum degree L
         Ls = np.arange(0, L+1, 1)
         '''populate a dictionary of empty lists with keys corresponding
