@@ -132,8 +132,8 @@ class dl_torch():
 
     class Linear_ANN(nn.Module):
         """
-        A class for the neural network (NN) architecture defined by users. This 
-        NN is adopted from PyTorch. In this model, linear NN is implemented.
+        A class for fully-connected neural network or deep learning.
+        In this model, linear neural network is implemented.
         
         Args:
             feature_size: number of features to be fed into the input neuron.
@@ -182,7 +182,9 @@ class dl_torch():
 
     class CNN(nn.Module):
         """
-        This is not working yet. I will fix this once I have the crystal graph descriptor working.
+        A class for convolutional neural network (CNN) architecture 
+        or deep CNN. This model needs convolutional parameters and
+        fully-connected layers and neurons.
         """
         def __init__(self, feature_size, n_layers, n_neurons):
             super().__init__()
