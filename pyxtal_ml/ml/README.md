@@ -16,7 +16,7 @@ In addition, we provide add-on models to complement the models above:
 - VarianceThreshold: `VarianceThreshold` or `VT`
 - Principal components analysis: `PCA`
 
-Note: The format is adopted from Scikit-learn and our short notations. In arfificial neural network, `MLPRegressor` is the term defined by Scikit-learn for ANN regressor, and `ANN` is our short-hand notation.
+**Note: The naming is adopted from Scikit-learn and our short notations. In artificial neural network, `MLPRegressor` is the term defined by Scikit-learn for ANN regressor, and `ANN` is our short-hand notation.**
 
 These add-on models aren't a necessary steps to complete accurate machine learning predictions. However, these models can increase the accuracy of predictions by manipulating the training input data (i.e. training descriptors). The manipulation involves getting rid of non-contributing descriptors before the training of machine learning algorithm happened. To emphasize, these add-on models only apply to the training descriptors, and this is accomplished through pipeline method from `sklearn`.
 
