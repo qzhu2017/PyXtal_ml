@@ -37,8 +37,12 @@ class dl_torch():
         self.batch_size = batch_size
         self.learning_rate = learning_rate
         self.test_size = test_size
-        self.feature_size = self.feature.shape[1] #len(self.feature[1])
-        self.algo = 'PyTorch '+ algo
+        self.algo = 'PyTorch '+algo
+        
+        if algo == 'Linear':
+            self.feature_size = self.feature.shape[1]
+        elif algo in ['cnn', 'CNN']:
+            self.feature_size = [self.feature.shape[2],self.feature.shape[3]]
         
         # Split data into training and testing sets
         self.X_train, self.X_test, self.Y_train, self.Y_test = train_test_split(self.feature, self.prop, test_size = self.test_size, random_state = 0)
@@ -75,7 +79,6 @@ class dl_torch():
                 self.model.train()
                 for i, datas in enumerate(train_loader, 0):
                     X_train, Y_train = datas
-                    print(Y_train.shape)
 
                     self.y_train = self.model(X_train)
                     loss = loss_func(self.y_train, Y_train)
@@ -191,10 +194,20 @@ class dl_torch():
         """
         def __init__(self, feature_size, n_layers, n_neurons, conv_layers):
             super().__init__()
-            self.feature_size = 940 # how to determine this feature size
             self.n_layers = n_layers
             self.n_neurons = n_neurons
             
+            # Determining the feature_size
+            conv_params, maxpool_params = get_int_from_string(conv_layers)
+            height = feature_size[0]
+            width = feature_size[1]
+            if len(maxpool_params) == 1:
+                for i in range(len(conv_params)):
+                    height = int(((height-conv_params[i][2])+1)/maxpool_params[0][0])
+                    width = int(((width-conv_params[i][2])+1)/maxpool_params[0][0])
+                self.feature_size = height*width*conv_params[-1][1]
+            print('Feature size as input to fully connected: ',self.feature_size)
+
             # Defining convolutional layers
             self.conv = []
             self.maxpool = []
@@ -205,10 +218,6 @@ class dl_torch():
                 elif k == 'maxpool':
                     for i in v:
                         self.maxpool.append(eval(i))
-
-            # Defining convolutional layers
-            #self.conv1 = nn.Conv2d(1, 10, kernel_size=10)
-            #self.mp1=nn.MaxPool2d(2)
             
             # Defining fully-connected layers
             if n_layers > 1:
@@ -245,11 +254,7 @@ class dl_torch():
                     out = F.relu(out)
             else:
                 pass
-                    
 
-            #out = self.conv1(x)
-            #out = self.mp1(out)
-            #out = F.relu(out)
             out = out.flatten(start_dim=1)
             
             # Run fully-connected layers
@@ -263,7 +268,7 @@ class dl_torch():
                 pass
             out = self.predict(out)
             return out           
-        
+    
     def plot_correlation(self, figname=None, figsize=(12,8)):
         """
         Plot the correlation between prediction and target values.
@@ -309,3 +314,27 @@ class dl_torch():
         print("Property:           {:>20}".format(self.tag['prop']))
         print("r^2:              {:22.4f}".format(self.r2))
         print("MAE:              {:22.4f}".format(self.mae))
+
+def get_int_from_string(string):
+    """
+    Turn a string into integers.
+    """
+    conv = []
+    maxpool = []
+    for k,v in string.items():
+        if k == 'conv':
+            for i in v:
+                String = i.split('(')
+                String = String[1][:-1]
+                String = String.split(',')
+                Str = [int(i) for i in String] 
+                conv.append(Str)
+        elif k == 'maxpool':
+            for i in v:
+                String = i.split('(')
+                String = String[1][:-1]
+                String = String.split(',')
+                Str = [int(i) for i in String]
+                maxpool.append(Str)
+
+    return conv, maxpool
