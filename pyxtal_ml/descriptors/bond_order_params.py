@@ -68,6 +68,9 @@ class steinhardt_params(object):
                         wli += self._wli(qlms, l, m1, m2, m3)
                 # normalize by the scalar product of the complex vector
                 bond_order_params['w' + parameter_index] += [wli/(dot**(3/2))]
+        for param in bond_order_params.values():
+            if np.std(param) > 10**(-3):
+                print('cant ignore sites')
 
         # call the values in the dictionary and insert them into a list
         parameters = list(bond_order_params.values())
@@ -237,5 +240,4 @@ if __name__ == '__main__':
         fileformat = 'poscar'
 
     test = Structure.from_file(options.structure)
-    for i in range(0, 13):
-        print(steinhardt_params(test, i).params)
+    print(steinhardt_params(test, 12).params)
