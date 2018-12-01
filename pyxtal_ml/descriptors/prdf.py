@@ -59,61 +59,43 @@ class PRDF(object):
 
     def _create_RDF_table(self):
         '''
-        Creates a dictionary with pairwise element combination keys
-        with zero values.
+        Creates a dictionary with tuples corresponding to array indeces
+        for all possible pairwise element combinations, then populate
+        the initial PRDF array as zeros.
         '''
-        self.prdf_dict = {}
+        self.prdf_indeces = {}
         elements = []
         for element in ele_data.keys():
             elements.append(str(element))
+
+        arr_len = int(self._R_max / self._R_bin)
 
         # all possible pairwise combinations without repeated entries
         combs = itertools.combinations_with_replacement(elements, 2)
 
         '''populate every possible element pairwise combination with each
            combination in alphabetical order '''
+        index = 0
         for comb in combs:
 
             '''the if and else condtions ensure that the elements are in
                alphabetical order
 
                the pairwise element combinations ( Bi-Te ) are used as keys to
-               access a dictionary of pairwise RDF integrals corresponding to
-               each every possible elemental pair, all RDF integrals are
-               populated initially as zero values'''
+               access a dictionary of tuples corresponding to the indeces of the
+               PRDF array corresponding to that combinations distribution function'''
+
             if comb[0] <= comb[1]:
-                self.prdf_dict[comb[0]+'-'+comb[1]] = 0
+                self.prdf_indeces[comb[0]+'-'+comb[1]
+                                  ] = (index * arr_len, index * arr_len + arr_len)
 
             else:
-                self.prdf_dict[comb[1]+'-'+comb[0]] = 0
+                self.prdf_indeces[comb[1]+'-'+comb[0]
+                                  ] = (index * arr_len, index * arr_len + arr_len)
 
-    @staticmethod
-    def _monte_carlo_integral(x_max, y, N=10**5):
-        '''A monte carlo integral from 0 to x_max
+            index += 1
 
-        Args:
-            x_max: the maximum domain value
-            y: function values corresponding to each x
-            N: number of points in MC integral
-
-        Returns:
-            the integral of y=f(x) over the domain 0 -> xmax'''
-
-        height = np.amax(y)
-        width = x_max
-        area = height*width
-
-        x = np.linspace(0, x_max, len(y))
-        interpolate = interp1d(x, y, kind='cubic')
-
-        y_guess = np.random.random(N)*height
-
-        X = np.linspace(0, x_max, N)
-        y_interpolated = interpolate(X)
-
-        count = (y_interpolated >= y_guess).sum()
-
-        return count * area / N
+        self.PRDF = np.zeros(arr_len * index)
 
     def _compute_PRDF(self):
         '''
@@ -183,24 +165,17 @@ class PRDF(object):
 
             # only compute the RDF if the list is nonempty
             if len(distances[comb]) == 0:
-                self.ErrorMsg.append('{0} is empty in {1}, perhaps need to increase R_max'.format(comb, self._crystal.formula))
+                self.ErrorMsg.append('{0} is empty in {1}, perhaps need to increase R_max'.format(
+                    comb, self._crystal.formula))
                 continue
 
             hist, _ = np.histogram(distances[comb], bins, density=False)
             # RDF = counts / (volume * site density * sites in primitive cell)
             rdf = (hist / shell_volume / site_density / neighbors_length)
-            # integrate the distribution function using a monte carlo integral
-            self.prdf_dict[comb] = self._monte_carlo_integral(self._R_max, rdf)
-
-        '''stack all prdf integrals so that the descriptor length
-           is invariant between crystal structure so long as
-           r_max and r_bin are held constant'''
-        for i, PRDF in enumerate(self.prdf_dict.values()):
-            if i == 0:
-                self.PRDF = [PRDF]
-            else:
-                self.PRDF.append(PRDF)
-        self.PRDF = np.array(self.PRDF)
+            # call the indeces corresponding to the element combination
+            index_1, index_2 = self.prdf_indeces[comb]
+            # populate the corresponding array slice with the PRDF
+            self.PRDF[index_1:index_2] = rdf
 
 
 if __name__ == "__main__":
