@@ -31,3 +31,4 @@ pyxtal_ml
 * [Scikit-learn](http://scikit-learn.org/stable/)
 * [Pandas 0.20.3](https://pandas.pydata.org/getpandas.html)
 * [Pymatgen](http://pymatgen.org/#getting-pymatgen)
+* [Sympy](https://www.sympy.org/en/index.html)
