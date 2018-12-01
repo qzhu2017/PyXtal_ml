@@ -63,7 +63,7 @@ class PRDF(object):
         for all possible pairwise element combinations, then populate
         the initial PRDF array as zeros.
         '''
-        self.prdf_indeces = {}
+        self._prdf_indeces = {}
         elements = []
         for element in ele_data.keys():
             elements.append(str(element))
@@ -86,12 +86,12 @@ class PRDF(object):
                PRDF array corresponding to that combinations distribution function'''
 
             if comb[0] <= comb[1]:
-                self.prdf_indeces[comb[0]+'-'+comb[1]
-                                  ] = (index * arr_len, index * arr_len + arr_len)
+                self._prdf_indeces[comb[0]+'-'+comb[1]
+                                   ] = (index * arr_len, index * arr_len + arr_len)
 
             else:
-                self.prdf_indeces[comb[1]+'-'+comb[0]
-                                  ] = (index * arr_len, index * arr_len + arr_len)
+                self._prdf_indeces[comb[1]+'-'+comb[0]
+                                   ] = (index * arr_len, index * arr_len + arr_len)
 
             index += 1
 
@@ -171,7 +171,7 @@ class PRDF(object):
             # RDF = counts / (volume * site density * sites in primitive cell)
             rdf = (hist / shell_volume / site_density / neighbors_length)
             # call the indeces corresponding to the element combination
-            index_1, index_2 = self.prdf_indeces[comb]
+            index_1, index_2 = self._prdf_indeces[comb]
             # populate the corresponding array slice with the PRDF
             self.PRDF[index_1:index_2] = rdf
 
