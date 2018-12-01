@@ -99,7 +99,7 @@ class PRDF(object):
 
     def _compute_PRDF(self):
         '''
-        Compute the pairwise radial distribution function integrals of all
+        Compute the pairwise radial distribution functions of all
         possible combinations of constituent elements in the given crystal
         structure
         '''
@@ -157,12 +157,10 @@ class PRDF(object):
         # length of neighbors array (the number of atoms in the primitive cell)
         neighbors_length = len(neighbors)
 
-        '''populate the prdf_dict with the pairwise rdf integrals associated with the
+        '''populate the prdf_dict with the pairwise rdfs associated with the
            distance information in the distance dictionary'''
         for comb in distances.keys():
-            '''use numpy's histogram function to find a propability density
-               associated with each bin for the RDF'''
-
+            '''use numpy's histogram function to find RDF'''
             # only compute the RDF if the list is nonempty
             if len(distances[comb]) == 0:
                 self.ErrorMsg.append('{0} is empty in {1}, perhaps need to increase R_max'.format(
