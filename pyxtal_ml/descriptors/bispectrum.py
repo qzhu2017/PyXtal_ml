@@ -183,6 +183,6 @@ if __name__ == "__main__":
     else:
         fileformat = 'poscar'
 
-    test = Structure.from_file(options.structure, symmetrize=False)
+    test = Structure.from_file(options.structure)
 
     f = Bispectrum(test)
