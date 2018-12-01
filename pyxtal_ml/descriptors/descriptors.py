@@ -15,6 +15,7 @@ from pyxtal_ml.descriptors.prdf import PRDF
 from pyxtal_ml.descriptors.voronoi_descriptors import Voronoi_Descriptors
 from pyxtal_ml.descriptors.crystal_graph import crystalgraph
 from pyxtal_ml.descriptors.bond_order_params import steinhardt_params
+from pyxtal_ml.descriptors.power_spectrum import power_spectrum
 
 
 class descriptor:
@@ -34,7 +35,7 @@ class descriptor:
         self.feature_scaling = feature_scaling
         self.descriptor = {}
         options = ['Chem', 'Voronoi', 'Charge',
-                   'RDF', 'ADF', 'DDF', 'PRDF', 'bond_order']
+                   'RDF', 'ADF', 'DDF', 'PRDF', 'bond_order', 'power_spectrum']
         self.libs = []
         if libs == 'all':
             self.libs = options
@@ -73,6 +74,9 @@ class descriptor:
                 elif lib == 'bond_order':
                     self.descriptor['bond_order'] = steinhardt_params(
                         self.struc).params
+                elif lib == 'power_spectrum':
+                    self.descriptor['power_spectrum'] = power_spectrum(
+                        self.struc).Power_spectrum
 
         else:
             for lib in self.libs:
@@ -97,6 +101,9 @@ class descriptor:
                 elif lib == 'bond_order':
                     self.descriptor['bond_order'] = steinhardt_params(
                         self.struc).params
+                elif lib == 'power_spectrum':
+                    self.descriptor['power_spectrum'] = power_spectrum(
+                        self.struc).Power_spectrum
 
     def merge(self, keys=None):
         if keys is None:
