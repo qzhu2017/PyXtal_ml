@@ -1,7 +1,7 @@
 import numpy as np
 from pymatgen.core.structure import Structure
 from pymatgen.analysis.local_env import get_neighbors_of_site_with_index
-from bond_order_params import steinhardt_params
+from pyxtal_ml.descriptors.bond_order_params import steinhardt_params
 from optparse import OptionParser
 
 
