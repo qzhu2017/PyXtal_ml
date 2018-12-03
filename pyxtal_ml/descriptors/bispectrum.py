@@ -163,7 +163,7 @@ class Bispectrum(object):
                 Second euler rotation angle, corresponds to the polar angle in
                 3-D spherical coordinates
                 '''
-                psi = np.arccos(z / r)
+                theta = np.arccos(z / r)
                 if abs((z / r) - 1.0) < 10.**(-8.):
                     theta = 0.0
                 elif abs((z / r) + 1.0) < 10.**(-8.):
