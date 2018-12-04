@@ -24,7 +24,7 @@ def dict2cutoff(dct):
                            ' "name" and "kwargs".')
     return globals()[dct['name']](**dct['kwargs'])
 
-class Cosine():
+class Cosine(object):
     """
     Cosine functional suggested by Behler.
     
@@ -73,7 +73,7 @@ class Cosine():
         return ('<Cosine cutoff with Rc=%.3f from descriptor.cutoffs>'
                 %self.Rc)
         
-class Polynomial():
+class Polynomial(object):
     """
     Polynomial functional suggested by Khorshidi and Peterson.
     
