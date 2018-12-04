@@ -51,8 +51,8 @@ class Bispectrum(object):
             site_bispectrum = []
             # iterate over 2*j_max
             for _2j1 in range(2 * self._j_max + 1):
-                j1 = _2j1/2
-                j2 = _2j1/2
+                j1, j2 = _2j1/2, _2j1/2
+                # print(j1, j2, index)
                 # iterate over j_max -1
                 for j in range(int(min(_2j1, self._j_max,)) + 1):
                     # calculate the real terms of the bispectrums
@@ -260,4 +260,5 @@ if __name__ == "__main__":
 
     test = Structure.from_file(options.structure)
 
-    f = Bispectrum(test)
+    f = Bispectrum(test, j_max=1, cutoff_radius=3,)
+    print(f)
