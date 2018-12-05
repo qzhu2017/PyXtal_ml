@@ -78,11 +78,11 @@ class Polynomial(object):
     Polynomial functional suggested by Khorshidi and Peterson.
     
     Args:
-        alpha(float): the power of polynomial.
+        gamma(float): the power of polynomial.
         Rc(float): the maximum distance at which properties are calculated.
     """
-    def __init__(self, Rc, alpha=4):
-        self.alpha = alpha
+    def __init__(self, Rc, gamma=4):
+        self.gamma = gamma
         self.Rc = Rc
         
     def __call__(self, Rij):
@@ -96,8 +96,8 @@ class Polynomial(object):
         if Rij > self.Rc:
             return 0.
         else:
-            value = 1. + self.alpha * (Rij / self.Rc) ** (self.alpha + 1) - \
-                (self.alpha + 1) * (Rij / self.Rc) ** self.alpha
+            value = 1. + self.gamma * (Rij / self.Rc) ** (self.gamma + 1) - \
+                (self.gamma + 1) * (Rij / self.Rc) ** self.gamma
             return value
         
     def derivative(self, Rij):
@@ -114,18 +114,18 @@ class Polynomial(object):
             return 0.
         else:
             ratio = Rij / self.Rc
-            value = (self.alpha * (self.alpha + 1) / self.Rc) * \
-                (ratio ** self.alpha - ratio ** (self.alpha - 1))
+            value = (self.gamma * (self.gamma + 1) / self.Rc) * \
+                (ratio ** self.gamma - ratio ** (self.gamma - 1))
         return value
     
     def todict(self):
         return {'name': 'Polynomial',
                 'kwargs': {'Rc': self.Rc,
-                           'alpha': self.alpha
+                           'gamma': self.gamma
                            }
                 }
                 
     def __repr__(self):
-        return ('<Polynomial cutoff with Rc=%.3f and alpha=%i '
+        return ('<Polynomial cutoff with Rc=%.3f and gamma=%i '
                 'from descriptor.cutoffs>'
-                %(self.Rc, self.alpha))
+                %(self.Rc, self.gamma))
