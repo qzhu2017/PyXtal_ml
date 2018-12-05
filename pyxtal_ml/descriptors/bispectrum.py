@@ -4,9 +4,7 @@ from pymatgen.core.periodic_table import Element, Specie
 from pymatgen.analysis.local_env import get_neighbors_of_site_with_index
 import numpy as np
 import itertools
-from sympy.physics.quantum.cg import CG
-from sympy.physics.quantum.spin import Rotation
-from sympy import S
+from angular_momentum import CG, wigner_D
 from optparse import OptionParser
 
 
@@ -52,7 +50,6 @@ class Bispectrum(object):
             # iterate over 2*j_max
             for _2j1 in range(2 * self._j_max + 1):
                 j1, j2 = _2j1/2, _2j1/2
-                # print(j1, j2, index)
                 # iterate over j_max -1
                 for j in range(int(min(_2j1, self._j_max,)) + 1):
                     # calculate the real terms of the bispectrums
@@ -107,12 +104,8 @@ class Bispectrum(object):
                         c2 = self._calculate_c(j2, m_prime-m_prime1, m-m1, site,
                                                site_neighbors)
 
-                        '''
-                        here CG computes the Clebsch Gordon coefficients using functionality
-                        from sympy.
-                        '''
-                        B += float(CG(j1, m1, j2, m-m1, j, m).doit()) * \
-                            float(CG(j1, m_prime1, j2, m_prime-m_prime1, j, m_prime).doit()) * \
+                        B += float(CG(j1, m1, j2, m-m1, j, m) *
+                            float(CG(j1, m_prime1, j2, m_prime-m_prime1, j, m_prime) *
                             np.conjugate(c) * c1 * c2
                         m_prime1 += 1
                     m1 += 1
@@ -134,7 +127,7 @@ class Bispectrum(object):
         Returns:  the inner product of the harmonics associated with each neighbor
         '''
         # ititiate the data as a float
-        dot = 0.
+        dot=0.
         '''
         Calculate the 4-D spherical harmonic assoicated with each neigjbor/site pair
         and add it to value to compute the inner product
@@ -146,10 +139,10 @@ class Bispectrum(object):
             periodic site objects,  index 0 corresponds to x, 1 to y, and
             2 to z
             '''
-            x = neighbor.coords[0] - site.coords[0]
-            y = neighbor.coords[1] - site.coords[1]
-            z = neighbor.coords[2] - site.coords[2]
-            r = np.linalg.norm(neighbor.coords - site.coords)
+            x=neighbor.coords[0] - site.coords[0]
+            y=neighbor.coords[1] - site.coords[1]
+            z=neighbor.coords[2] - site.coords[2]
+            r=np.linalg.norm(neighbor.coords - site.coords)
             '''
             If the magnitude of the position vector is approximately greater
             than zero compute the 4-D spherical harmonic associated with that site
@@ -157,34 +150,34 @@ class Bispectrum(object):
             '''
             if r > 10.**(-10.):
                 # first euler rotation angle
-                psi = np.arcsin(r / self._Rc)
+                psi=np.arcsin(r / self._Rc)
 
                 '''
                 Second euler rotation angle, corresponds to the polar angle in
                 3-D spherical coordinates
                 '''
-                theta = np.arccos(z / r)
+                theta=np.arccos(z / r)
                 if abs((z / r) - 1.0) < 10.**(-8.):
-                    theta = 0.0
+                    theta=0.0
                 elif abs((z / r) + 1.0) < 10.**(-8.):
-                    theta = np.pi
+                    theta=np.pi
 
                 '''
                 Third euler rotation angle, corresponds to the azimuthal angle in
                 3-D spherical coordinates
                 '''
                 if x < 0.:
-                    phi = np.pi + np.arctan(y / x)
+                    phi=np.pi + np.arctan(y / x)
                 elif 0. < x and y < 0.:
-                    phi = 2 * np.pi + np.arctan(y / x)
+                    phi=2 * np.pi + np.arctan(y / x)
                 elif 0. < x and 0. <= y:
-                    phi = np.arctan(y / x)
+                    phi=np.arctan(y / x)
                 elif x == 0. and 0. < y:
-                    phi = 0.5 * np.pi
+                    phi=0.5 * np.pi
                 elif x == 0. and y < 0.:
-                    phi = 1.5 * np.pi
+                    phi=1.5 * np.pi
                 else:
-                    phi = 0.
+                    phi=0.
 
                 '''
                 add the spherical harmonic multiplied by the cutoff function to the
@@ -218,20 +211,12 @@ class Bispectrum(object):
 
         Returns:  an element of the rotation group SO3, complex
         '''
-        sph_harm = 0. + 0.j
-        mvals = self._m_values(j)
+        sph_harm=0. + 0.j
+        mvals=self._m_values(j)
         for mp in mvals:
-            '''
-            The Rotation.D terms are the wigner D functions corresponding to certain integer/half integer values
-            and the rotation angles phi and theta.  The S terms in the argument are Sympy integer/half integer
-            objects for the calculation
-
-            This is the hilbert representation of the Rotation group SO3
-            '''
-            sph_harm += complex(Rotation.D(S(int(2*j))/2, S(int(2*m))/2, S(int(2*mp))/2, phi, theta, -phi).doit()) * \
+            sph_harm += wigner_D(j, m, mp, phi, theta, -phi) * \
                 np.exp(-1j * mp * psi) * \
-                complex(Rotation.D(S(int(2*j))/2, S(int(2*mp))/2,
-                                   S(int(2*m_prime))/2, phi, -theta, -phi).doit())
+                wigner_D(j, mp, m_prime, phi, -theta, -phi)
 
         return sph_harm
 
@@ -247,18 +232,18 @@ class Bispectrum(object):
 
 if __name__ == "__main__":
     # ---------------------- Options ------------------------
-    parser = OptionParser()
+    parser=OptionParser()
     parser.add_option("-c", "--crystal", dest="structure", default='',
                       help="crystal from file, cif or poscar, REQUIRED",
                       metavar="crystal")
 
-    (options, args) = parser.parse_args()
+    (options, args)=parser.parse_args()
     if options.structure.find('cif') > 0:
-        fileformat = 'cif'
+        fileformat='cif'
     else:
-        fileformat = 'poscar'
+        fileformat='poscar'
 
-    test = Structure.from_file(options.structure)
+    test=Structure.from_file(options.structure)
 
-    f = Bispectrum(test, j_max=1, cutoff_radius=3,)
+    f=Bispectrum(test, j_max=1, cutoff_radius=3,)
     print(f)
