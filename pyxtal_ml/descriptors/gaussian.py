@@ -2,6 +2,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from pymatgen.core.structure import Structure
 
+
+################################ Gaussian Class ###############################
+
+class Gaussian:
+    def __init__():
+        pass
+
 ############################# Auxiliary Functions #############################
 
 def distance(arr):
@@ -215,10 +222,38 @@ def calculate_G1(crystal, cutoff_f='Cosine', Rc=6.5):
         Cutoff radius which the symmetry function will be calculated.
         Default value is 6.5 as suggested by Behler.
     """
-    pass
+    # Cutoff functional
+    if cutoff_f == 'Cosine':
+        func = Cosine(Rc=Rc)
+    elif cutoff_f == 'Polynomial':
+        func = Polynomial(Rc=Rc)
+    elif cutoff_f == 'TangentH':
+        func = TangentH(Rc=Rc)
+    else:
+        raise NotImplementedError('Unknown cutoff functional: %s' %cutoff_f)
+        
+    # Get core atoms information
+    n_core = crystal.num_sites
+    core_cartesians = crystal.cart_coords
+    
+    # Get neighbors information
+    neighbors = crystal.get_all_neighbors(Rc)
+    n_neighbors = len(neighbors[1])
+    
+    G1 = []
+    
+    for i in range(n_core):
+        G1_core = 0
+        for j in range(n_neighbors):
+            Rij = np.linalg.norm(core_cartesians[i] - 
+                                 neighbors[i][j][0].coords)
+            G1_core += func(Rij)
+        G1.append(G1_core)
+    
+    return G1
 
 
-def calculate_G2(crystal, cutoff_f='Cosine', Rc=6.5, eta=0.04, Rs=0.0): # How do you pick eta?
+def calculate_G2(crystal, cutoff_f='Cosine', Rc=6.5, eta=2, Rs=0.0):
     """
     Calculate G2 symmetry function.
     G2 function is a better choice to describe the radial feature of atoms in
@@ -270,22 +305,231 @@ def calculate_G2(crystal, cutoff_f='Cosine', Rc=6.5, eta=0.04, Rs=0.0): # How do
     G2 = []
 
     for i in range(n_core):
-        G2_i = []
-        rij = []
         G2_core = 0
         for j in range(n_neighbors):
             Rij = np.linalg.norm(core_cartesians[i] - 
                                  neighbors[i][j][0]._coords)
             G2_core += np.exp(-eta * Rij ** 2. / Rc ** 2.) * func(Rij)
-            G2_i.append(np.exp(-eta * Rij ** 2.) * func(Rij))
-            rij.append(Rij)
-        plt.scatter(rij,G2_i)
-        plt.show()
         G2.append(G2_core)
     
     return G2
 
 
+
+def calculate_G3(crystal, cutoff_f='Cosine', Rc=6.5, k=10):
+    """
+    Calculate G3 symmetry function.
+    G3 function is a damped cosine functions with a period length described by
+    K. For example, a Fourier series expansion a suitable description of the 
+    radial atomic environment can be obtained by comibning several G3
+    functions with different values for K.
+    Note: due to the distances of atoms, G3 can cancel each other out depending
+    on the positive and negative value.
+    
+    One can refer to equation 7 in:
+    Behler, J. (2011). Atom-centered symmetry functions for constructing 
+    high-dimensional neural network potentials. 
+    The Journal of chemical physics, 134(7), 074106.
+    
+    Parameters
+    ----------
+    crystal: object
+        Pymatgen crystal structure object.
+    cutoff_f: str
+        Cutoff functional. Default is Cosine functional.
+    Rc: float
+        Cutoff radius which the symmetry function will be calculated.
+        Default value is 6.5 as suggested by Behler.
+    k: float
+        The Kappa value as G3 parameter.
+    
+    Returns
+    -------
+    G3: float
+        G3 symmetry value
+    """
+    if cutoff_f == 'Cosine':
+        func = Cosine(Rc=Rc)
+    elif cutoff_f == 'Polynomial':
+        func = Polynomial(Rc=Rc)
+    elif cutoff_f == 'TangentH':
+        func = TangentH(Rc=Rc)
+    else:
+        raise NotImplementedError('Unknown cutoff functional: %s' %cutoff_f)
+    
+    # Get core atoms information
+    n_core = crystal.num_sites
+    core_cartesians = crystal.cart_coords
+    
+    # Get neighbors information
+    neighbors = crystal.get_all_neighbors(Rc)
+    n_neighbors = len(neighbors[1])
+    
+    G3 = []
+    
+    for i in range(n_core):
+        G3_core = 0
+        for j in range(n_neighbors):
+            Rij = np.linalg.norm(core_cartesians[i] - 
+                                 neighbors[i][j][0].coords)
+            G3_core += np.cos(k * Rij / Rc) * func(Rij)
+        G3.append(G3_core)
+    
+    return G3
+
+
+def calculate_G4(crystal, cutoff_f='Cosine', Rc=6.5, eta=2, lamBda=1, zeta=1):
+    """
+    Calculate G4 symmetry function.
+    G4 function is an angular function utilizing the cosine funtion of the
+    angle theta_ijk centered at atom i.
+
+    One can refer to equation 8 in:
+    Behler, J. (2011). Atom-centered symmetry functions for constructing 
+    high-dimensional neural network potentials. 
+    The Journal of chemical physics, 134(7), 074106.
+    
+    Parameters
+    ----------
+    crystal: object
+        Pymatgen crystal structure object.
+    cutoff_f: str
+        Cutoff functional. Default is Cosine functional.
+    Rc: float
+        Cutoff radius which the symmetry function will be calculated.
+        Default value is 6.5 as suggested by Behler.
+    eta: float
+        The parameter of G4 symmetry function.
+    lamBda: float
+        LamBda take values from -1 to +1 shifting the maxima of the cosine
+        function to 0 to 180 degree.
+    zeta: float
+        The angular resolution. Zeta with high values give a narrower range of
+        the nonzero G4 values. Different zeta values is preferrable for
+        distribution of angles centered at each reference atom. In some sense,
+        zeta is illustrated as the eta value.
+        
+    Returns
+    -------
+    G4: float
+        G4 symmetry value
+    """    
+    if cutoff_f == 'Cosine':
+        func = Cosine(Rc=Rc)
+    elif cutoff_f == 'Polynomial':
+        func = Polynomial(Rc=Rc)
+    elif cutoff_f == 'TangentH':
+        func = TangentH(Rc=Rc)
+    else:
+        raise NotImplementedError('Unknown cutoff functional: %s' %cutoff_f)
+    
+    # Get core atoms information
+    n_core = crystal.num_sites
+    core_cartesians = crystal.cart_coords
+    
+    # Get neighbors information
+    neighbors = crystal.get_all_neighbors(Rc)
+    n_neighbors = len(neighbors[1])
+    
+    G4 = []
+    for i in range(n_core):
+        G4_core = 0.0
+        for j in range(n_neighbors-1):
+            for k in range(j+1, n_neighbors):
+                Rij_vector = core_cartesians[i] - neighbors[i][j][0].coords
+                Rij = np.linalg.norm(Rij_vector)
+                Rik_vector = core_cartesians[i] - neighbors[i][k][0].coords
+                Rik = np.linalg.norm(Rik_vector)
+                Rjk_vector = neighbors[i][j][0].coords - \
+                                neighbors[i][k][0].coords
+                Rjk = np.linalg.norm(Rjk_vector)
+                cos_ijk = np.dot(Rij_vector, Rik_vector)/ Rij / Rik
+                term = (1. + lamBda * cos_ijk) ** zeta
+                term *= np.exp(-eta * (Rij ** 2. + Rik ** 2. + Rjk ** 2.) /
+                               Rc ** 2.)
+                term *= func(Rij) * func(Rik) * func(Rjk)
+                G4_core += term
+        G4_core *= 2. ** (1. - zeta)
+        G4.append(G4_core)
+        
+    return G4
+
+
+def calculate_G5(crystal, cutoff_f='Cosine', Rc=6.5, eta=2, lamBda=1, zeta=1):
+    """
+    Calculate G5 symmetry function.
+    G5 function is also an angular function utilizing the cosine funtion of the
+    angle theta_ijk centered at atom i. The difference between G5 and G4 is 
+    that G5 does not depend on the Rjk value. Hence, the G5 will generate a 
+    greater value after the summation compared to G4.
+
+    One can refer to equation 9 in:
+    Behler, J. (2011). Atom-centered symmetry functions for constructing 
+    high-dimensional neural network potentials. 
+    The Journal of chemical physics, 134(7), 074106.
+    
+    Parameters
+    ----------
+    crystal: object
+        Pymatgen crystal structure object.
+    cutoff_f: str
+        Cutoff functional. Default is Cosine functional.
+    Rc: float
+        Cutoff radius which the symmetry function will be calculated.
+        Default value is 6.5 as suggested by Behler.
+    eta: float
+        The parameter of G5 symmetry function.
+    lamBda: float
+        LamBda take values from -1 to +1 shifting the maxima of the cosine
+        function to 0 to 180 degree.
+    zeta: float
+        The angular resolution. Zeta with high values give a narrower range of
+        the nonzero G4 values. Different zeta values is preferrable for
+        distribution of angles centered at each reference atom. In some sense,
+        zeta is illustrated as the eta value.
+        
+    Returns
+    -------
+    G5: float
+        G5 symmetry value
+    """    
+    if cutoff_f == 'Cosine':
+        func = Cosine(Rc=Rc)
+    elif cutoff_f == 'Polynomial':
+        func = Polynomial(Rc=Rc)
+    elif cutoff_f == 'TangentH':
+        func = TangentH(Rc=Rc)
+    else:
+        raise NotImplementedError('Unknown cutoff functional: %s' %cutoff_f)
+    
+    # Get core atoms information
+    n_core = crystal.num_sites
+    core_cartesians = crystal.cart_coords
+    
+    # Get neighbors information
+    neighbors = crystal.get_all_neighbors(Rc)
+    n_neighbors = len(neighbors[1])
+    
+    G5 = []
+    for i in range(n_core):
+        G5_core = 0.0
+        for j in range(n_neighbors-1):
+            for k in range(j+1, n_neighbors):
+                Rij_vector = core_cartesians[i] - neighbors[i][j][0].coords
+                Rij = np.linalg.norm(Rij_vector)
+                Rik_vector = core_cartesians[i] - neighbors[i][k][0].coords
+                Rik = np.linalg.norm(Rik_vector)
+                cos_ijk = np.dot(Rij_vector, Rik_vector)/ Rij / Rik
+                term = (1. + lamBda * cos_ijk) ** zeta
+                term *= np.exp(-eta * (Rij ** 2. + Rik ** 2.) / Rc ** 2.)
+                term *= func(Rij) * func(Rik)
+                G5_core += term
+        G5_core *= 2. ** (1. - zeta)
+        G5.append(G5_core)
+        
+    return G5
+
+
 crystal = Structure.from_file('POSCARs/POSCAR-NaCl')
-x = calculate_G2(crystal)
+x = calculate_G5(crystal)
 print(x)
