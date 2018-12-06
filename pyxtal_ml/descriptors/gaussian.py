@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 from pymatgen.core.structure import Structure
 
 ############################# Auxiliary Functions #############################
@@ -188,9 +189,36 @@ class TangentH(object):
                            }
                 }
 
-############################# Symmetry Functions ##############################
 
-def calculate_G2(crystal, eta, cutoff_f='Cosine', Rc=6.5, Rs=0.0): # How do you pick eta?
+############################# Symmetry Functions ##############################
+                
+
+def calculate_G1(crystal, cutoff_f='Cosine', Rc=6.5):
+    """
+    Calculate G1 symmetry function.
+    The most basic radial symmetry function using only the cutoff functional,
+    the sum of the cutoff functionals for all neighboring atoms j inside the
+    cutoff radius, Rc.
+    
+    One can refer to equation 8 in:
+    Behler, J. (2015). Constructing high‐dimensional neural network 
+    potentials: A tutorial review. 
+    International Journal of Quantum Chemistry, 115(16), 1032-1050.
+
+    Parameters
+    ----------
+    crystal: object
+        Pymatgen crystal structure object.
+    cutoff_f: str
+        Cutoff functional. Default is Cosine functional.
+    Rc: float
+        Cutoff radius which the symmetry function will be calculated.
+        Default value is 6.5 as suggested by Behler.
+    """
+    pass
+
+
+def calculate_G2(crystal, cutoff_f='Cosine', Rc=6.5, eta=0.04, Rs=0.0): # How do you pick eta?
     """
     Calculate G2 symmetry function.
     G2 function is a better choice to describe the radial feature of atoms in
@@ -205,13 +233,13 @@ def calculate_G2(crystal, eta, cutoff_f='Cosine', Rc=6.5, Rs=0.0): # How do you 
     ----------
     crystal: object
         Pymatgen crystal structure object.
-    eta: float
-        The parameter of G2 symmetry function.
     cutoff_f: str
         Cutoff functional. Default is Cosine functional.
     Rc: float
         Cutoff radius which the symmetry function will be calculated.
         Default value is 6.5 as suggested by Behler.
+    eta: float
+        The parameter of G2 symmetry function.
     Rs: float
         Determine the shift from the center of the Gaussian.
         Default value is zero.
@@ -233,25 +261,31 @@ def calculate_G2(crystal, eta, cutoff_f='Cosine', Rc=6.5, Rs=0.0): # How do you 
     
     # Get positions of core atoms
     n_core = crystal.num_sites
-    n_core_cartesian = crystal.cart_coords
-    n_core_positions = np.apply_along_axis(distance, 1, n_core_cartesian)
+    core_cartesians = crystal.cart_coords
     
     # Their neighbors within the cutoff radius
     neighbors = crystal.get_all_neighbors(Rc)
     n_neighbors = len(neighbors[1])
     
     G2 = []
+
     for i in range(n_core):
+        G2_i = []
+        rij = []
         G2_core = 0
         for j in range(n_neighbors):
-            Rij = np.linalg.norm(n_core_positions[i] - neighbors[i][j][1])
-            G2_core += (np.exp(-eta * Rij ** 2.) / (Rc ** 2.) * 
-                        func(Rij))
+            Rij = np.linalg.norm(core_cartesians[i] - 
+                                 neighbors[i][j][0]._coords)
+            G2_core += np.exp(-eta * Rij ** 2. / Rc ** 2.) * func(Rij)
+            G2_i.append(np.exp(-eta * Rij ** 2.) * func(Rij))
+            rij.append(Rij)
+        plt.scatter(rij,G2_i)
+        plt.show()
         G2.append(G2_core)
     
     return G2
 
 
 crystal = Structure.from_file('POSCARs/POSCAR-NaCl')
-x = calculate_G2(crystal, eta =2)
+x,y,r = calculate_G2(crystal)
 print(x)
