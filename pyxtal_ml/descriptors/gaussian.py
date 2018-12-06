@@ -287,5 +287,5 @@ def calculate_G2(crystal, cutoff_f='Cosine', Rc=6.5, eta=0.04, Rs=0.0): # How do
 
 
 crystal = Structure.from_file('POSCARs/POSCAR-NaCl')
-x,y,r = calculate_G2(crystal)
+x = calculate_G2(crystal)
 print(x)
