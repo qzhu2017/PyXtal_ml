@@ -1,8 +1,9 @@
 import numpy as np
 from math import factorial
 from optparse import OptionParser
+from numba import jit
 
-
+@jit
 def CG(j1, m1, j2, m2, j3, m3):
     '''
     Calculates the Clebsch-Gordon coefficient
@@ -87,6 +88,7 @@ def wigner_d(beta, J, M, MP):
     return d
 
 
+@jit
 def wigner_D(J, M, MP, alpha, beta, gamma):
     '''
     Large Wigner D function

@@ -6,7 +6,7 @@ import numpy as np
 import itertools
 from angular_momentum import CG, wigner_D
 from optparse import OptionParser
-
+from numba import jit
 
 class Bispectrum(object):
 
@@ -62,7 +62,7 @@ class Bispectrum(object):
     @staticmethod
     def _m_values(k):
         return np.arange(-k, k+1, 1)
-
+    @jit
     def _calculate_B(self, j1, j2, j, site, site_neighbors):
         '''
         Calculates the bispectrum coefficients associated with
@@ -112,6 +112,7 @@ class Bispectrum(object):
 
         return B
 
+    @jit
     def _calculate_c(self, j, m_prime, m, site, site_neighbors):
         '''
         Calculate the inner product of the 4-D spherical harmonics associated
@@ -194,6 +195,7 @@ class Bispectrum(object):
 
         return dot
 
+    @jit
     def _U(self, j, m, m_prime, psi, theta, phi):
         '''
         Computes an element of the rotation group SO3
@@ -247,5 +249,5 @@ if __name__ == "__main__":
 
     test = Structure.from_file(options.structure)
 
-    f = Bispectrum(test, j_max=1, cutoff_radius=6,)
+    f = Bispectrum(test, j_max=3, cutoff_radius=4.0)
     print(f.bispectrum)
