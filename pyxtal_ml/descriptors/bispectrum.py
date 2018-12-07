@@ -6,9 +6,19 @@ from angular_momentum import CG, wigner_D
 from optparse import OptionParser
 from numba import jit
 
+@jit
+def _cutoff_function(r, rc):
+
+    if r > rc:
+        return 0.
+
+    else:
+        return 0.5 * (np.cos(np.pi * r / rc) + 1.)
+
 
 class Bispectrum(object):
 
+    @jit
     def __init__(self, crystal, j_max=5, cutoff_radius=6.5, symmetrize=True):
         '''
         '''
@@ -187,7 +197,7 @@ class Bispectrum(object):
                 '''
                 dot += G * \
                     np.conjugate(self._U(j, m, m_prime, psi, theta, phi)) * \
-                    self._cutoff_function(r, self._Rc)
+                    _cutoff_function(r, self._Rc)
 
             else:
                 continue
@@ -223,15 +233,6 @@ class Bispectrum(object):
 
         return sph_harm
 
-    @staticmethod
-    def _cutoff_function(r, rc):
-
-        if r > rc:
-            return 0.
-
-        else:
-            return 0.5 * (np.cos(np.pi * r / rc) + 1.)
-
 
 if __name__ == "__main__":
     # ---------------------- Options ------------------------
@@ -248,5 +249,5 @@ if __name__ == "__main__":
 
     test = Structure.from_file(options.structure)
 
-    f = Bispectrum(test, j_max=3, cutoff_radius=6.5)
+    f = Bispectrum(test, j_max=1, cutoff_radius=6.5)
     print(f.bispectrum)
