@@ -1,9 +1,7 @@
 from pymatgen.core.structure import Structure
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.core.periodic_table import Element, Specie
-from pymatgen.analysis.local_env import get_neighbors_of_site_with_index
 import numpy as np
-import itertools
 from angular_momentum import CG, wigner_D
 from optparse import OptionParser
 from numba import jit
@@ -27,8 +25,6 @@ class Bispectrum(object):
                                         angle_tolerance=5)
             crystal = finder.get_conventional_standard_structure()
 
-        self._crystal = crystal
-
         '''
         Here we iterate over each site and its corresponding neighbor
         environment to compute the bispectrum coefficients of each
@@ -42,10 +38,9 @@ class Bispectrum(object):
         environment
         '''
         self.bispectrum = []
+        neighbors = crystal.get_all_neighbors(self._Rc)
         for index, site in enumerate(crystal):
-            # compute nearest neighbors using voronoi tesselations
-            site_neighbors = get_neighbors_of_site_with_index(
-                crystal, index, approach='voronoi')
+            site_neighbors = neighbors[index]
             # site loops over central atoms
             site_bispectrum = []
             # iterate over 2*j_max
@@ -142,10 +137,12 @@ class Bispectrum(object):
             periodic site objects,  index 0 corresponds to x, 1 to y, and
             2 to z
             '''
-            x = neighbor.coords[0] - site.coords[0]
-            y = neighbor.coords[1] - site.coords[1]
-            z = neighbor.coords[2] - site.coords[2]
-            r = np.linalg.norm(neighbor.coords - site.coords)
+            x = neighbor[0].coords[0] - site.coords[0]
+            y = neighbor[0].coords[1] - site.coords[1]
+            z = neighbor[0].coords[2] - site.coords[2]
+            r = neighbor[1]  # distance is stored here
+            ele = neighbor[0].specie
+            G = ele.number
             '''
             If the magnitude of the position vector is approximately greater
             than zero compute the 4-D spherical harmonic associated with that site
@@ -188,7 +185,7 @@ class Bispectrum(object):
                 associated with the spherical harmonic, the conjugate is the
                 scalar product
                 '''
-                dot += 1.0 * \
+                dot += G * \
                     np.conjugate(self._U(j, m, m_prime, psi, theta, phi)) * \
                     self._cutoff_function(r, self._Rc)
 
@@ -251,5 +248,5 @@ if __name__ == "__main__":
 
     test = Structure.from_file(options.structure)
 
-    f = Bispectrum(test, j_max=3, cutoff_radius=6.0)
+    f = Bispectrum(test, j_max=1, cutoff_radius=6.0)
     print(f.bispectrum)
