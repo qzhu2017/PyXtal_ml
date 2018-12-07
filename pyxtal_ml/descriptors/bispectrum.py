@@ -8,6 +8,7 @@ from angular_momentum import CG, wigner_D
 from optparse import OptionParser
 from numba import jit
 
+
 class Bispectrum(object):
 
     def __init__(self, crystal, j_max=5, cutoff_radius=6.5, symmetrize=True):
@@ -62,6 +63,7 @@ class Bispectrum(object):
     @staticmethod
     def _m_values(k):
         return np.arange(-k, k+1, 1)
+
     @jit
     def _calculate_B(self, j1, j2, j, site, site_neighbors):
         '''
@@ -249,5 +251,5 @@ if __name__ == "__main__":
 
     test = Structure.from_file(options.structure)
 
-    f = Bispectrum(test, j_max=3, cutoff_radius=4.0)
+    f = Bispectrum(test, j_max=3, cutoff_radius=6.0)
     print(f.bispectrum)

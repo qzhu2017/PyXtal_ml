@@ -1,6 +1,6 @@
 import numpy as np
 from itertools import product
-from sympy.physics.wigner import wigner_3j
+from angular_momentum import wigner_3j
 from pymatgen.core.structure import Structure
 from pymatgen.analysis.local_env import get_neighbors_of_site_with_index
 from scipy.special import sph_harm
@@ -208,7 +208,7 @@ class steinhardt_params(object):
                     parameter wl
         '''
         # calculate the wigner3j value for l and the free integer parameters (float)
-        w3j = float(wigner_3j(l, l, l, m1-l, m2-l, m3-l))
+        w3j = wigner_3j(l, m1-l, l, m2-l, l, m3-l)
         '''
         call the complex numbers with indeces corresponding to the free
         integer parameters m1, m2, m3 and multiply them together
@@ -237,4 +237,4 @@ if __name__ == '__main__':
         fileformat = 'poscar'
 
     test = Structure.from_file(options.structure)
-    print(steinhardt_params(test, 12).params)
+    print(steinhardt_params(test, 6).params)
