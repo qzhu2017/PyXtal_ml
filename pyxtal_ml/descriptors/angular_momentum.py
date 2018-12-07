@@ -54,6 +54,7 @@ def CG(j1, m1, j2, m2, j3, m3):
     return C
 
 
+@jit
 def wigner_d(beta, J, M, MP):
     '''
     Small Wigner d function
