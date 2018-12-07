@@ -1,5 +1,5 @@
 import numpy as np
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from pymatgen.core.structure import Structure
 
 
@@ -531,5 +531,8 @@ def calculate_G5(crystal, cutoff_f='Cosine', Rc=6.5, eta=2, lamBda=1, zeta=1):
 
 
 crystal = Structure.from_file('POSCARs/POSCAR-NaCl')
-x = calculate_G5(crystal)
-print(x)
+print(calculate_G1(crystal))
+print(calculate_G2(crystal))
+print(calculate_G3(crystal))
+print(calculate_G4(crystal))
+print(calculate_G5(crystal))
