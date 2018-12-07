@@ -38,7 +38,7 @@ class Bispectrum(object):
         environment
         '''
         self.bispectrum = []
-        neighbors = crystal.get_all_neighbors(self._Rc/2)
+        neighbors = crystal.get_all_neighbors(self._Rc)
         for index, site in enumerate(crystal):
             site_neighbors = neighbors[index]
             # site loops over central atoms
