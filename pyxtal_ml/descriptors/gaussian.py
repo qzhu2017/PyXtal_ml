@@ -350,10 +350,9 @@ def calculate_G1(crystal, cutoff_f='Cosine', Rc=6.5):
     return G1
 
 
-def G1_derivative(crystal, cutoff_f='Cosine', Rc=6.5, eta=2, Rs=0.0):
+def G1_derivative(crystal, cutoff_f='Cosine', Rc=6.5, p, q):
     '''
     Calculate the derivative of the G1 symmetry function
-
     Args:
         crystal: object
             Pymatgen crystal structure object
@@ -362,7 +361,10 @@ def G1_derivative(crystal, cutoff_f='Cosine', Rc=6.5, eta=2, Rs=0.0):
         Rc: float
             Cutoff raidus which the symmetry function will be calculated
             Default value is 6.5 angstoms
-
+        p : int
+            Index of the atom force is acting on.
+        q : int
+            Direction of force. x = 0, y = 1, and z = 2.
     Returns:
         G1D: float
             The value of the derivative of the G1 symmetry functon
@@ -370,6 +372,10 @@ def G1_derivative(crystal, cutoff_f='Cosine', Rc=6.5, eta=2, Rs=0.0):
     # Cutoff functional
     if cutoff_f == 'Cosine':
         func = Cosine(Rc=Rc)
+    elif cutoff_f == 'Polynomial':
+        func = Polynomial(Rc=Rc)
+    elif cutoff_f == 'TangentH':
+        func = TangentH(Rc=Rc)
     else:
         raise NotImplementedError('Unknown cutoff functional: %s' % cutoff_f)
 
@@ -386,9 +392,11 @@ def G1_derivative(crystal, cutoff_f='Cosine', Rc=6.5, eta=2, Rs=0.0):
     for i in range(n_core):
         G1D_core = 0
         for j in range(n_neighbors):
-            Rij = np.linalg.norm(core_cartesians[i] -
-                                 neighbors[i][j][0].coords)
-            G1D_core += func.derivative(Rij)
+            Ri = core_cartesians[i]
+            Rj = neighbors[i][j][0].coords
+            Rij = np.linalg.norm(Rj - Ri)
+            G1D_core += func.derivative(Rij) * \
+                    dRab_dRpq(i, j, Ri, Rj, p, q)
         G1D.append(G1D_core)
 
     return G1D
