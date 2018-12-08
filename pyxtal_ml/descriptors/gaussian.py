@@ -20,6 +20,102 @@ def distance(arr):
     return ((arr[0]**2 + arr[1]**2 + arr[2]**2)**0.5)
 
 
+def Kronecker(a,b):
+    """
+    Kronecker delta function.
+    
+    Parameters
+    ----------
+    a: int
+        first index
+    b: int
+        second index
+        
+    Returns
+    -------
+        Return value 0 if a and b are not equal; return value 1 if a and b 
+        are equal.
+    -------
+    """
+    if a == b:
+        return 1
+    else:
+        return 0
+
+
+def dRab_dRpq(a, b, Ra, Rb, p, q):
+    """
+    Calculate the derivative of the norm of position vector R_{ab} with
+    respect to coordinate x, y, or z denoted by q of atom with index p.
+
+    See Eq. 14c of the supplementary information of Khorshidi, Peterson,
+    CPC(2016).
+
+    Parameters
+    ----------
+    a : int
+        Index of the first atom.
+    b : int
+        Index of the second atom.
+    Ra : float
+        Position of the first atom.
+    Rb : float
+        Position of the second atom.
+    p : int
+        Index of the atom force is acting on.
+    q : int
+        Direction of force. x = 0, y = 1, and z = 2.
+
+    Returns
+    -------
+    the derivative of pair atoms w.r.t. one of the atom in q direction.
+    """
+    Rab = np.linalg.norm(Rb - Ra)
+    if p == a and a != b:  # a != b is necessary for periodic systems
+        dRab_dRpq = -(Rb[q] - Ra[q]) / Rab
+    elif p == b and a != b:  # a != b is necessary for periodic systems
+        dRab_dRpq = (Rb[q] - Ra[q]) / Rab
+    else:
+        dRab_dRpq = 0
+    return dRab_dRpq
+
+
+def dRab_dRpq_vector(a, b, p, q):
+    """
+    Calculate the derivative of the position vector R_{ab} with
+    respect to coordinate x, y, or z denoted by q of atom with index p.
+
+    See Eq. 14d of the supplementary information of Khorshidi, Peterson,
+    CPC(2016).
+
+    Parameters
+    ----------
+    a : int
+        Index of the first atom.
+    b : int
+        Index of the second atom.
+    p : int
+        Index of the atom force is acting on.
+    q : int
+        Direction of force. x = 0, y = 1, and z = 2.
+
+    Returns
+    -------
+    list of float
+        The derivative of the position vector R_{ab} with respect to atom 
+        index p in direction of q.
+    """
+    if (p == a) or (p == b):
+        dRab_dRpq_vector = [None, None, None]
+        c1 = Kronecker(p, b) - Kronecker(p, a)
+        dRab_dRpq_vector[0] = c1 * Kronecker(0, q)
+        dRab_dRpq_vector[1] = c1 * Kronecker(1, q)
+        dRab_dRpq_vector[2] = c1 * Kronecker(2, q)
+        return dRab_dRpq_vector
+    else:
+        return [0, 0, 0]
+
+
 ############################## Cutoff Functional ##############################
 """
 This script provides three cutoff functionals:
