@@ -464,10 +464,9 @@ def calculate_G2(crystal, cutoff_f='Cosine', Rc=6.5, eta=2, Rs=0.0):
     return G2
 
 
-def G2_derivative(crystal, cutoff_f='Cosine', Rc=6.5, eta=2, Rs=0.0):
+def G2_derivative(crystal, cutoff_f='Cosine', Rc=6.5, eta=2, Rs=0.0, p, q):
     '''
     Calculate the derivative of the G2 symmetry function
-
     Args:
         crystal: object
             Pymatgen crystal structure object
@@ -479,16 +478,19 @@ def G2_derivative(crystal, cutoff_f='Cosine', Rc=6.5, eta=2, Rs=0.0):
             The parameter for the G2 symmetry function
         Rs: float
             Determine the shift from the center of the gaussian, default= 0
-
     Returns:
         G2D: float
-            The derivative of G2 symmetry function`
+            The derivative of G2 symmetry function
     '''
     # Cutoff functional
     if cutoff_f == 'Cosine':
         func = Cosine(Rc=Rc)
+    elif cutoff_f == 'Polynomial':
+        func = Polynomial(Rc=Rc)
+    elif cutoff_f == 'TangentH':
+        func = TangentH(Rc=Rc)
     else:
-        raise NotImplementedError('Unknown cutoff functional: %s' % cutoff_f)
+        raise NotImplementedError('Unknown cutoff functional: %s' %cutoff_f)
 
     # Get positions of core atoms
     n_core = crystal.num_sites
@@ -503,10 +505,13 @@ def G2_derivative(crystal, cutoff_f='Cosine', Rc=6.5, eta=2, Rs=0.0):
     for i in range(n_core):
         G2D_core = 0
         for j in range(n_neighbors):
-            Rij = np.linalg.norm(core_cartesians[i] -
-                                 neighbors[i][j][0]._coords)
-            G2D_core += np.exp(-eta * (Rij - Rs)**2) * (
-                func(Rij) * (-2 * eta * (Rij - Rs)) + func.derivative(Rij))
+            Ri = core_cartesians[i]
+            Rj = neighbors[i][j][0]._coords
+            Rij = np.linalg.norm(Rj - Ri)
+            G2D_core += np.exp(-eta * (Rij - Rs)**2) * \
+                        dRab_dRpq(i, j, Ri, Rj, p, q) * \
+                        (-2 * eta * (Rij - Rs) * func(Rij) + 
+                         func.derivative(Rij))
         G2D.append(G2D_core)
 
     return G2D
