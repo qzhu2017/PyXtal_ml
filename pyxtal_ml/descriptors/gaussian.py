@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 from pymatgen.core.structure import Structure
 
 
@@ -153,7 +152,7 @@ def dcos_dRpq(a, b, c, Ra, Rb, Rc, p, q):
     term_one = 1 / (Rab * Rac) * \
                 np.dot(dRab_dRpq_vector(a, b, p, q), Rac_vector)
     term_second = 1 / (Rab * Rac) * \
-                    np.dot(Rab_vector, dRab_Rpq_vector(a, c, p, q))
+                    np.dot(Rab_vector, dRab_dRpq_vector(a, c, p, q))
     term_third = np.dot(Rab_vector, Rac_vector) / Rab ** 2 / Rac * \
                     dRab_dRpq(a, b, Ra, Rb, p, q)
     term_fourth = np.dot(Rab_vector, Rac_vector) / Rab / Rac ** 2 * \
@@ -395,7 +394,7 @@ def calculate_G1(crystal, cutoff_f='Cosine', Rc=6.5):
     return G1
 
 
-def G1_derivative(crystal, cutoff_f='Cosine', Rc=6.5, p, q):
+def G1_derivative(crystal, cutoff_f='Cosine', Rc=6.5, p=1, q=0):
     '''
     Calculate the derivative of the G1 symmetry function.
     
@@ -510,7 +509,7 @@ def calculate_G2(crystal, cutoff_f='Cosine', Rc=6.5, eta=2, Rs=0.0):
     return G2
 
 
-def G2_derivative(crystal, cutoff_f='Cosine', Rc=6.5, eta=2, Rs=0.0, p, q):
+def G2_derivative(crystal, cutoff_f='Cosine', Rc=6.5, eta=2, Rs=0.0, p=1, q=0):
     '''
     Calculate the derivative of the G2 symmetry function.
     
@@ -626,7 +625,7 @@ def calculate_G3(crystal, cutoff_f='Cosine', Rc=6.5, k=10):
     return G3
 
 
-def G3_derivative(crystal, cutoff_f='Cosine', Rc=6.5, k=10, p, q):
+def G3_derivative(crystal, cutoff_f='Cosine', Rc=6.5, k=10, p=1, q=0):
     '''
     Calculate derivative of the G3 symmetry function.
     
@@ -758,7 +757,7 @@ def calculate_G4(crystal, cutoff_f='Cosine', Rc=6.5, eta=2, lamBda=1, zeta=1):
 
 
 def G4_derivative(crystal, cutoff_f='Cosine', 
-                  Rc=6.5, eta=2, lamBda=1, zeta=1, p, q):
+                  Rc=6.5, eta=2, lamBda=1, zeta=1, p=1, q=0):
     """
     Calculate the derivative of the G4 symmetry function.
     
@@ -940,9 +939,104 @@ def calculate_G5(crystal, cutoff_f='Cosine', Rc=6.5, eta=2, lamBda=1, zeta=1):
     return G5
 
 
+def G5_derivative(crystal, cutoff_f='Cosine', 
+                  Rc=6.5, eta=2, lamBda=1, zeta=1, p=1, q=0):
+    """
+    Calculate the derivative of the G5 symmetry function.
+    
+    Parameters
+    ----------
+    crystal: object
+        Pymatgen crystal structure object.
+    cutoff_f: str
+        Cutoff functional. Default is Cosine functional.
+    Rc: float
+        Cutoff radius which the symmetry function will be calculated.
+        Default value is 6.5 as suggested by Behler.
+    eta: float
+        The parameter of G5 symmetry function.
+    lamBda: float
+        LamBda take values from -1 to +1 shifting the maxima of the cosine
+        function to 0 to 180 degree.
+    zeta: float
+        The angular resolution. Zeta with high values give a narrower range of
+        the nonzero G5 values. Different zeta values is preferrable for
+        distribution of angles centered at each reference atom. In some sense,
+        zeta is illustrated as the eta value.
+
+    Returns
+    -------
+    G5D: float
+        The derivative of G5 symmetry function
+    """
+    if cutoff_f == 'Cosine':
+        func = Cosine(Rc=Rc)
+    elif cutoff_f == 'Polynomial':
+        func = Polynomial(Rc=Rc)
+    elif cutoff_f == 'TangentH':
+        func = TangentH(Rc=Rc)
+    else:
+        raise NotImplementedError('Unknown cutoff functional: %s' %cutoff_f)
+        
+    # Get core atoms information
+    n_core = crystal.num_sites
+    core_cartesians = crystal.cart_coords
+    
+    # Get neighbors information
+    neighbors = crystal.get_all_neighbors(Rc)
+    n_neighbors = len(neighbors[1])
+    
+    G5D = []
+    for i in range(n_core):
+        G5D_core = 0.0
+        for j in range(n_neighbors-1):
+            for k in range(j+1, n_neighbors):
+                Ri = core_cartesians[i]
+                Rj = neighbors[i][j][0].coords
+                Rk = neighbors[i][k][0].coords
+                
+                Rij_vector = Rj - Ri
+                Rik_vector = Rk - Ri
+                Rij = np.linalg.norm(Rij_vector)
+                Rik = np.linalg.norm(Rik_vector)
+                
+                cos_ijk = np.dot(Rij_vector, Rik_vector)/ Rij / Rik
+                dcos_ijk = dcos_dRpq(i, j, k, Ri, Rj, Rk, p, q)
+                
+                cutoff = func(Rij) * func(Rik)
+                cutoff_Rij_derivative = func.derivative(Rij) * \
+                                        dRab_dRpq(i, j, Ri, Rj, p, q)
+                cutoff_Rik_derivative = func.derivative(Rik) * \
+                                        dRab_dRpq(i, k, Ri, Rk, p, q)
+
+                lamBda_term = 1 + lamBda * cos_ijk
+                
+                first_term = -2 * eta / Rc ** 2 * lamBda_term * \
+                                (Rij * dRab_dRpq(i, j, Ri, Rj, p, q) + 
+                                 Rik * dRab_dRpq(i, k, Ri, Rk, p, q))
+                first_term += lamBda * zeta * dcos_ijk
+                first_term *= cutoff
+                
+                second_term = lamBda_term * \
+                                (cutoff_Rij_derivative * func(Rik) + 
+                                 cutoff_Rik_derivative * func(Rij))
+                                
+                term = first_term + second_term
+                term *= lamBda_term ** (zeta - 1)
+                term *= np.exp(-eta * (Rij ** 2. + Rik ** 2.) /
+                               Rc ** 2.)
+                                
+                G5D_core += term
+
+        G5D_core *= 2. ** (1. - zeta)
+        G5D.append(G5D_core)
+        
+    return G5D
+
+
 crystal = Structure.from_file('POSCARs/POSCAR-NaCl')
-print(calculate_G1(crystal))
-print(calculate_G2(crystal))
-print(calculate_G3(crystal))
-print(calculate_G4(crystal))
-print(calculate_G5(crystal))
+print(G1_derivative(crystal))
+print(G2_derivative(crystal))
+print(G3_derivative(crystal))
+print(G4_derivative(crystal))
+print(G5_derivative(crystal))
