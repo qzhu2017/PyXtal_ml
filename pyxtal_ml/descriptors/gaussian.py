@@ -16,7 +16,8 @@ def distance(arr):
     """
     L2 norm for cartesian coordinates
     """
-    return ((arr[0] ** 2 + arr[1] ** 2 + arr[2] ** 2) ** 0.5)
+    return np.linalg.norm(arr)
+    #return ((arr[0] ** 2 + arr[1] ** 2 + arr[2] ** 2) ** 0.5)
 
 
 def Kronecker(a,b):
