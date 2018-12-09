@@ -114,6 +114,52 @@ def dRab_dRpq_vector(a, b, p, q):
         return dRab_dRpq_vector
     else:
         return [0, 0, 0]
+    
+
+def dcos_dRpq(a, b, c, Ra, Rb, Rc, p, q):
+    """
+    Calculate the derivative of cosine dot product function with respect to 
+    the radius of an atom m in a particular direction l.
+    
+    Parameters
+    ----------
+    a: int
+        Index of the center atom.
+    b: int
+        Index of the first neighbor atom.
+    c: int
+        Index of the second neighbor atom.
+    Ra: list of floats
+        Position of the center atom.
+    Rb: list of floats
+        Position of the first atom.
+    Rc: list of floats
+        Postition of the second atom.
+    m: int
+        Atom that is experiencing force.
+    l: int
+        Direction of the force.
+        
+    Returns
+    -------
+    Derivative of cosine dot product w.r.t. the radius of an atom m in a 
+    particular direction l.
+    """
+    Rab_vector = Rb - Ra
+    Rac_vector = Rc - Ra
+    Rab = np.linalg.norm(Rab_vector)
+    Rac = np.linalg.norm(Rac_vector)
+    
+    term_one = 1 / (Rab * Rac) * \
+                np.dot(dRab_dRpq_vector(a, b, p, q), Rac_vector)
+    term_second = 1 / (Rab * Rac) * \
+                    np.dot(Rab_vector, dRab_Rpq_vector(a, c, p, q))
+    term_third = np.dot(Rab_vector, Rac_vector) / Rab ** 2 / Rac * \
+                    dRab_dRpq(a, b, Ra, Rb, p, q)
+    term_fourth = np.dot(Rab_vector, Rac_vector) / Rab / Rac ** 2 * \
+                    dRab_dRpq(a, c, Ra, Rc, p, q)
+                    
+    return (term_one + term_second - term_third - term_fourth)
 
 
 ############################## Cutoff Functional ##############################
