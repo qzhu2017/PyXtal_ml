@@ -78,11 +78,11 @@ def wigner_d(beta, J, M, MP):
     n_max = int(np.min([J-M, J-MP]))
     if n_max < 0:
         return 0
-    constant = -1**(J-MP)*np.sqrt(factorial(J+M)*factorial(J-M)
-                                  * factorial(J+MP)*factorial(J-MP))
+    constant = (-1)**(J-MP)*np.sqrt(factorial(J+M)*factorial(J-M)
+                                    * factorial(J+MP)*factorial(J-MP))
     d = 0
     for k in range(n_max+1):
-        d += (-1**(k) * np.cos(beta/2)**(M+MP+2*k) * np.sin(beta/2)**(2*J-M-MP-2*k) /
+        d += ((-1)**(k) * np.cos(beta/2)**(M+MP+2*k) * np.sin(beta/2)**(2*J-M-MP-2*k) /
               factorial(k) / factorial(J-M-k) / factorial(J-MP-k) / factorial(M+MP+k))
 
     d *= constant
