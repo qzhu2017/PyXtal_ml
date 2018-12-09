@@ -119,7 +119,7 @@ def wigner_D(J, M, MP, alpha, beta, gamma):
     Returns:
         the wigner_D matrix element for a defined rotation
         '''
-    return np.exp(-M*alpha*1j)*wigner_d(beta, M, MP, J)*np.exp(-MP*gamma*1j)
+    return np.exp(-M*alpha*1j)*wigner_d(beta, J, M, MP)*np.exp(-MP*gamma*1j)
 
 
 @jit
