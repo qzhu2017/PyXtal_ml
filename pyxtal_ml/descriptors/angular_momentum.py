@@ -75,11 +75,13 @@ def wigner_d(beta, J, M, MP):
     Returns:
         d the wigner_D matrix element for a defined rotation
         '''
+    if M + MP < 0:
+        M *= -1
+        MP *= -1
     n_max = int(np.min([J-M, J-MP]))
-    if n_max < 0:
-        return 0
     constant = (-1)**(J-MP)*np.sqrt(factorial(J+M)*factorial(J-M)
                                     * factorial(J+MP)*factorial(J-MP))
+
     d = 0
     for k in range(n_max+1):
         d += ((-1)**(k) * np.cos(beta/2)**(M+MP+2*k) * np.sin(beta/2)**(2*J-M-MP-2*k) /
