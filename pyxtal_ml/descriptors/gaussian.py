@@ -747,6 +747,114 @@ def calculate_G4(crystal, cutoff_f='Cosine', Rc=6.5, eta=2, lamBda=1, zeta=1):
     return G4
 
 
+def G4_derivative(crystal, cutoff_f='Cosine', 
+                  Rc=6.5, eta=2, lamBda=1, zeta=1, p, q):
+    """
+    Calculate the derivative of the G4 symmetry function.
+    
+    Parameters
+    ----------
+    crystal: object
+        Pymatgen crystal structure object.
+    cutoff_f: str
+        Cutoff functional. Default is Cosine functional.
+    Rc: float
+        Cutoff radius which the symmetry function will be calculated.
+        Default value is 6.5 as suggested by Behler.
+    eta: float
+        The parameter of G4 symmetry function.
+    lamBda: float
+        LamBda take values from -1 to +1 shifting the maxima of the cosine
+        function to 0 to 180 degree.
+    zeta: float
+        The angular resolution. Zeta with high values give a narrower range of
+        the nonzero G4 values. Different zeta values is preferrable for
+        distribution of angles centered at each reference atom. In some sense,
+        zeta is illustrated as the eta value.
+
+    Returns
+    -------
+    G4D: float
+        The derivative of G4 symmetry function
+    """
+    # Cutoff functional
+    if cutoff_f == 'Cosine':
+        func = Cosine(Rc=Rc)
+    elif cutoff_f == 'Polynomial':
+        func = Polynomial(Rc=Rc)
+    elif cutoff_f == 'TangentH':
+        func = TangentH(Rc=Rc)
+    else:
+        raise NotImplementedError('Unknown cutoff functional: %s' %cutoff_f)
+        
+    # Get core atoms information
+    n_core = crystal.num_sites
+    core_cartesians = crystal.cart_coords
+    
+    # Get neighbors information
+    neighbors = crystal.get_all_neighbors(Rc)
+    n_neighbors = len(neighbors[1])
+    
+    G4D = []
+    for i in range(n_core):
+        G4D_core = 0.0
+        for j in range(n_neighbors-1):
+            for k in range(j+1, n_neighbors):
+                Ri = core_cartesians[i]
+                Rj = neighbors[i][j][0].coords
+                Rk = neighbors[i][k][0].coords
+                
+                Rij_vector = Rj - Ri
+                Rij = np.linalg.norm(Rij_vector)
+                
+                Rik_vector = Rk - Ri
+                Rik = np.linalg.norm(Rik_vector)
+                
+                Rjk_vector = Rk - Rj
+                Rjk = np.linalg.norm(Rjk_vector)
+                
+                cos_ijk = np.dot(Rij_vector, Rik_vector)/ Rij / Rik
+                dcos_ijk = dcos_dRpq(i, j, k, Ri, Rj, Rk, p, q)
+                
+                cutoff = func(Rij) * func(Rik) * func(Rjk)
+                cutoff_Rik_Rjk = func(Rik) * func(Rjk)
+                cutoff_Rij_Rjk = func(Rij) * func(Rjk)
+                cutoff_Rij_Rik = func(Rij) * func(Rik)
+                
+                cutoff_Rij_derivative = func.derivative(Rij) * \
+                                        dRab_dRpq(i, j, Ri, Rj, p, q)
+                cutoff_Rik_derivative = func.derivative(Rik) * \
+                                        dRab_dRpq(i, k, Ri, Rk, p, q)
+                cutoff_Rjk_derivative = func.derivative(Rjk) * \
+                                        dRab_dRpq(j, k, Rj, Rk, p, q)
+
+                lamBda_term = 1 + lamBda * cos_ijk
+                
+                first_term = lamBda * zeta * dcos_ijk
+                first_term += -2 * zeta * lamBda_term / Rc ** 2 * \
+                                (Rij * dRab_dRpq(i, j, Ri, Rj, p, q) + 
+                                 Rik * dRab_dRpq(i, k, Ri, Rk, p, q) +
+                                 Rjk * dRab_dRpq(j, k, Rj, Rk, p, q))
+                first_term *= cutoff
+                
+                second_term = cutoff_Rij_derivative * cutoff_Rik_Rjk + \
+                                    cutoff_Rik_derivative * cutoff_Rij_Rjk + \
+                                    cutoff_Rjk_derivative * cutoff_Rij_Rik                
+                second_term *= lamBda_term
+                
+                term = first_term + second_term
+                term *= lamBda_term ** (zeta - 1)
+                term *= np.exp(-eta * (Rij ** 2. + Rik ** 2. + Rjk ** 2.) /
+                               Rc ** 2.)
+                
+                G4D_core += term
+
+        G4D_core *= 2. ** (1. - zeta)
+        G4D.append(G4D_core)
+        
+    return G4D
+
+
 def calculate_G5(crystal, cutoff_f='Cosine', Rc=6.5, eta=2, lamBda=1, zeta=1):
     """
     Calculate G5 symmetry function.
