@@ -6,6 +6,7 @@ from angular_momentum import CG, wigner_D
 from optparse import OptionParser
 from numba import jit
 
+
 @jit
 def _cutoff_function(r, rc):
 
@@ -224,9 +225,7 @@ class Bispectrum(object):
         '''
         sph_harm = 0. + 0.j
         mvals = self._m_values(j)
-        j, m, m_prime = int(j), int(m), int(m_prime)
         for mp in mvals:
-            mp = int(mp)
             sph_harm += wigner_D(j, m, mp, phi, theta, -phi) * \
                 np.exp(-1j * mp * psi) * \
                 wigner_D(j, mp, m_prime, phi, -theta, -phi)
