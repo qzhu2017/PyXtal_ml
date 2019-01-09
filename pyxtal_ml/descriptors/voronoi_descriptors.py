@@ -1,7 +1,7 @@
 from pymatgen.analysis.local_env import VoronoiNN
 import numpy as np
 from itertools import product
-from sympy.physics.wigner import wigner_3j
+from pyxtal_ml.descriptors.angular_momentum import wigner_3j
 from pymatgen.core.structure import Structure, IStructure
 from pymatgen.core.periodic_table import Element, Specie
 from pymatgen.core.bonds import get_bond_length

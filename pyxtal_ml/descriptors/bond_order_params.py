@@ -1,6 +1,6 @@
 import numpy as np
 from itertools import product
-from angular_momentum import wigner_3j
+from pyxtal_ml.descriptors.angular_momentum import wigner_3j
 from pymatgen.core.structure import Structure
 from pymatgen.analysis.local_env import get_neighbors_of_site_with_index
 from scipy.special import sph_harm
