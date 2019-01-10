@@ -6,6 +6,7 @@ from angular_momentum import CG, wigner_D
 from optparse import OptionParser
 from numba import jit
 
+
 @jit
 def _cutoff_function(r, rc):
 
@@ -18,7 +19,7 @@ def _cutoff_function(r, rc):
 
 class Bispectrum(object):
 
-    @jit
+    @jit(parallel=True)
     def __init__(self, crystal, j_max=5, cutoff_radius=6.5, symmetrize=True):
         '''
         '''
@@ -69,7 +70,7 @@ class Bispectrum(object):
     def _m_values(k):
         return np.arange(-k, k+1, 1)
 
-    @jit
+    @jit(parallel=True)
     def _calculate_B(self, j1, j2, j, site, site_neighbors):
         '''
         Calculates the bispectrum coefficients associated with
@@ -119,7 +120,7 @@ class Bispectrum(object):
 
         return B
 
-    @jit
+    @jit(parallel=True)
     def _calculate_c(self, j, m_prime, m, site, site_neighbors):
         '''
         Calculate the inner product of the 4-D spherical harmonics associated
@@ -204,7 +205,7 @@ class Bispectrum(object):
 
         return dot
 
-    @jit
+    @jit(parallel=True)
     def _U(self, j, m, m_prime, psi, theta, phi):
         '''
         Computes an element of the rotation group SO3
@@ -224,9 +225,7 @@ class Bispectrum(object):
         '''
         sph_harm = 0. + 0.j
         mvals = self._m_values(j)
-        j, m, m_prime = int(j), int(m), int(m_prime)
         for mp in mvals:
-            mp = int(mp)
             sph_harm += wigner_D(j, m, mp, phi, theta, -phi) * \
                 np.exp(-1j * mp * psi) * \
                 wigner_D(j, mp, m_prime, phi, -theta, -phi)

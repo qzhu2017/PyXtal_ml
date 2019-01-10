@@ -5,11 +5,14 @@ import pandas as pd
 import os.path as op
 from tabulate import tabulate
 from time import time
-from sklearn.preprocessing import (MinMaxScaler, minmax_scale, MaxAbsScaler, maxabs_scale, KernelCenterer,
-                            StandardScaler, RobustScaler, robust_scale, Normalizer, Binarizer, 
-                            PolynomialFeatures, FunctionTransformer, PowerTransformer, 
-                            QuantileTransformer, quantile_transform, OrdinalEncoder, OneHotEncoder, 
-                            KBinsDiscretizer)
+from sklearn.preprocessing import (MinMaxScaler, minmax_scale, MaxAbsScaler, 
+                                   maxabs_scale, KernelCenterer, 
+                                   StandardScaler, RobustScaler, robust_scale, 
+                                   Normalizer, Binarizer, PolynomialFeatures, 
+                                   FunctionTransformer, PowerTransformer, 
+                                   QuantileTransformer, quantile_transform, 
+                                   OrdinalEncoder, OneHotEncoder, 
+                                   KBinsDiscretizer)
 from pyxtal_ml.descriptors.descriptors import descriptor
 from pyxtal_ml.datasets.collection import Collection
 from pyxtal_ml.ml.ml_sklearn import method
@@ -25,34 +28,36 @@ class run:
     A class of production runs of pyxtal_ml.
     
     Args:
-        file:
-        feature:
-        prop:
-        N_sample:
-        library:
-        algo:
-        feature_scaling:
-        level:
-        pipeline:
-        hidden_layers:
+        jsonfile: the dataset file path.
+        feature: descriptors to be used to describe the crystal structures.
+        prop: the property to be predicted, i.e. formation_energy.
+        N_sample: number of samples to be trained.
+        library: sklearn, tensorflow, or pytorch
+        algo: the training algorithm.
+        feature_scaling: features will be scaled accordingly to the selected
+                            algorithm.
+        level: The tightness level of training (light, medium, or tight)
+        pipeline: include preprocessing algorithm for pipelining in sequence.
+        hidden_layers: hidden layers for neural network or deep learning only.
     """
 
-    def __init__(self, jsonfile, feature, prop, N_sample, library, algo, feature_scaling=False,
-                 level=False, pipeline=False, hidden_layers=None, conv_layers=None):
-        """
-        Args:
-            algo: algorithm in ['KRR', 'KNN', ....]
-            feature: features among ['Chem', 'RDF', ....]
-            prop: target property in ['formation_energy', 'band_gap']
-            level: 'light', 'medium', 'tight'
-            file: source json file
-        """
+    def __init__(self, jsonfile, 
+                 feature, 
+                 prop='formation_energy', 
+                 N_sample=200, 
+                 algo='KRR', 
+                 library='sklearn', 
+                 feature_scaling=False,
+                 level=False, 
+                 pipeline=False, 
+                 hidden_layers=None, 
+                 conv_layers=None):
         self.file = jsonfile
         self.feature0 = feature
         self.prop = prop
         self.N_sample = N_sample
-        self.library = library
         self.algo = algo
+        self.library = library
         self.feature_scaling = feature_scaling
         self.level = level
         self.pipeline = pipeline
@@ -67,7 +72,10 @@ class run:
         Obtain the struc/prop data from source.
         """
         start = time()
-        self.strucs, self.props = Collection(self.file, self.prop, self.N_sample).extract_struc_prop()
+        self.strucs, self.props = Collection(self.file, 
+                                             self.prop, 
+                                             self.N_sample).\
+                                             extract_struc_prop()
         end = time()
         self.time['load_data'] = end-start
 
@@ -84,8 +92,8 @@ class run:
         if parallel:
             from multiprocessing import Pool, cpu_count
             from functools import partial
-            #QZ: it is not a good idea to use too many number of cpus due to communication
-            #usually, 2-8 should be sufficient
+            # QZ: it is not a good idea to use too many number of cpus due to
+            # communication. Usually, 2-8 should be sufficient.
             if type(parallel)==bool:
                 ncpu = cpu_count()
             else:
@@ -137,7 +145,8 @@ class run:
         
         if self.feature_scaling != False:
             if feature_counting in feature_scaling_length:
-                X[:,:feature_counting] = self.apply_feature_scaling(X[:,:feature_counting])
+                X[:,:feature_counting] = self.apply_feature_scaling(
+                                                        X[:,:feature_counting])
             else:
                 pass
 
@@ -154,8 +163,10 @@ class run:
         
         Args:
             plot: include plotting. (default = False)
-            print_info: print training and results information. (default = True)
-            save: save the training simulation for future usage. (default = False)
+            print_info: print training and results information.
+                        (default = True)
+            save: save the training simulation for future usage.
+                        (default = False)
         """
         print('\nML learning with {} algorithm'.format(self.algo))
         tag = {'prop': self.prop, 'feature':self.feature}
@@ -216,37 +227,59 @@ class run:
         for id, diff in enumerate(self.ml.estimator.predict(self.X)-self.Y):
             if abs(diff) > 3*self.ml.mae:
                 struc = self.strucs[id]
-                col_name['Formula'].append(struc.composition.get_reduced_formula_and_factor()[0])
-                col_name['Space group'].append(SpacegroupAnalyzer(struc).get_space_group_symbol())
+                col_name['Formula'].append(struc.
+                                        composition.
+                                        get_reduced_formula_and_factor()[0])
+                col_name['Space group'].append(SpacegroupAnalyzer(struc).
+                                                get_space_group_symbol())
                 col_name['Nsites'].append(len(struc.species))
                 col_name['dY'].append(diff)
         
         df = pd.DataFrame(col_name)
-        df = df.sort_values(['dY','Space group','Nsites'], ascending=[True, True, True])
-        print('\nThe following structures have relatively high error compared to the reference values')
+        df = df.sort_values(['dY','Space group','Nsites'], 
+                            ascending=[True, True, True])
+        
+        print('\nThe following structures have relatively high error')
         print(tabulate(df, headers='keys', tablefmt='psql'))
         
 if __name__ == "__main__":
     # -------------------------------- Options -------------------------
     parser = OptionParser()
-    parser.add_option("-j", "--json", dest="jsonfile", default='',
+    parser.add_option("-j", "--json", 
+                      dest="jsonfile", 
+                      default='',
                       help="json file, REQUIRED")
-    parser.add_option("-a", "--algo", dest="algorithm", default='KRR',
+    parser.add_option("-a", "--algo", 
+                      dest="algorithm", 
+                      default='KRR',
                       help="algorithm, default: KRR")
-    parser.add_option("-f", "--feature", dest="feature", default='Chem+RDF',
+    parser.add_option("-f", "--feature", 
+                      dest="feature", 
+                      default='Chem+RDF',
                       help="feature, default: Chem+RDF")
-    parser.add_option("-p", "--prop", dest="property", default='formation_energy',
+    parser.add_option("-p", "--prop", 
+                      dest="property", 
+                      default='formation_energy',
                       help="proerty, default: formation_energy")
-    parser.add_option("-l", "--level", dest="level", default='medium',
+    parser.add_option("-l", "--level", 
+                      dest="level", 
+                      default='medium',
                       help="level of fitting, default: medium")
-    parser.add_option("-n", "--n_sample", dest="sample", default=200,
+    parser.add_option("-n", "--n_sample", 
+                      dest="sample", 
+                      default=200,
                       help="number of samples for ml, default: 200")
-
 
     (options, args) = parser.parse_args()
     print(options.jsonfile)
-    runner = run(algo=options.algorithm, feature=options.feature, prop=options.property,
-                 level=options.level, N_sample=options.sample, jsonfile=options.jsonfile)
+    
+    runner = run(algo=options.algorithm, 
+                 feature=options.feature, 
+                 prop=options.property,
+                 level=options.level, 
+                 N_sample=options.sample, 
+                 jsonfile=options.jsonfile)
+    
     runner.load_data()
     runner.convert_data_1D()
     runner.ml_train()

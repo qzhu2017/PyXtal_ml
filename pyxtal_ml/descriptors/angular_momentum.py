@@ -4,7 +4,6 @@ from optparse import OptionParser
 from numba import jit
 
 
-@jit
 def CG(j1, m1, j2, m2, j3, m3):
     '''
     Calculates the Clebsch-Gordon coefficient
@@ -54,7 +53,6 @@ def CG(j1, m1, j2, m2, j3, m3):
     return C
 
 
-@jit
 def wigner_d(beta, J, M, MP):
     '''
     Small Wigner d function
@@ -92,7 +90,6 @@ def wigner_d(beta, J, M, MP):
     return d
 
 
-@jit
 def wigner_D(J, M, MP, alpha, beta, gamma):
     '''
     Large Wigner D function
@@ -122,7 +119,6 @@ def wigner_D(J, M, MP, alpha, beta, gamma):
     return np.exp(-M*alpha*1j)*wigner_d(beta, J, M, MP)*np.exp(-MP*gamma*1j)
 
 
-@jit
 def wigner_3j(j1, m1, j2, m2, j3, m3):
     if m3 != m1 + m2:
         return 0
