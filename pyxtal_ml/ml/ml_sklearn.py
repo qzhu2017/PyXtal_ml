@@ -51,7 +51,7 @@ class method:
         self.pipeline = pipeline
         self.test_size = test_size
         self.dict = kwargs
-        self.algo_options = ['KNN', 'KneighborsRegressor', 'KRR', 
+        self.algo_options = ['KNN', 'KNeighborsRegressor', 'KRR', 
                              'KernelRidge', 'GB', 'GradientBoostingRegressor',
                              'RF', 'RandomForestRegressor', 'SGD', 
                              'SGDRegressor', 'MLPRegressor', 'ANN', 
@@ -97,7 +97,7 @@ class method:
                     print(exc)
         else:
             raise NotImplementedError(f"Unknown algorithm: {self.algo}.")
-            
+        
         self.ml()
 
     def read_dict(self):

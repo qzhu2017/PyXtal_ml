@@ -32,37 +32,20 @@ class run:
         feature: descriptors to be used to describe the crystal structures.
         prop: the property to be predicted, i.e. formation_energy.
         N_sample: number of samples to be trained.
-        library: sklearn, tensorflow, or pytorch
-        algo: the training algorithm.
         feature_scaling: features will be scaled accordingly to the selected
                             algorithm.
-        level: The tightness level of training (light, medium, or tight)
-        pipeline: include preprocessing algorithm for pipelining in sequence.
-        hidden_layers: hidden layers for neural network or deep learning only.
-    """
+   """
 
     def __init__(self, jsonfile, 
                  feature, 
                  prop='formation_energy', 
-                 N_sample=200, 
-                 algo='KRR', 
-                 library='sklearn', 
-                 feature_scaling=False,
-                 level=False, 
-                 pipeline=False, 
-                 hidden_layers=None, 
-                 conv_layers=None):
+                 N_sample=200,
+                 feature_scaling=False):
         self.file = jsonfile
         self.feature0 = feature
         self.prop = prop
         self.N_sample = N_sample
-        self.algo = algo
-        self.library = library
         self.feature_scaling = feature_scaling
-        self.level = level
-        self.pipeline = pipeline
-        self.hidden_layers = hidden_layers
-        self.conv_layers = conv_layers
 
         # For timing
         self.time = {}
@@ -157,35 +140,49 @@ class run:
         else:
             self.feature = keys
     
-    def ml_train(self, algo, plot=False, print_info=True, save=False):
+    def ml_train(self, library='sklearn', 
+                 algo='KRR', 
+                 level='medium', 
+                 pipeline=False, 
+                 hidden_layers=None, 
+                 conv_layers=None, 
+                 plot=False, 
+                 print_info=True, 
+                 save=False):
         """
         Build machine learning model for X/Y set.
         
         Args:
+            library: sklearn, tensorflow, or pytorch
+            algo: the training algorithm.
+            level: The tightness level of training (light, medium, or tight)
+            pipeline: include preprocessing algorithm for pipelining 
+                        in sequence.
+            hidden_layers: hidden layers for neural network or 
+                        deep learning only.
             plot: include plotting. (default = False)
             print_info: print training and results information.
                         (default = True)
             save: save the training simulation for future usage.
                         (default = False)
         """
-        print('\nML learning with {} algorithm'.format(self.algo))
+        print('\nML learning with {} algorithm'.format(algo))
         tag = {'prop': self.prop, 'feature':self.feature}
         start = time()
-
-        if self.library in ['SkLearn', 'sklearn']:
-            ml = method(feature=self.X, prop=self.Y, algo=self.algo, tag=tag, 
-                        pipeline=self.pipeline, params=self.level)
-        elif self.library in ['PyTorch', 'pytorch']:
-            ml = dl_torch(feature=self.X, prop=self.Y, algo=self.algo, tag=tag, 
-                          hidden_layers=self.hidden_layers,
-                          conv_layers=self.conv_layers)
+        if library in ['SkLearn', 'sklearn']:
+            ml = method(feature=self.X, prop=self.Y, algo=algo, tag=tag, 
+                        pipeline=pipeline, params=level)
+        elif library in ['PyTorch', 'pytorch']:
+            ml = dl_torch(feature=self.X, prop=self.Y, algo=algo, tag=tag, 
+                          hidden_layers=hidden_layers,
+                          conv_layers=conv_layers)
         else:
             pass
         
         end = time()
         self.time['ml'] = end-start
         if plot:
-            ml.plot_correlation(figname=self.file[:-4]+'_'+self.algo+'.png')
+            ml.plot_correlation(figname=self.file[:-4]+'_'+algo+'.png')
         if print_info:
             ml.print_summary()
         if save:
