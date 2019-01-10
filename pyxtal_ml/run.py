@@ -72,7 +72,10 @@ class run:
         Obtain the struc/prop data from source.
         """
         start = time()
-        self.strucs, self.props = Collection(self.file, self.prop, self.N_sample).extract_struc_prop()
+        self.strucs, self.props = Collection(self.file, 
+                                             self.prop, 
+                                             self.N_sample).\
+                                             extract_struc_prop()
         end = time()
         self.time['load_data'] = end-start
 
@@ -89,8 +92,8 @@ class run:
         if parallel:
             from multiprocessing import Pool, cpu_count
             from functools import partial
-            #QZ: it is not a good idea to use too many number of cpus due to communication
-            #usually, 2-8 should be sufficient
+            # QZ: it is not a good idea to use too many number of cpus due to
+            # communication. Usually, 2-8 should be sufficient.
             if type(parallel)==bool:
                 ncpu = cpu_count()
             else:
@@ -142,7 +145,8 @@ class run:
         
         if self.feature_scaling != False:
             if feature_counting in feature_scaling_length:
-                X[:,:feature_counting] = self.apply_feature_scaling(X[:,:feature_counting])
+                X[:,:feature_counting] = self.apply_feature_scaling(
+                                                        X[:,:feature_counting])
             else:
                 pass
 
@@ -159,8 +163,10 @@ class run:
         
         Args:
             plot: include plotting. (default = False)
-            print_info: print training and results information. (default = True)
-            save: save the training simulation for future usage. (default = False)
+            print_info: print training and results information.
+                        (default = True)
+            save: save the training simulation for future usage.
+                        (default = False)
         """
         print('\nML learning with {} algorithm'.format(self.algo))
         tag = {'prop': self.prop, 'feature':self.feature}
@@ -227,31 +233,49 @@ class run:
                 col_name['dY'].append(diff)
         
         df = pd.DataFrame(col_name)
-        df = df.sort_values(['dY','Space group','Nsites'], ascending=[True, True, True])
-        print('\nThe following structures have relatively high error compared to the reference values')
+        df = df.sort_values(['dY','Space group','Nsites'], 
+                            ascending=[True, True, True])
+        print('\nThe following structures have relatively high error')
         print(tabulate(df, headers='keys', tablefmt='psql'))
         
 if __name__ == "__main__":
     # -------------------------------- Options -------------------------
     parser = OptionParser()
-    parser.add_option("-j", "--json", dest="jsonfile", default='',
+    parser.add_option("-j", "--json", 
+                      dest="jsonfile", 
+                      default='',
                       help="json file, REQUIRED")
-    parser.add_option("-a", "--algo", dest="algorithm", default='KRR',
+    parser.add_option("-a", "--algo", 
+                      dest="algorithm", 
+                      default='KRR',
                       help="algorithm, default: KRR")
-    parser.add_option("-f", "--feature", dest="feature", default='Chem+RDF',
+    parser.add_option("-f", "--feature", 
+                      dest="feature", 
+                      default='Chem+RDF',
                       help="feature, default: Chem+RDF")
-    parser.add_option("-p", "--prop", dest="property", default='formation_energy',
+    parser.add_option("-p", "--prop", 
+                      dest="property", 
+                      default='formation_energy',
                       help="proerty, default: formation_energy")
-    parser.add_option("-l", "--level", dest="level", default='medium',
+    parser.add_option("-l", "--level", 
+                      dest="level", 
+                      default='medium',
                       help="level of fitting, default: medium")
-    parser.add_option("-n", "--n_sample", dest="sample", default=200,
+    parser.add_option("-n", "--n_sample", 
+                      dest="sample", 
+                      default=200,
                       help="number of samples for ml, default: 200")
-
 
     (options, args) = parser.parse_args()
     print(options.jsonfile)
-    runner = run(algo=options.algorithm, feature=options.feature, prop=options.property,
-                 level=options.level, N_sample=options.sample, jsonfile=options.jsonfile)
+    
+    runner = run(algo=options.algorithm, 
+                 feature=options.feature, 
+                 prop=options.property,
+                 level=options.level, 
+                 N_sample=options.sample, 
+                 jsonfile=options.jsonfile)
+    
     runner.load_data()
     runner.convert_data_1D()
     runner.ml_train()
