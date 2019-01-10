@@ -5,11 +5,14 @@ import pandas as pd
 import os.path as op
 from tabulate import tabulate
 from time import time
-from sklearn.preprocessing import (MinMaxScaler, minmax_scale, MaxAbsScaler, maxabs_scale, KernelCenterer,
-                            StandardScaler, RobustScaler, robust_scale, Normalizer, Binarizer, 
-                            PolynomialFeatures, FunctionTransformer, PowerTransformer, 
-                            QuantileTransformer, quantile_transform, OrdinalEncoder, OneHotEncoder, 
-                            KBinsDiscretizer)
+from sklearn.preprocessing import (MinMaxScaler, minmax_scale, MaxAbsScaler, 
+                                   maxabs_scale, KernelCenterer, 
+                                   StandardScaler, RobustScaler, robust_scale, 
+                                   Normalizer, Binarizer, PolynomialFeatures, 
+                                   FunctionTransformer, PowerTransformer, 
+                                   QuantileTransformer, quantile_transform, 
+                                   OrdinalEncoder, OneHotEncoder, 
+                                   KBinsDiscretizer)
 from pyxtal_ml.descriptors.descriptors import descriptor
 from pyxtal_ml.datasets.collection import Collection
 from pyxtal_ml.ml.ml_sklearn import method
@@ -25,34 +28,36 @@ class run:
     A class of production runs of pyxtal_ml.
     
     Args:
-        file:
-        feature:
-        prop:
-        N_sample:
-        library:
-        algo:
-        feature_scaling:
-        level:
-        pipeline:
-        hidden_layers:
+        jsonfile: the dataset file path.
+        feature: descriptors to be used to describe the crystal structures.
+        prop: the property to be predicted, i.e. formation_energy.
+        N_sample: number of samples to be trained.
+        library: sklearn, tensorflow, or pytorch
+        algo: the training algorithm.
+        feature_scaling: features will be scaled accordingly to the selected
+                            algorithm.
+        level: The tightness level of training (light, medium, or tight)
+        pipeline: include preprocessing algorithm for pipelining in sequence.
+        hidden_layers: hidden layers for neural network or deep learning only.
     """
 
-    def __init__(self, jsonfile, feature, prop, N_sample, library, algo, feature_scaling=False,
-                 level=False, pipeline=False, hidden_layers=None, conv_layers=None):
-        """
-        Args:
-            algo: algorithm in ['KRR', 'KNN', ....]
-            feature: features among ['Chem', 'RDF', ....]
-            prop: target property in ['formation_energy', 'band_gap']
-            level: 'light', 'medium', 'tight'
-            file: source json file
-        """
+    def __init__(self, jsonfile, 
+                 feature, 
+                 prop='formation_energy', 
+                 N_sample=200, 
+                 algo='KRR', 
+                 library='sklearn', 
+                 feature_scaling=False,
+                 level=False, 
+                 pipeline=False, 
+                 hidden_layers=None, 
+                 conv_layers=None):
         self.file = jsonfile
         self.feature0 = feature
         self.prop = prop
         self.N_sample = N_sample
-        self.library = library
         self.algo = algo
+        self.library = library
         self.feature_scaling = feature_scaling
         self.level = level
         self.pipeline = pipeline
