@@ -227,14 +227,18 @@ class run:
         for id, diff in enumerate(self.ml.estimator.predict(self.X)-self.Y):
             if abs(diff) > 3*self.ml.mae:
                 struc = self.strucs[id]
-                col_name['Formula'].append(struc.composition.get_reduced_formula_and_factor()[0])
-                col_name['Space group'].append(SpacegroupAnalyzer(struc).get_space_group_symbol())
+                col_name['Formula'].append(struc.
+                                        composition.
+                                        get_reduced_formula_and_factor()[0])
+                col_name['Space group'].append(SpacegroupAnalyzer(struc).
+                                                get_space_group_symbol())
                 col_name['Nsites'].append(len(struc.species))
                 col_name['dY'].append(diff)
         
         df = pd.DataFrame(col_name)
         df = df.sort_values(['dY','Space group','Nsites'], 
                             ascending=[True, True, True])
+        
         print('\nThe following structures have relatively high error')
         print(tabulate(df, headers='keys', tablefmt='psql'))
         
