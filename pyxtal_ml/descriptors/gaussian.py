@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.stats import skew, kurtosis
 import itertools
 from pymatgen.core.structure import Structure
 
@@ -12,7 +13,13 @@ class Gaussian:
 
     Parameters
     ----------
-    
+    crystal: object
+        Pymatgen crystal structure object.
+    sys_params: dict
+        Dictionary of symmetry parameters.
+        i.e. {'G2': {'eta': [0.05, 0.1]}}
+    derivative: bool
+        to calculate derivative.
     """
     def __init__(self, crystal, sym_params, derivative=False):
         self.crystal = crystal
@@ -115,10 +122,18 @@ class Gaussian:
 
         self.G_parameters = self.get_G_parameters()
         self.G = self.get_Gs()
+        self.Gs = self.get_statistics(self.G)
     
 
-    def get_statistics(self):
-        pass
+    def get_statistics(self, Gs):
+        Gs_mean = np.mean(Gs, axis=0)
+        Gs_std = np.std(Gs, axis=0)
+        Gs_skew = skew(Gs, axis=0)
+        Gs_kurtosis = kurtosis(Gs, axis=0)
+        Gs_covariance = np.cov(Gs.T)
+
+        return Gs_covariance
+        
 
 
     def calculate(self, G_type, sym_params):
@@ -1518,3 +1533,4 @@ gauss = Gaussian(crystal, sym_params)
 print(gauss.G)
 for i in gauss.G_parameters:
     print(i)
+print(gauss.Gs)
