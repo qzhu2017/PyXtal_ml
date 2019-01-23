@@ -1,7 +1,7 @@
 import numpy as np
 from pymatgen.core.structure import Structure
 from pymatgen.analysis.local_env import get_neighbors_of_site_with_index
-from pyxtal_ml.descriptors.bond_order_params import steinhardt_params
+import pyxtal_ml.descriptors.bond_order_params as bop
 from optparse import OptionParser
 
 
@@ -61,11 +61,11 @@ class power_spectrum(object):
         # the closed set of integers [-l,l]
         mvals = self._mvalues(l)
         # complex vector of all qlm values
-        qlms = steinhardt_params._qlm(site, neighbors, l, mvals)
+        qlms = bop._qlm(site, neighbors, l, mvals)
         # scalar product of complex vector
-        dot = steinhardt_params._scalar_product(qlms, qlms)
+        dot = bop._scalar_product(qlms, qlms)
         # steinhardt bond order parameter ql
-        ql = steinhardt_params._ql(dot, l)
+        ql = bop._ql(dot, l)
         # compute Power spectrum element
         Pl = (2*l + 1) / (4 * np.pi) * ql**2
         return Pl
