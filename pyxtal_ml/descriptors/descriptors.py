@@ -16,6 +16,7 @@ from pyxtal_ml.descriptors.voronoi_descriptors import Voronoi_Descriptors
 from pyxtal_ml.descriptors.crystal_graph import crystalgraph
 from pyxtal_ml.descriptors.bond_order_params import steinhardt_params
 from pyxtal_ml.descriptors.power_spectrum import power_spectrum
+from pyxtal_ml.descriptors.C_bispectrum import C_Bispectrum
 
 
 class descriptor:
@@ -35,7 +36,7 @@ class descriptor:
         self.feature_scaling = feature_scaling
         self.descriptor = {}
         options = ['Chem', 'Voronoi', 'Charge',
-                   'RDF', 'ADF', 'DDF', 'PRDF', 'bond_order', 'power_spectrum']
+                   'RDF', 'ADF', 'DDF', 'PRDF', 'bond_order', 'power_spectrum', 'bispectrum']
         self.libs = []
         if libs == 'all':
             self.libs = options
@@ -77,6 +78,9 @@ class descriptor:
                 elif lib == 'power_spectrum':
                     self.descriptor['power_spectrum'] = power_spectrum(
                         self.struc).Power_spectrum
+                elif lib == 'bispectrum':
+                    self.descriptor['bispectrum'] = C_Bispectrum(
+                        self.struc).bispectrum
 
         else:
             for lib in self.libs:
@@ -104,6 +108,9 @@ class descriptor:
                 elif lib == 'power_spectrum':
                     self.descriptor['power_spectrum'] = power_spectrum(
                         self.struc).Power_spectrum
+                elif lib == 'bispectrum':
+                    self.descriptor['bispectrum'] = C_Bispectrum(
+                        self.struc).bispectrum
 
     def merge(self, keys=None):
         if keys is None:
@@ -176,7 +183,7 @@ if __name__ == "__main__":
         fileformat = 'poscar'
 
     test = Structure.from_file(options.structure)
-    des = descriptor(test)
+    des = descriptor(test, 'bispectrum')
     for lib in des.libs:
         print(lib, len(des.descriptor[lib]))
     print(des.merge())

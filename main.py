@@ -2,17 +2,17 @@ from pyxtal_ml.run import run
 from pkg_resources import resource_filename
 
 # Please define your values in here, option 1, and option 2.
-jsonfile = resource_filename("pyxtal_ml", "datasets/nonmetal_MP_8049.json")
-feature = 'cg'
+jsonfile = resource_filename("pyxtal_ml", "datasets/NaGaAu.json")
+feature = 'bispectrum+PRDF+Voronoi'
 feature_scaling = False #'MinMaxScaler'
 prop = 'formation_energy'
-N_sample = 200
-library = 'pytorch' # SkLearn
-algorithm = 'cnn' # or dl
+N_sample = 4784
+library = 'SkLearn' # SkLearn
+algorithm = 'GB' # or dl
 
 # Option 1: If you want to use an algorithm from Scikit-learn, 
 # please enter the following
-level = 'light'
+level = 'medium'
 pipeline = False
 
 # Option 2: If you want to use an algorithm from PyTorch, 
@@ -28,7 +28,7 @@ runner = run(jsonfile=jsonfile,
              N_sample=N_sample, 
              feature_scaling=feature_scaling)
 runner.load_data()
-runner.convert_data_1D(parallel=4) #choose cpu number
+runner.convert_data_1D(parallel=8) #choose cpu number
 runner.choose_feature(keys=feature) #choose feature combinations if you want
 runner.ml_train(library=library, 
                  algo=algorithm, 
