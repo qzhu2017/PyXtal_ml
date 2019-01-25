@@ -6,6 +6,13 @@ from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.core.periodic_table import Element, Specie
 import numpy as np
 from optparse import OptionParser
+import os
+
+try: 
+    lib = ctypes.CDLL(os.environ['lib_bispectrum'])
+    lib.Bis.argtypes = [ctypes.c_int, ctypes.c_double, ctypes.c_int]
+except:
+    print("you must compile the lib_bispectrum.so and export the path to your .bashrc file")
 
 def init_B(j_max):
     count = 0
@@ -14,9 +21,6 @@ def init_B(j_max):
             count += 1
 
     return np.zeros(count)
-
-lib = ctypes.CDLL('C/lib_bispectrum.so')
-lib.Bis.argtypes = [ctypes.c_int, ctypes.c_double, ctypes.c_int]
 
 def site_bispectrum(S, N, G, j_max, R):
     B = init_B(j_max)
