@@ -11,6 +11,9 @@ LIB = lib_bispectrum.so
 
 
 all: ${BIN1} ${BIN2} ${LIB}
+     @echo "To include the path of the library, you can add the following file to your .bashrc"
+     @echo "export lib_bispectrum="$(PWD)"/"$(LIB)
+
 
 ${LIB}: lib_bispectrum.o bispectrum.o spherical_harmonics.o angular_momentum.o factorial.o array_ops.o cutoffs.o binomial.o
 	$(CC) -o ${LIB} lib_bispectrum.o bispectrum.o spherical_harmonics.o angular_momentum.o factorial.o array_ops.o cutoffs.o binomial.o ${LDFLAG} 
