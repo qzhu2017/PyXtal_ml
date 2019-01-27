@@ -4,7 +4,7 @@ from pyxtal_ml.descriptors.angular_momentum import wigner_3j
 from pymatgen.core.structure import Structure
 from pymatgen.analysis.local_env import get_neighbors_of_site_with_index
 from scipy.special import sph_harm
-from numba import jit
+from pyxtal_ml.descriptors.stats import descriptor_stats
 from optparse import OptionParser
 
 def _qlm(site, neighbors, l, mvals):
@@ -182,13 +182,14 @@ class steinhardt_params(object):
 
         # call the values in the dictionary and insert them into a list
         parameters = list(bond_order_params.values())
+        print(np.shape(parameters))
         '''
         If the list is 1 dimensional simply take the mean of the list
         If the list is 2 dimensional take the mean over the rows of the list'''
         try:  # 2D case
-            self.params = np.apply_along_axis(np.mean, 1, parameters)
+            self.params = descriptor_stats(parameters, axis=1).get_stats()
         except:  # 1D case
-            self.params = np.mean(parameters)
+            self.params = descriptor_stats(parameters).get_stats()
 
     @staticmethod
     def _mvalues(l):

@@ -46,11 +46,24 @@ class descriptor_stats(object):
 
         self._axis = axis
 
+        '''
+        The data array should be at least 2 dimensional
+        if it is 1-dimensional, simply add an axis.
+
+        If the data is a scalar or 0-dimensional, in our case
+        this corresponds to a structure with a single periodic site
+        then we must copy the data in another manner
+        '''
+        if type(data) != np.ndarray:
+            data = np.array(data)
+
         if len(np.shape(data)) > 1:
             self.data = data
 
         else:
-            # format the 1-D vector number as a 2-D row vector
+            if np.shape(data) == ():
+                data = np.array([data, data])
+
             self.data = data[np.newaxis, :]
 
 
@@ -115,8 +128,16 @@ class descriptor_stats(object):
         Args:
             comparison data: np.float, the arrays to compute the covariance matrix over
         '''
+        if type(comparison_data) != np.ndarray:
+            comparison_data = np.array(comparison_data)
 
-        if len(np.shape(comparison_data)) == 1:
+        if len(np.shape(comparison_data)) > 1:
+            comparison_data = comparison_data
+
+        else:
+            if np.shape(comparison_data) == ():
+                comparison_data = np.array([comparison_data, comparison_data])
+
             comparison_data = comparison_data[np.newaxis, :]
 
         if (np.shape(self.data) == np.array([1,1])).all() and (np.shape(comparison_data) == np.array([1,1])).all():
@@ -129,7 +150,7 @@ class descriptor_stats(object):
             # flatten upper triangular covariance matrix
             return cov_mat[np.triu_indices(2)]
 
-        elif np.shape(self.data)[0] > np.shape(comparison_data)[0] or np.shape(self.data)[1] > np.shape(comparison_data)[1]:
+        elif np.shape(self.data)[0] >= np.shape(comparison_data)[0] and np.shape(self.data)[1] >= np.shape(comparison_data)[1]:
 
             # pad comparison vector with zeros
             new_array = np.zeros_like(self.data)
@@ -143,11 +164,11 @@ class descriptor_stats(object):
 
         else:
             # pad self.data with zeros
-            new_array = np.zeros_like(comparison_vector)
+            new_array = np.zeros_like(comparison_data)
             new_array[:np.shape(self.data)[0], :np.shape(self.data)[1]] = self.data
 
             # covariance matrix
-            cov_mat = np.cov(new_array, comparison_vector)
+            cov_mat = np.cov(new_array, comparison_data)
 
             # flatten the upper triangular covariance matrix
             return cov_mat[np.triu_indices(2)]
