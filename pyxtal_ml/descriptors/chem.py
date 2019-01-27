@@ -1,6 +1,7 @@
 from monty.serialization import loadfn
 from pymatgen.core.structure import Structure
 import numpy as np
+from pyxtal_ml.descriptors.stats import descriptor_stats
 from optparse import OptionParser
 import os.path as op
 
@@ -14,7 +15,7 @@ class Chem(object):
         crystal: crystal class from pymatgen
     Attributes:
         crystal: crystal class
-        mean_chem: chemical descriptor for the given structure
+        chem_stats: chemical descriptor for the given structure
     """
 
     def __init__(self, struc):
@@ -25,7 +26,7 @@ class Chem(object):
         for k, v in el_dict.items():
             des = self.get_descrp_arr(k)
             arr.append(des)
-        self.mean_chem = np.mean(arr, axis=0)
+        self.chem_stats = descriptor_stats(arr, axis=0).get_stats()
 
     def get_descrp_arr(self, elm):
         # the current json file has only 82 elements, some are missing
@@ -65,5 +66,5 @@ if __name__ == "__main__":
 
     test = Structure.from_file(options.structure)
     chem = Chem(test)
-    print(chem.mean_chem)
-    print('shape of this descriptor: ', np.shape(chem.mean_chem))
+    print(chem.chem_stats)
+    print('shape of this descriptor: ', np.shape(chem.chem_stats))

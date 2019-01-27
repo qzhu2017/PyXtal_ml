@@ -59,9 +59,9 @@ class descriptor:
                     self.descriptor['DDF'] = self.apply_feature_scaling_array(
                         self.descriptor['DDF'])
                 elif lib == 'Chem':
-                    self.descriptor['Chem'] = Chem(self.struc).mean_chem
+                    self.descriptor['Chem'] = Chem(self.struc).chem_stats
                 elif lib == 'Charge':
-                    self.descriptor['Charge'] = Charge(self.struc).mean_chg
+                    self.descriptor['Charge'] = Charge(self.struc).chg_stats
                 elif lib == 'Voronoi':
                     self.descriptor['Voronoi'] = Voronoi_Descriptors(
                         self.struc).all()
@@ -91,9 +91,9 @@ class descriptor:
                 elif lib == 'DDF':
                     self.descriptor['DDF'] = DDF(self.struc).DDF
                 elif lib == 'Chem':
-                    self.descriptor['Chem'] = Chem(self.struc).mean_chem
+                    self.descriptor['Chem'] = Chem(self.struc).chem_stats
                 elif lib == 'Charge':
-                    self.descriptor['Charge'] = Charge(self.struc).mean_chg
+                    self.descriptor['Charge'] = Charge(self.struc).chg_stats
                 elif lib == 'Voronoi':
                     self.descriptor['Voronoi'] = Voronoi_Descriptors(
                         self.struc).all()

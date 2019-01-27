@@ -4,6 +4,7 @@ import ctypes
 from pymatgen.core.structure import Structure
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.core.periodic_table import Element, Specie
+from pyxtal_ml.descriptors.stats import descriptor_stats
 import numpy as np
 from optparse import OptionParser
 import os
@@ -58,10 +59,7 @@ class C_Bispectrum(object):
 
         bispectrum = np.array(bispectrum)
 
-        try:  #2D case
-            self.bispectrum = np.apply_along_axis(np.mean, 0, bispectrum)
-        except:
-            self.bispectrum = bispectrum
+        self.bispectrum = descriptor_stats(bispectrum, axis=0).get_stats()
 
 
 if __name__ == "__main__":
