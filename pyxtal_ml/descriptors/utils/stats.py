@@ -12,13 +12,14 @@ class descriptor_stats(object):
     Population covariance is also considered separately
 
     Args:
-        vect: a 1-D array to compute these statistics over
+        data: a 2-D array to compute these statistics over
+        axis: the axis of the array to compute the stats along
 
     Methods:
 
         get_stats:
             calculates the mean, std, kurtosis and skewness
-            of a vector
+            of a 2-D array
 
         mean:
             see numpy.mean
@@ -30,112 +31,123 @@ class descriptor_stats(object):
             see scipy.stats.kurtosis
 
         skewness:
-            see scipy.stats.kurtosis
+            see scipy.stats.skewness
 
         covariance:
             calculates the population covariance using numpy
             see np.cov for details
     '''
 
-    def __init__(self, vect):
+    def __init__(self, data, axis=0):
         '''
-        Populate vector attribute
+        Populate 2-D array attribute
+        and axis attribute
         '''
 
-        self.vector = vect
+        self.axis = axis
+
+        if len(np.shape(data)) > 1:
+            self.data = data
+
+        else:
+            # format the 1-D vector number as a 2-D row vector
+            self.data = data[np.newaxis, :]
 
 
     def mean(self):
         '''
-        Calculates the mean of the vector
+        Calculates the mean of a 2-D array along a specified axis
         '''
 
-        return np.mean(self.vector)
+        return np.mean(self.data, axis=self.axis)
 
 
     def standard_deviation(self):
         '''
-        Calculates the standard deviation of a vector
+        Calculates the standard deviation of a 2-D array along a specified axis 
 
-        if the vector length is 1, return 0 for standard deviation
+        if the array length is 1, return 0 for standard deviation
 
         this fix is to ensure that no NaN values effect the ML models
 
         '''
 
-        if len(self.vector) == 1:
+        if np.shape(self.data) == 1:
 
             return 0
 
         else:
-            return np.std(self.vector)
+            return np.std(self.data, axis=self.axis)
 
 
     def kurtosis(self):
         '''
-        Calculates the kurtosis of a vector
+        Calculates the kurtosis of a 2-D array
         '''
 
-        return kurtosis(self.vector)
+        return kurtosis(self.data, axis=self.axis)
 
     def skewness(self):
         '''
-        Calculates the skewness of a vector
+        Calculates the skewness of a 2-D array
         '''
 
-        return skew(self.vector)
+        return skew(self.data, axis=self.axis)
 
     def get_stats(self):
 
         '''
-        Computes standardized stats over the representation vector
+        Computes standardized stats over the representation array
         '''
 
-        return [self.mean(), self.standard_deviation(), self.kurtosis(), self.skewness()]
+        return np.hstack([self.mean(), self.standard_deviation(), self.kurtosis(), self.skewness()])
 
-    def covariance(self, comparison_vector):
+    def covariance(self, comparison_data):
         '''
-        Computes the covariance of two feature vectors
-        If the feature vectors are not of equal length,
-        the shorter feature vector will be padded with zeros
+        Computes the covariance of two feature arrays
+        If the feature arrays are not of equal shape,
+        the shorter feature array will be padded with zeros
         such that they are then equal length.
 
         Note that the covaraince matrix is symmetric, thus we only
         need the upper triangular portion of the matrix
 
         Args:
-            comparison vector: np.float, the vector to compute the covariance matrix over
+            comparison data: np.float, the arrays to compute the covariance matrix over
         '''
 
-        if len(self.vector) == 1 and len(comparison_vector) == 1:
+        if len(np.shape(comparison_data)) == 1:
+            comparison_data = comparison_data[np.newaxis, :]
+
+        if (np.shape(self.data) == np.array([1,1])).all() and (np.shape(comparison_data) == np.array([1,1])).all():
             print('Covariance not defined for scalars')
             raise ValueError
 
-        elif len(self.vector) == len(comparison_vector):
+        elif np.shape(self.data) == np.shape(comparison_data):
             # covariance matrix
-            cov_mat = np.cov(self.vector, comparison_vector)
+            cov_mat = np.cov(self.data, comparison_data)
             # flatten upper triangular covariance matrix
             return cov_mat[np.triu_indices(2)]
 
-        elif len(self.vector) > len(comparison_vector):
+        elif np.shape(self.data)[0] > np.shape(comparison_data)[0] or np.shape(self.data)[1] > np.shape(comparison_data)[1]:
 
             # pad comparison vector with zeros
-            new_vect = np.zeros_like(self.vector)
-            new_vect[:len(comparison_vector)] = comparison_vector
+            new_array = np.zeros_like(self.data)
+            new_array[:np.shape(comparison_data)[0], :np.shape(comparison_data)[1]] = comparison_data
 
             # covariance matrix
-            cov_mat = np.cov(self.vector, new_vect)
+            cov_mat = np.cov(self.data, new_array)
 
             # flatten the upper triangular covariance matrix
             return cov_mat[np.triu_indices(2)]
 
         else:
-            # pad self.vector with zeros
-            new_vect = np.zeros_like(comparison_vector)
-            new_vect[:len(self.vector)] = self.vector
+            # pad self.data with zeros
+            new_array = np.zeros_like(comparison_vector)
+            new_array[:np.shape(self.data)[0], :np.shape(self.data)[1]] = self.data
 
             # covariance matrix
-            cov_mat = np.cov(new_vect, comparison_vector)
+            cov_mat = np.cov(new_array, comparison_vector)
 
             # flatten the upper triangular covariance matrix
             return cov_mat[np.triu_indices(2)]
