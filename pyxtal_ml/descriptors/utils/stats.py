@@ -44,7 +44,7 @@ class descriptor_stats(object):
         and axis attribute
         '''
 
-        self.axis = axis
+        self._axis = axis
 
         if len(np.shape(data)) > 1:
             self.data = data
@@ -59,12 +59,12 @@ class descriptor_stats(object):
         Calculates the mean of a 2-D array along a specified axis
         '''
 
-        return np.mean(self.data, axis=self.axis)
+        return np.mean(self.data, axis=self._axis)
 
 
     def standard_deviation(self):
         '''
-        Calculates the standard deviation of a 2-D array along a specified axis 
+        Calculates the standard deviation of a 2-D array along a specified axis
 
         if the array length is 1, return 0 for standard deviation
 
@@ -77,7 +77,7 @@ class descriptor_stats(object):
             return 0
 
         else:
-            return np.std(self.data, axis=self.axis)
+            return np.std(self.data, axis=self._axis)
 
 
     def kurtosis(self):
@@ -85,14 +85,14 @@ class descriptor_stats(object):
         Calculates the kurtosis of a 2-D array
         '''
 
-        return kurtosis(self.data, axis=self.axis)
+        return kurtosis(self.data, axis=self._axis)
 
     def skewness(self):
         '''
         Calculates the skewness of a 2-D array
         '''
 
-        return skew(self.data, axis=self.axis)
+        return skew(self.data, axis=self._axis)
 
     def get_stats(self):
 
