@@ -181,15 +181,8 @@ class steinhardt_params(object):
                 bond_order_params['w' + parameter_index] += [wli/(dot**(3/2))]
 
         # call the values in the dictionary and insert them into a list
-        parameters = list(bond_order_params.values())
-        print(np.shape(parameters))
-        '''
-        If the list is 1 dimensional simply take the mean of the list
-        If the list is 2 dimensional take the mean over the rows of the list'''
-        try:  # 2D case
-            self.params = descriptor_stats(parameters, axis=1).get_stats()
-        except:  # 1D case
-            self.params = descriptor_stats(parameters).get_stats()
+        parameters = np.array(list(bond_order_params.values()))
+        self.params = descriptor_stats(parameters, axis=1).get_stats()
 
     @staticmethod
     def _mvalues(l):
@@ -224,4 +217,5 @@ if __name__ == '__main__':
         fileformat = 'poscar'
 
     test = Structure.from_file(options.structure)
-    print(steinhardt_params(test, 12).params)
+    x = steinhardt_params(test, 12).params
+    print(x, np.shape(x))

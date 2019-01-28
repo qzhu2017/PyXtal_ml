@@ -124,7 +124,14 @@ class descriptor_stats(object):
         Computes standardized stats over the representation array
         '''
 
-        return np.hstack([self.mean(), self.min(), self.max(), self.standard_deviation(), self.kurtosis(), self.skewness()])
+        stats = np.hstack([[self.mean()], [self.min()], [self.max()], [self.standard_deviation()], [self.kurtosis()], [self.skewness()]])
+
+        if self._axis == 0:
+            return np.reshape(stats, (6, np.shape(self.data)[1]))
+
+        elif self._axis == 1:
+            return np.reshape(stats, (6, np.shape(self.data)[0]))
+
 
     def covariance(self, comparison_data):
         '''
@@ -158,7 +165,7 @@ class descriptor_stats(object):
 
         elif np.shape(self.data) == np.shape(comparison_data):
             # covariance matrix
-            cov_mat = np.cov(self.data, comparison_data, rowvar=False)
+            cov_mat = np.cov(self.data, comparison_data, rowvar=True)
             # flatten upper triangular covariance matrix
             return cov_mat[np.triu_indices(2)]
 
@@ -169,7 +176,7 @@ class descriptor_stats(object):
             new_array[:np.shape(comparison_data)[0], :np.shape(comparison_data)[1]] = comparison_data
 
             # covariance matrix
-            cov_mat = np.cov(self.data, new_array, rowvar=False)
+            cov_mat = np.cov(self.data, new_array, rowvar=True)
 
             # flatten the upper triangular covariance matrix
             return cov_mat[np.triu_indices(2)]
@@ -184,7 +191,7 @@ class descriptor_stats(object):
             new_comparison_array = np.zeros([np.shape(comparison_data)[0], np.shape(self.data)[1]])
             new_comparison_array[:np.shape(comparison_data)[0], :np.shape(comparison_data)[1]] = comparison_data
 
-            cov_mat = np.cov(new_data_array, new_comparison_array, rowvar=False)
+            cov_mat = np.cov(new_data_array, new_comparison_array, rowvar=True)
 
             return cov_mat[np.triu_indeces(2)]
 
@@ -196,7 +203,7 @@ class descriptor_stats(object):
             new_comparison_array = np.zeros([np.shape(self.data)[0], np.shape(comparison_data)[1]])
             new_comparison_array[:np.shape(comparison_data)[0], :np.shape(comparison_data)[1]] = comparison_data
 
-            cov_mat = np.cov(new_data_array, new_comparison_array, rowvar=False)
+            cov_mat = np.cov(new_data_array, new_comparison_array, rowvar=True)
 
             return cov_mat[np.triu_indeces(2)]
 
@@ -206,7 +213,7 @@ class descriptor_stats(object):
             new_array[:np.shape(self.data)[0], :np.shape(self.data)[1]] = self.data
 
             # covariance matrix
-            cov_mat = np.cov(new_array, comparison_data, rowvar=False)
+            cov_mat = np.cov(new_array, comparison_data, rowvar=True)
 
             # flatten the upper triangular covariance matrix
             return cov_mat[np.triu_indices(2)]

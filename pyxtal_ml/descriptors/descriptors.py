@@ -30,7 +30,7 @@ class descriptor:
         name: the type of collection to get. Defaults to "molecules"
     """
 
-    def __init__(self, crystal, libs='all', feature_scaling=False):
+    def __init__(self, crystal, libs='all', feature_scaling=False, covariance=False):
         self.libs = libs
         self.struc = crystal
         self.feature_scaling = feature_scaling
@@ -127,9 +127,9 @@ class descriptor:
             if len(self.descriptor[key]) == 0:
                 print(key, np.shape(self.descriptor[key]))
             if len(arr) == 0:
-                arr = self.descriptor[key]
+                arr = self.descriptor[key].flatten()
             else:
-                arr = np.hstack((arr, self.descriptor[key]))
+                arr = np.hstack((arr, self.descriptor[key].flatten()))
         return arr
 
     def sort_features(self, features):

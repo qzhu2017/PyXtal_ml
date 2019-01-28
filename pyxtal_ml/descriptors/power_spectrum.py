@@ -38,11 +38,8 @@ class power_spectrum(object):
         '''
         If the list is 1 dimensional simply take the mean of the list
         If the list is 2 dimensional take the mean over the rows of the list'''
-        try:  # 2D case
-            self.Power_spectrum = descriptor_stats(
-                spectrum_values, axis=1).get_stats()
-        except:  # 1D case
-            self.Power_spectrum = descriptor_stats(spectrum_values).get_stats()
+        self.Power_spectrum = descriptor_stats(
+            spectrum_values, axis=1).get_stats()
 
     def Pl(self, site, neighbors, l):
         '''
@@ -103,4 +100,5 @@ if __name__ == '__main__':
         fileformat = 'poscar'
 
     test = Structure.from_file(options.structure)
-    print(power_spectrum(test).Power_spectrum)
+    x = power_spectrum(test).Power_spectrum
+    print(x, np.shape(x))

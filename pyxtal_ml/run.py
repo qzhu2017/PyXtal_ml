@@ -40,7 +40,7 @@ class run:
                  feature, 
                  prop='formation_energy', 
                  N_sample=200,
-                 feature_scaling=False):
+                 feature_scaling=False, covariance=False):
         self.file = jsonfile
         self.feature0 = feature
         self.prop = prop
