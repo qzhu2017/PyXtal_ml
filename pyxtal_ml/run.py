@@ -46,6 +46,7 @@ class run:
         self.prop = prop
         self.N_sample = N_sample
         self.feature_scaling = feature_scaling
+        self.covariance = covariance
 
         # For timing
         self.time = {}
@@ -104,7 +105,7 @@ class run:
             an object of calculated descriptors or an empty array.
         """
         try:
-            feas = descriptor(struc, self.feature0)
+            feas = descriptor(struc, self.feature0, covariance=self.covariance)
         except:
             feas = []
             if print_error:
