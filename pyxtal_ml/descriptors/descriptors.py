@@ -168,14 +168,25 @@ class descriptor:
 
         keys0, self.feature_counting = self.sort_features(keys0)
 
+        non_stats_keys = ['RDF', 'ADF', 'DDF', 'PRDF', 'cg', 'Voronoi', 'covariance']
         arr = []
         for key in keys0:
             if len(self.descriptor[key]) == 0:
                 print(key, np.shape(self.descriptor[key]))
             if len(arr) == 0:
-                arr = self.descriptor[key].flatten()
+
+                if key in non_stats_keys:
+                    arr = self.descriptor[key].flatten()
+
+                else:
+                    arr = descriptor_stats(self.descriptor[key]).get_stats().flatten()
             else:
-                arr = np.hstack((arr, self.descriptor[key].flatten()))
+
+                if key in non_stats_keys:
+                    arr = np.hstack((arr, self.descriptor[key].flatten()))
+
+                else:
+                    arr = np.hstack((arr, descriptor_stats(self.descriptor[key]).get_stats().flatten()))
         return arr
 
     def sort_features(self, features):

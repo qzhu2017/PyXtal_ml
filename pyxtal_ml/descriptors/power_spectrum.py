@@ -2,7 +2,6 @@ import numpy as np
 from pymatgen.core.structure import Structure
 from pymatgen.analysis.local_env import get_neighbors_of_site_with_index
 import pyxtal_ml.descriptors.bond_order_params as bop
-from pyxtal_ml.descriptors.stats import descriptor_stats
 from optparse import OptionParser
 
 
@@ -38,8 +37,7 @@ class power_spectrum(object):
         '''
         If the list is 1 dimensional simply take the mean of the list
         If the list is 2 dimensional take the mean over the rows of the list'''
-        self.Power_spectrum = descriptor_stats(
-            spectrum_values, axis=1).get_stats()
+        self.Power_spectrum = np.array(spectrum_values).T
 
     def Pl(self, site, neighbors, l):
         '''

@@ -1,7 +1,6 @@
 from monty.serialization import loadfn
 from pymatgen.core.structure import Structure
 import numpy as np
-from pyxtal_ml.descriptors.stats import descriptor_stats
 from optparse import OptionParser
 import os.path as op
 
@@ -26,7 +25,7 @@ class Chem(object):
         for k, v in el_dict.items():
             des = self.get_descrp_arr(k)
             arr.append(des)
-        self.chem_stats = descriptor_stats(arr, axis=0).get_stats()
+        self.chem_stats = np.array(arr)
 
     def get_descrp_arr(self, elm):
         # the current json file has only 82 elements, some are missing

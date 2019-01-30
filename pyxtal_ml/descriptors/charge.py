@@ -1,7 +1,6 @@
 from pymatgen.core.structure import Structure
 import numpy as np
 from optparse import OptionParser
-from pyxtal_ml.descriptors.stats import descriptor_stats
 import os.path as op
 from monty.serialization import loadfn
 
@@ -20,7 +19,7 @@ class Charge(object):
         for k, v in el_dict.items():
             des = self.get_chgdescrp_arr(k)
             arr.append(des)
-        self.chg_stats = descriptor_stats(arr, axis=0).get_stats()
+        self.chg_stats = np.array(arr)
 
     def get_chgdescrp_arr(self, elm):
         d = ele_data[elm]

@@ -4,7 +4,6 @@ from pyxtal_ml.descriptors.angular_momentum import wigner_3j
 from pymatgen.core.structure import Structure
 from pymatgen.analysis.local_env import get_neighbors_of_site_with_index
 from scipy.special import sph_harm
-from pyxtal_ml.descriptors.stats import descriptor_stats
 from optparse import OptionParser
 
 def _qlm(site, neighbors, l, mvals):
@@ -182,7 +181,7 @@ class steinhardt_params(object):
 
         # call the values in the dictionary and insert them into a list
         parameters = np.array(list(bond_order_params.values()))
-        self.params = descriptor_stats(parameters, axis=1).get_stats()
+        self.params = parameters.T
 
     @staticmethod
     def _mvalues(l):
