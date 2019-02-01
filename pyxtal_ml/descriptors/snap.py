@@ -69,8 +69,9 @@ class bispectrum(object):
         return data
 
     def get_lammps_input(self, input_file):
-        sna = f"{self.rcutfac} {self.rfac0} {self.twojmax} "
+        sna = f"{1 {self.rfac0} {self.twojmax} "
         for R in self.Rs:
+            R *= self.rcutfac
             sna += f"{R} "
         for W in self.Ws:
             sna += f"{W} "
