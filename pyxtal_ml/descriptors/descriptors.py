@@ -19,6 +19,7 @@ from pyxtal_ml.descriptors.bond_order_params import steinhardt_params
 from pyxtal_ml.descriptors.power_spectrum import power_spectrum
 from pyxtal_ml.descriptors.C_bispectrum import C_Bispectrum
 from pyxtal_ml.descriptors.stats import descriptor_stats
+from pyxtal_ml.descriptors.Element import element_attributes
 
 
 class descriptor:
@@ -38,7 +39,7 @@ class descriptor:
         self.feature_scaling = feature_scaling
         self.descriptor = {}
         options = ['Chem', 'Voronoi', 'Charge',
-                   'RDF', 'ADF', 'DDF', 'PRDF', 'bond_order', 'power_spectrum', 'bispectrum']
+                   'RDF', 'ADF', 'DDF', 'PRDF', 'bond_order', 'power_spectrum', 'bispectrum', 'element']
         self.libs = []
         if libs == 'all':
             self.libs = options
@@ -83,6 +84,9 @@ class descriptor:
                 elif lib == 'bispectrum':
                     self.descriptor['bispectrum'] = C_Bispectrum(
                         self.struc).bispectrum
+                elif lib == 'element':
+                    self.descriptor['element'] = element_attributes(
+                        self.struc).properties
 
         else:
             for lib in self.libs:
@@ -113,6 +117,9 @@ class descriptor:
                 elif lib == 'bispectrum':
                     self.descriptor['bispectrum'] = C_Bispectrum(
                         self.struc).bispectrum
+                elif lib == 'element':
+                    self.descriptor['element'] = element_attributes(
+                        self.struc).properties
 
         if 'covariance' in self.libs:
             # descriptor dictionary keys
@@ -135,23 +142,23 @@ class descriptor:
 
                 elif len(np.shape(feature_1)) > 2:
                     print('Covariance only supports 2-D data')
-                    continue
+                    raise ValueError
 
                 if len(np.shape(feature_2)) == 1:
                     feature_2 = feature_2[np.newaxis, :]
 
                 elif len(np.shape(feature_2)) > 2:
                     print('Covariance only supports 2-D data')
-                    continue
+                    raise ValueError
 
                 '''
                 Compute the covariance between row wise combinations
                 iterate over rows
                 '''
-                for index_1 in np.arange(0, np.shape(feature_1)[0]):
+                for index_1 in np.arange(0, np.shape(feature_1)[1]):
                     row_1 = feature_1[:, index_1]
-                    for index_2 in np.arange(0, np.shape(feature_2)[0]):
-                        row_2 = feature_2[:, index_2]
+                    for index_2 in np.arange(0, np.shape(feature_2)[1]):
+                        row_2 = feature_2[: ,index_2]
 
                         cov.append(descriptor_stats(row_1).covariance(row_2))
 
@@ -240,7 +247,7 @@ if __name__ == "__main__":
         fileformat = 'poscar'
 
     test = Structure.from_file(options.structure)
-    des = descriptor(test, 'bispectrum+PRDF')
+    des = descriptor(test, 'bond_order+bispectrum+covariance')
     for lib in des.libs:
         print(lib, len(des.descriptor[lib]))
     print(des.merge())
