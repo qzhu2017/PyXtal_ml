@@ -32,7 +32,7 @@ class descriptor:
         name: the type of collection to get. Defaults to "molecules"
     """
 
-    def __init__(self, crystal, libs='all', feature_scaling=False, covariance=False):
+    def __init__(self, crystal, libs='all', feature_scaling=False):
         self.libs = libs
         self.struc = crystal
         self.feature_scaling = feature_scaling
@@ -114,7 +114,7 @@ class descriptor:
                     self.descriptor['bispectrum'] = C_Bispectrum(
                         self.struc).bispectrum
 
-        if covariance == True:
+        if 'covariance' in self.libs:
             # descriptor dictionary keys
             features = self.descriptor.keys()
             cov = []
@@ -149,9 +149,9 @@ class descriptor:
                 iterate over rows
                 '''
                 for index_1 in np.arange(0, np.shape(feature_1)[0]):
-                    row_1 = feature_1[index_1]
+                    row_1 = feature_1[:, index_1]
                     for index_2 in np.arange(0, np.shape(feature_2)[0]):
-                        row_2 = feature_2[index_2]
+                        row_2 = feature_2[:, index_2]
 
                         cov.append(descriptor_stats(row_1).covariance(row_2))
 
@@ -240,7 +240,7 @@ if __name__ == "__main__":
         fileformat = 'poscar'
 
     test = Structure.from_file(options.structure)
-    des = descriptor(test, 'bispectrum+PRDF', covariance=True)
+    des = descriptor(test, 'bispectrum+PRDF')
     for lib in des.libs:
         print(lib, len(des.descriptor[lib]))
     print(des.merge())

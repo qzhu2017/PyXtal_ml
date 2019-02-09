@@ -40,13 +40,12 @@ class run:
                  feature, 
                  prop='formation_energy', 
                  N_sample=200,
-                 feature_scaling=False, covariance=False):
+                 feature_scaling=False):
         self.file = jsonfile
         self.feature0 = feature
         self.prop = prop
         self.N_sample = N_sample
         self.feature_scaling = feature_scaling
-        self.covariance = covariance
 
         # For timing
         self.time = {}
@@ -97,7 +96,7 @@ class run:
         self.time['convert_data'] = end-start
         self.features = feas
 
-    def calc_feas(self, struc, print_error=False):
+    def calc_feas(self, struc, print_error=True):
         """
         Calculate user-defined features to a set of descriptors.
         
@@ -105,7 +104,7 @@ class run:
             an object of calculated descriptors or an empty array.
         """
         try:
-            feas = descriptor(struc, self.feature0, covariance=self.covariance)
+            feas = descriptor(struc, self.feature0)
         except:
             feas = []
             if print_error:
