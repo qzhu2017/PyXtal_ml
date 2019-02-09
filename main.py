@@ -3,10 +3,10 @@ from pkg_resources import resource_filename
 
 # Please define your values in here, option 1, and option 2.
 jsonfile = resource_filename("pyxtal_ml", "datasets/NaGaAu.json")
-feature = 'bispectrum+Voronoi'
+feature = 'bispectrum+element+covariance'
 feature_scaling = False #'MinMaxScaler'
 prop = 'formation_energy'
-N_sample = 2000
+N_sample = 100
 library = 'SkLearn' # SkLearn
 algorithm = 'GB' # or dl
 
@@ -26,8 +26,7 @@ runner = run(jsonfile=jsonfile,
              feature=feature, 
              prop=prop, 
              N_sample=N_sample, 
-             feature_scaling=feature_scaling,
-             covariance=False)
+             feature_scaling=feature_scaling)
 runner.load_data()
 runner.convert_data_1D(parallel=8) #choose cpu number
 runner.choose_feature(keys=feature) #choose feature combinations if you want
