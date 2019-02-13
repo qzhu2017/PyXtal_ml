@@ -76,9 +76,30 @@ class element_attributes(object):
         '''
 
         # convert element object to string
-        elem = str(ele)
+        elm = str(ele)
+
+        if elm in ['Pa', 'Ac', 'Pu', 'Np', 'Am', 'Bk', 'Cf', 'Cm', 'Es',
+                   'Fm', 'Lr', 'Md', 'No']:
+            elm = 'Th'
+
+        elif elm in ['Eu', 'Pm']:
+            elm = 'La'
+
+        elif elm in ['Xe', 'Rn']:
+            elm = 'Kr'
+
+        elif elm in ['At']:
+            elm = 'I'
+
+        elif elm in ['Fr']:
+            elm = 'Cs'
+
+        elif elm in ['Ra']:
+            elm = 'Ba'
+
+
         # call element data from dictionary
-        data = ele_data[elem]
+        data = ele_data[elm]
         # select property keys
         props = ['first_ion_en', 'elec_aff', 'hfus', 'polzbl']
 

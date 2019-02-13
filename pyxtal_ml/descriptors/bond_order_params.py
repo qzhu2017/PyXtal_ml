@@ -127,7 +127,7 @@ class steinhardt_params(object):
         crystal:  A pymatgen crystal structure
         L: maximum degree of order parameter
     '''
-    def __init__(self, crystal, L=6):
+    def __init__(self, crystal, L=12):
         # all bond order parameters up to maximum degree L
         Ls = np.arange(2, L+1, 1)
         '''populate a dictionary of empty lists with keys corresponding
