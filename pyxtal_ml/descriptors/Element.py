@@ -52,11 +52,11 @@ class element_attributes(object):
                       ele.boiling_point, ele.melting_point,
                       ele.density_of_solid]
 
-        if None in properties:
+        if None in properties or np.isnan(properties).any():
 
             for i, prop in enumerate(properties):
 
-                if prop is None:
+                if prop is None or np.isnan(prop):
 
                     properties[i] = 0
 
@@ -125,6 +125,7 @@ class element_attributes(object):
         # find list of elements through set intersection with itself
         elements = list(set(self._crystal.species).intersection(self._crystal.species))
 
+        elements = [Element('He')]
         # initiate empty list for properties
         arr = []
 
