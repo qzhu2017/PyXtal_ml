@@ -7,7 +7,7 @@ from pymatgen.core.structure import Structure
 ################################ Gaussian Class ###############################
 
 
-class Gaussian:
+class gaussian:
     """
     Get the all the desired symmetry functions.
 
@@ -21,315 +21,233 @@ class Gaussian:
     derivative: bool
         to calculate derivative.
     """
-    def __init__(self, crystal, sym_params, derivative=False):
+    def __init__(self, crystal, symmetry_parameters, derivative=False):
         self.crystal = crystal
-        G1_keywords = ['Rc', 'cutoff_f']
-        G2_keywords = ['eta', 'Rc', 'cutoff_f', 'Rs']
-        G3_keywords = ['kappa', 'Rc', 'cutoff_f']
-        G4_keywords = ['eta', 'lamBda', 'zeta', 'Rc', 'cutoff_f']
-        G5_keywords = ['eta', 'lamBda', 'zeta', 'Rc', 'cutoff_f']
+        self.symmetry_parameters = symmetry_parameters
+#        print(symmetry_parameters)
+        self.derivative = derivative
 
+        self.G1_keywords = ['Rc', 'cutoff_f']
+        self.G2_keywords = ['eta', 'Rc', 'cutoff_f', 'Rs']
+        self.G3_keywords = ['kappa', 'Rc', 'cutoff_f']
+        self.G4_keywords = ['eta', 'lamBda', 'zeta', 'Rc', 'cutoff_f']
+        self.G5_keywords = ['eta', 'lamBda', 'zeta', 'Rc', 'cutoff_f']
 
-        self.G1_params = None
-        self.G2_params = None
-        self.G3_params = None
-        self.G4_params = None
-        self.G5_params = None
-        self.G1_parameters = []
-        self.G2_parameters = []
-        self.G3_parameters = []
-        self.G4_parameters = []
-        self.G5_parameters = []
-        for key, value in sym_params.items():
+        self.G_types = [] # e.g. ['G2', 'G4']
+
+        self.G1_parameters = None
+        self.G2_parameters = None
+        self.G3_parameters = None
+        self.G4_parameters = None
+        self.G5_parameters = None
+        for key, value in self.symmetry_parameters.items():
             if key == 'G1':
-                self.G1_params = value
-                self.G1_parameters = self.get_parameters('G1', self.G1_params)
+                self.G1_parameters = value
+                self.G_types.append(key)
             elif key == 'G2':
-                self.G2_params = value
-                self.G2_parameters = self.get_parameters('G2', self.G2_params)
+                self.G2_parameters = value
+                self.G_types.append(key)
             elif key == 'G3':
-                self.G3_params = value
-                self.G3_parameters = self.get_parameters('G3', self.G3_params)
+                self.G3_parameters = value
+                self.G_types.append(key)
             elif key == 'G4':
-                self.G4_params = value
-                self.G4_parameters = self.get_parameters('G4', self.G4_params)
+                self.G4_parameters = value
+                self.G_types.append(key)
             else:
-                self.G5_params = value
-                self.G5_parameters = self.get_parameters('G5', self.G5_params)
-
+                self.G5_parameters = value
+                self.G_types.append(key)
+        
+        
         self.G1 = []
-        if self.G1_params is not None:
-            for key, value in self.G1_params.items():
-                if key in G1_keywords:
-                    pass
-                else:
-                    raise NotImplementedError(
-                            f"Unknown parameter: {key}. "\
-                            f"The available parameters are {G1_keywords}.")
+        if self.G1_parameters is not None:
+            self._check_sanity(self.G1_parameters, self.G1_keywords)
 
-            self.G1 = self.calculate('G1', self.G1_params)
+            G1 = np.asarray(self.calculate('G1', self.G1_parameters, self.derivative))
+            self.G1 = self.reshaping(G1)
 
         self.G2 = []
-        if self.G2_params is not None:
-            for key, value in self.G2_params.items():
-                if key in G2_keywords:
-                    pass
-                else:
-                    raise NotImplementedError(
-                            f"Unknown parameter: {key}. "\
-                            f"The available parameters are {G2_keywords}.")
-            
-            G2 = np.asarray(self.calculate('G2', self.G2_params))
-            self.G2 = self.reshaping(G2)
+        if self.G2_parameters is not None:
+            self._check_sanity(self.G2_parameters, self.G2_keywords)
+            G2, G2D = self.calculate('G2', self.G2_parameters, self.derivative)
+            self.G2 = self.reshaping(np.asarray(G2))
+            self.G2_derivative = G2D
         
         self.G3 = []
-        if self.G3_params is not None:
-            for key, value in self.G3_params.items():
-                if key in G3_keywords:
-                    pass
-                else:
-                    raise NotImplementedError(
-                            f"Unknown parameter: {key}. "\
-                            f"The available parameters are {G3_keywords}.")
-            
-            self.G3 = self.calculate('G3', self.G3_params)
+        if self.G3_parameters is not None:
+            self._check_sanity(self.G3_parameters, self.G3_keywords)
+            G3 = np.asarray(self.calculate('G3', self.G3_parameters, self.derivative))
+            self.G3 = self.reshaping(G3)
 
         self.G4 = []
-        if self.G4_params is not None:
-            for key, value in self.G4_params.items():
-                if key in G4_keywords:
-                    pass
-                else:
-                    raise NotImplementedError(
-                            f"Unknown parameter: {key}. "\
-                            f"The available parameters are {G4_keywords}.")
-
-            G4 = np.asarray(self.calculate('G4', self.G4_params))
-            self.G4 = self.reshaping(G4)
+        if self.G4_parameters is not None:
+            self._check_sanity(self.G4_parameters, self.G4_keywords)
+            G4, G4D = self.calculate('G4', self.G4_parameters, self.derivative)
+            self.G4 = self.reshaping(np.asarray(G4))
+            self.G4_derivative = G4D
 
         self.G5 = []
-        if self.G5_params is not None:
-            for key, value in self.G5_params.items():
-                if key in G5_keywords:
-                    pass
-                else:
-                    raise NotImplementedError(
-                            f"Unknown parameter: {key}. "\
-                            f"The available parameters are {G5_keywords}.")
-
-            G5 = np.asarray(self.calculate('G5', self.G5_params))
-            self.G5 = self.reshaping(G5)
-
-        self.G_parameters = self.get_G_parameters()
-        self.G = self.get_Gs()
-        self.Gs = self.get_statistics(self.G)
+        if self.G5_parameters is not None:
+            self._check_sanity(self.G5_parameters, self.G5_keywords)
+            G5, G5D = self.calculate('G5', self.G5_parameters, self.derivative)
+            self.G5 = self.reshaping(np.asarray(G5))
+            self.G5_derivative = G5D
     
 
-    def get_statistics(self, Gs):
-        Gs_mean = np.mean(Gs, axis=0)
-        Gs_std = np.std(Gs, axis=0)
-        Gs_skew = skew(Gs, axis=0)
-        Gs_kurtosis = kurtosis(Gs, axis=0)
-        Gs_covariance = np.cov(Gs.T)
-
-        return Gs_covariance
+    def calculate(self, G_type, symmetry_parameters, derivative=False):
+        G, Gd = [], []
+        Rc = [6.5]
+        cutoff_f = ['Cosine']
+        Rs = [0.]
         
+        for key, value in symmetry_parameters.items():
+            if key == 'Rc':
+                if isinstance(value, (list, np.ndarray)):
+                    Rc = value
+                else:
+                    Rc = [value]
+            elif key == 'cutoff_f':
+                if isinstance(value, (list, np.ndarray)):
+                    cutoff_f = value
+                else:
+                    cutoff_f = [value]
+            elif key == 'Rs':
+                if isinstance(value, (list, np.ndarray)):
+                    Rs = value
+                else:
+                    Rs = [value]
+            elif key == 'eta':
+                if isinstance(value, (list, np.ndarray)):
+                    etas = value
+                else:
+                    etas = [value]
+            elif key == 'kappa':
+                if isinstance(value, (list, np.ndarray)):
+                    kappas = value
+                else:
+                    kappas = [value]
+            elif key == 'lamBda':
+                if isinstance(value, (list, np.ndarray)):
+                    lamBdas = value
+                else:
+                    lamBdas = [value]
+            elif key == 'zeta':
+                if isinstance(value, (list, np.ndarray)):
+                    zetas = value
+                else:
+                    zetas = [value]
+                    
+        if derivative:
+            core_elements = [site.species_string for site in self.crystal.sites]
+            neighbors = self.crystal.get_all_neighbors(r=max(Rc),
+                                                       include_index=True,
+                                                       include_image=True)              
 
-
-    def calculate(self, G_type, sym_params):
         if G_type == 'G1':
-            G = []
-            G1_Rc = [6.5]
-            G1_cutoff_f = ['Cosine']
-
-            for key, value in sym_params.items():
-                if key == 'Rc':
-                    if isinstance(value, (list, np.ndarray)):
-                        G1_Rc = value
-                    else:
-                        G1_Rc = [value]
-                elif key == 'cutoff_f':
-                    if isinstance(value, (list, np.ndarray)):
-                        G1_cutoff_f = value
-                    else:
-                        G1_cutoff_f = [value]
-
-            for Rc in G1_Rc:
-                for cutoff_f in G1_cutoff_f:
-                    g = calculate_G1(self.crystal, cutoff_f, Rc)
+            for rc in Rc:
+                for co in cutoff_f:
+                    g = calculate_G1(self.crystal, co, rc)
                     G.append(g)
 
         elif G_type == 'G2':
-            G = []
-            G2_Rc = [6.5]
-            G2_cutoff_f = ['Cosine']
-            G2_Rs = [0.]
-
-            for key, value in sym_params.items():
-                if key == 'Rc':
-                    if isinstance(value, (list, np.ndarray)):
-                        G2_Rc = value
-                    else:
-                        G2_Rc = [value]
-                elif key == 'cutoff_f':
-                    if isinstance(value, (list, np.ndarray)):
-                        G2_cutoff_f = value
-                    else:
-                        G2_cutoff_f = [value]
-                elif key == 'Rs':
-                    if isinstance(value, (list, np.ndarray)):
-                        G2_Rs = value
-                    else:
-                        G2_Rs = [value]
-                elif key == 'eta':
-                    if isinstance(value, (list, np.ndarray)):
-                        G2_eta = value
-                    else:
-                        G2_eta = [value]
-            
-            for Rc in G2_Rc:
-                for Rs in G2_Rs:
-                    for cutoff_f in G2_cutoff_f:
-                        for eta in G2_eta:
-                            g = calculate_G2(self.crystal, 
-                                             cutoff_f, Rc, 
-                                             eta, Rs)
+            for rc in Rc:
+                for rs in Rs:
+                    for co in cutoff_f:
+                        for eta in etas:
+                            g = calculate_G2(self.crystal, co, rc, eta, rs)
                             G.append(g)
+
+            if derivative:
+                for i, neigh in enumerate(neighbors):
+                    for q in range(3):
+                        gd = G2_derivative(crystal=self.crystal, i=i, element=core_elements[i], ni=neigh, 
+                                           cutoff_f='Cosine', Rc=6.5, 
+                                           eta=etas, Rs=0.0, p=i, q=q)
+                        Gd.append(gd)
+                        for n in neigh:
+                            if n[3] == (0.0, 0.0, 0.0):
+                                gd = G2_derivative(crystal=self.crystal, i=n[2], 
+                                                   element=n[0].species_string, 
+                                                   ni=neighbors[n[2]], 
+                                                   cutoff_f='Cosine', Rc=6.5, 
+                                                   eta=etas, Rs=0.0, p=i, q=q)
+                                Gd.append(gd)
+                            
                             
         elif G_type == 'G3':
-            G = []
-            G3_Rc = [6.5]
-            G3_cutoff_f = ['Cosine']
-            G3_Rs = [0.]
-
-            for key, value in sym_params.items():
-                if key == 'Rc':
-                    if isinstance(value, (list, np.ndarray)):
-                        G3_Rc = value
-                    else:
-                        G3_Rc = [value]
-                elif key == 'cutoff_f':
-                    if isinstance(value, (list, np.ndarray)):
-                        G3_cutoff_f = value
-                    else:
-                        G3_cutoff_f = [value]
-                elif key == 'kappa':
-                    if isinstance(value, (list, np.ndarray)):
-                        G3_kappa = value
-                    else:
-                        G3_kappa = [value]
-
-            for Rc in G3_Rc:
-                for Rs in G3_Rs:
-                    for cutoff_f in G3_cutoff_f:
-                        for kappa in G3_kappa:
-                            g = calculate_G3(self.crystal, cutoff_f, Rc, kappa)
+            for rc in Rc:
+                for rs in Rs:
+                    for co in cutoff_f:
+                        for kappa in kappas:
+                            g = calculate_G3(self.crystal, co, rc, kappa)
                             G.append(g)
+                                                    
 
         elif G_type == 'G4':
-            G = []
-            G4_Rc = [6.5]
-            G4_cutoff_f = ['Cosine']
-
-            for key, value in sym_params.items():
-                if key == 'Rc':
-                    if isinstance(value, (list, np.ndarray)):
-                        G4_Rc = value
-                    else:
-                        G4_Rc = [value]
-                elif key == 'cutoff_f':
-                    if isinstance(value, (list, np.ndarray)):
-                        G4_cutoff_f = value
-                    else:
-                        G4_cutoff_f = [value]
-                elif key == 'eta':
-                    if isinstance(value, (list, np.ndarray)):
-                        G4_eta = value
-                    else:
-                        G4_eta = [value]
-                elif key == 'lamBda':
-                    if isinstance(value, (list, np.ndarray)):
-                        G4_lamBda = value
-                    else:
-                        G4_lamBda = [value]
-                elif key == 'zeta':
-                    if isinstance(value, (list, np.ndarray)):
-                        G4_zeta = value
-                    else:
-                        G4_zeta = [value]
-
-            for Rc in G4_Rc:
-                for cutoff_f in G4_cutoff_f:
-                    for eta in G4_eta:
-                        for zeta in G4_zeta:
-                            for lamBda in G4_lamBda:
-                                g = calculate_G4(self.crystal, 
-                                                 cutoff_f, 
-                                                 Rc, 
-                                                 eta, 
-                                                 lamBda, 
+            for rc in Rc:
+                for co in cutoff_f:
+                    for eta in etas:
+                        for zeta in zetas:
+                            for lb in lamBdas:
+                                g = calculate_G4(self.crystal, co, rc, eta, lb, 
                                                  zeta)
                                 G.append(g)
+            if derivative:
+                for i, neigh in enumerate(neighbors):
+                    for q in range(3):
+                        gd = G4_derivative(crystal=self.crystal, i=i, element=core_elements[i], ni=neigh, 
+                                           cutoff_f='Cosine', Rc=6.5, 
+                                           eta=etas, lamBda=lamBdas, zeta=zetas, p=i, q=q)
+                        Gd.append(gd)
+                        for n in neigh:
+                            if n[3] == (0.0, 0.0, 0.0):
+                                gd = G4_derivative(crystal=self.crystal, i=n[2], 
+                                                   element=n[0].species_string, 
+                                                   ni=neighbors[n[2]], 
+                                                   cutoff_f='Cosine', Rc=6.5, 
+                                                   eta=etas, lamBda=lamBdas, zeta=zetas, p=i, q=q)
+                                Gd.append(gd)
 
         elif G_type == 'G5':
-            G = []
-            G5_Rc = [6.5]
-            G5_cutoff_f = ['Cosine']
-            G5_eta = []
-            G5_zeta = []
-            G5_lamBda = []
-
-            for key, value in sym_params.items():
-                if key == 'Rc':
-                    if isinstance(value, (list, np.ndarray)):
-                        G5_Rc = value
-                    else:
-                        G5_Rc = [value]
-                elif key == 'cutoff_f':
-                    if isinstance(value, (list, np.ndarray)):
-                        G5_cutoff_f = value
-                    else:
-                        G5_cutoff_f = [value]
-                elif key == 'eta':
-                    if isinstance(value, (list, np.ndarray)):
-                        G5_eta = value
-                    else:
-                        G5_eta = [value]
-                elif key == 'lamBda':
-                    if isinstance(value, (list, np.ndarray)):
-                        G5_lamBda = value
-                    else:
-                        G5_lamBda = [value]
-                elif key == 'zeta':
-                    if isinstance(value, (list, np.ndarray)):
-                        G5_zeta = value
-                    else:
-                        G5_zeta = [value]
-
-            for Rc in G5_Rc:
-                for cutoff_f in G5_cutoff_f:
-                    for eta in G5_eta:
-                        for zeta in G5_zeta:
-                            for lamBda in G5_lamBda:
-                                g = calculate_G5(self.crystal, 
-                                                 cutoff_f, 
-                                                 Rc, 
-                                                 eta, 
-                                                 lamBda, 
+            for rc in Rc:
+                for co in cutoff_f:
+                    for eta in etas:
+                        for zeta in zetas:
+                            for lb in lamBdas:
+                                g = calculate_G5(self.crystal, co, rc, eta, lb, 
                                                  zeta)
                                 G.append(g)
+            
+            if derivative:
+                for i, neigh in enumerate(neighbors):
+                    for q in range(3):
+                        gd = G5_derivative(crystal=self.crystal, i=i, element=core_elements[i], ni=neigh, 
+                                           cutoff_f='Cosine', Rc=6.5, 
+                                           eta=etas, lamBda=lamBdas, zeta=zetas, p=i, q=q)
+                        Gd.append(gd)
+#                        for n in neigh:
+#                            if n[3] == (0.0, 0.0, 0.0):
+#                                gd = G5_derivative(crystal=self.crystal, i=n[2], 
+#                                                   element=n[0].species_string, 
+#                                                   ni=neighbors[n[2]], 
+#                                                   cutoff_f='Cosine', Rc=6.5, 
+#                                                   eta=etas, lamBda=lamBdas, zeta=zetas, p=i, q=q)
+#                                Gd.append(gd)
+                                
+        print(Gd)
 
-
-        return G            
-
-
-    def calculate_derivative(self, sym):
-        pass
+        return G, Gd
 
 
     def get_parameters(self, G_type, params):
+        """
+        Function to get symmetry functions parameters: eta, zeta, etc.
+
+        Returns
+        -------
+        Return an array of arrays of parameters.
+        """
+        # Need to finish G1 and G3.
         D = []
-        keys = list(params.keys())
         
         if G_type == 'G2':
             elements = self.crystal.symbol_set
@@ -399,27 +317,27 @@ class Gaussian:
         return D
 
 
-    def get_G_parameters(self):
-        G_parameters = []
-
-        if self.G1_parameters != []:
-            for i in self.G1_parameters:
-                G_parameters.append(i)
-        if self.G2_parameters != []:
-            for i in self.G2_parameters:
-                G_parameters.append(i)
-        if self.G3_parameters != []:
-            for i in self.G3_parameters:
-                G_parameters.append(i)
-        if self.G4_parameters != []:
-            for i in self.G4_parameters:
-                G_parameters.append(i)
-        if self.G5_parameters != []:
-            for i in self.G5_parameters:
-                G_parameters.append(i)
-
-        return G_parameters
-
+#    def get_G_parameters(self):
+#        G_parameters = []
+#
+#        if self.G1_parameters != []:
+#            for i in self.G1_parameters:
+#                G_parameters.append(i)
+#        if self.G2_parameters != []:
+#            for i in self.G2_parameters:
+#                G_parameters.append(i)
+#        if self.G3_parameters != []:
+#            for i in self.G3_parameters:
+#                G_parameters.append(i)
+#        if self.G4_parameters != []:
+#            for i in self.G4_parameters:
+#                G_parameters.append(i)
+#        if self.G5_parameters != []:
+#            for i in self.G5_parameters:
+#                G_parameters.append(i)
+#
+#        return G_parameters
+        
 
     def reshaping(self, arr):
         m, n = arr.shape
@@ -429,7 +347,7 @@ class Gaussian:
         return arr.T
 
 
-    def get_Gs(self, Gs='all'):
+    def get_all_G(self, Gs='all'):
         if Gs == 'all':
             Gs = []
 
@@ -464,6 +382,19 @@ class Gaussian:
             pass
 
         return Gs
+    
+    
+    def _check_sanity(self, G_parameters, G_keywords):
+        """
+        Check if any of the parameters in the keywords.
+        """        
+        for key, value in G_parameters.items():
+            if key in G_keywords:
+                pass
+            else:
+                raise NotImplementedError(
+                        f"Unknown parameter: {key}. "\
+                        f"The available parameters are {self.G5_keywords}.")
 
 
 ############################# Auxiliary Functions #############################
@@ -491,7 +422,6 @@ def Kronecker(a,b):
     -------
         Return value 0 if a and b are not equal; return value 1 if a and b 
         are equal.
-    -------
     """
     if a == b:
         return 1
@@ -591,10 +521,10 @@ def dcos_dRpq(a, b, c, Ra, Rb, Rc, p, q):
         Position of the first atom.
     Rc: list of floats
         Postition of the second atom.
-    m: int
+    p: int
         Atom that is experiencing force.
-    l: int
-        Direction of the force.
+    q: int
+        Direction of force. x = 0, y = 1, and z = 2.
         
     Returns
     -------
@@ -606,16 +536,16 @@ def dcos_dRpq(a, b, c, Ra, Rb, Rc, p, q):
     Rab = np.linalg.norm(Rab_vector)
     Rac = np.linalg.norm(Rac_vector)
     
-    term_one = 1 / (Rab * Rac) * \
-                np.dot(dRab_dRpq_vector(a, b, p, q), Rac_vector)
-    term_second = 1 / (Rab * Rac) * \
+    f_term = 1 / (Rab * Rac) * \
+            np.dot(dRab_dRpq_vector(a, b, p, q), Rac_vector)
+    s_term = 1 / (Rab * Rac) * \
                     np.dot(Rab_vector, dRab_dRpq_vector(a, c, p, q))
-    term_third = np.dot(Rab_vector, Rac_vector) / Rab ** 2 / Rac * \
+    t_term = np.dot(Rab_vector, Rac_vector) / Rab ** 2 / Rac * \
                     dRab_dRpq(a, b, Ra, Rb, p, q)
-    term_fourth = np.dot(Rab_vector, Rac_vector) / Rab / Rac ** 2 * \
+    fo_term = np.dot(Rab_vector, Rac_vector) / Rab / Rac ** 2 * \
                     dRab_dRpq(a, c, Ra, Rc, p, q)
                     
-    return (term_one + term_second - term_third - term_fourth)
+    return (f_term + s_term - t_term - fo_term)
 
 
 ############################## Cutoff Functional ##############################
@@ -839,7 +769,10 @@ def calculate_G1(crystal, cutoff_f='Cosine', Rc=6.5):
         func = TangentH(Rc=Rc)
     else:
         raise NotImplementedError('Unknown cutoff functional: %s' %cutoff_f)
-        
+     
+    # Get elements in the crystal structure
+    elements = crystal.symbol_set
+
     # Get core atoms information
     n_core = crystal.num_sites
     core_cartesians = crystal.cart_coords
@@ -849,13 +782,15 @@ def calculate_G1(crystal, cutoff_f='Cosine', Rc=6.5):
     
     G1 = []
     
-    for i in range(n_core):
-        G1_core = 0
-        for j in range(len(neighbors[i])):
-            Rij = np.linalg.norm(core_cartesians[i] - 
-                                 neighbors[i][j][0].coords)
-            G1_core += func(Rij)
-        G1.append(G1_core)
+    for elem in elements:
+        for i in range(n_core):
+            G1_core = 0
+            for j in range(len(neighbors[i])):
+                if elem == neighbors[i][j][0].species_string:
+                    Rij = np.linalg.norm(core_cartesians[i] - 
+                                         neighbors[i][j][0].coords)
+                    G1_core += func(Rij)
+            G1.append(G1_core)
     
     return G1
 
@@ -940,7 +875,7 @@ def calculate_G2(crystal, cutoff_f='Cosine', Rc=6.5, eta=2, Rs=0.0):
 
     Returns
     -------
-    G2 : float
+    G2 : an array of floats
         G2 symmetry value.
     """
     # Cutoff functional
@@ -962,6 +897,7 @@ def calculate_G2(crystal, cutoff_f='Cosine', Rc=6.5, eta=2, Rs=0.0):
 
     # Their neighbors within the cutoff radius
     neighbors = crystal.get_all_neighbors(Rc)
+    
     G2 = []
     
     for elem in elements:
@@ -970,14 +906,14 @@ def calculate_G2(crystal, cutoff_f='Cosine', Rc=6.5, eta=2, Rs=0.0):
             for j in range(len(neighbors[i])):
                 if elem == neighbors[i][j][0].species_string:
                     Rij = np.linalg.norm(core_cartesians[i] - 
-                                        neighbors[i][j][0]._coords)
+                                         neighbors[i][j][0]._coords)
                     G2_core += np.exp(-eta * Rij ** 2. / Rc ** 2.) * func(Rij)
             G2.append(G2_core)
     
     return G2
 
 
-def G2_derivative(crystal, cutoff_f='Cosine', Rc=6.5, eta=2, Rs=0.0, p=1, q=0):
+def G2_derivative(crystal, element, i, ni, cutoff_f='Cosine', Rc=6.5, eta=2, Rs=0.0, p=1, q=0):
     """
     Calculate the derivative of the G2 symmetry function.
     
@@ -1005,27 +941,31 @@ def G2_derivative(crystal, cutoff_f='Cosine', Rc=6.5, eta=2, Rs=0.0, p=1, q=0):
         func = TangentH(Rc=Rc)
     else:
         raise NotImplementedError('Unknown cutoff functional: %s' %cutoff_f)
-
+    
     # Get positions of core atoms
-    n_core = crystal.num_sites
     core_cartesians = crystal.cart_coords
+    Ri = core_cartesians[i]
 
     # Their neighbors within the cutoff radius
-    neighbors = crystal.get_all_neighbors(Rc)
+    elements = crystal.symbol_set
 
     G2D = []
-
-    for i in range(n_core):
-        G2D_core = 0
-        for j in range(len(neighbors[i])):
-            Ri = core_cartesians[i]
-            Rj = neighbors[i][j][0]._coords
-            Rij = np.linalg.norm(Rj - Ri)
-            G2D_core += np.exp(-eta * (Rij - Rs)**2) * \
-                        dRab_dRpq(i, j, Ri, Rj, p, q) * \
-                        (-2 * eta * (Rij - Rs) * func(Rij) + 
-                         func.derivative(Rij))
-        G2D.append(G2D_core)
+    for e in eta:
+        for elem in elements:
+            g2D = 0
+            for count in range(len(ni)):
+                symbol = ni[count][0].species_string
+                Rj = ni[count][0]._coords
+                j = ni[count][2]
+                if elem == symbol:
+                    dRabdRpq = dRab_dRpq(i, j, Ri, Rj, p, q)
+                    if dRabdRpq != 0:
+                        Rij = np.linalg.norm(Rj - Ri)
+                        g2D += np.exp(-e * (Rij - Rs)**2. / Rc**2.) * \
+                                dRabdRpq * \
+                                (-2. * e * (Rij - Rs) * func(Rij) / Rc**2. + 
+                                func.derivative(Rij))
+            G2D.append(g2D)
 
     return G2D
 
@@ -1071,22 +1011,27 @@ def calculate_G3(crystal, cutoff_f='Cosine', Rc=6.5, k=10):
     else:
         raise NotImplementedError('Unknown cutoff functional: %s' %cutoff_f)
     
+    # Get elements in the crystal structure
+    elements = crystal.symbol_set
+    
     # Get core atoms information
     n_core = crystal.num_sites
     core_cartesians = crystal.cart_coords
     
     # Get neighbors information
     neighbors = crystal.get_all_neighbors(Rc)
-    
+
     G3 = []
-    
-    for i in range(n_core):
-        G3_core = 0
-        for j in range(len(neighbors[i])):
-            Rij = np.linalg.norm(core_cartesians[i] - 
-                                 neighbors[i][j][0].coords)
-            G3_core += np.cos(k * Rij / Rc) * func(Rij)
-        G3.append(G3_core)
+
+    for elem in elements:
+        for i in range(n_core):
+            G3_core = 0
+            for j in range(len(neighbors[i])):
+                if elem == neighbors[i][j][0].species_string:
+                    Rij = np.linalg.norm(core_cartesians[i] - 
+                                         neighbors[i][j][0]._coords)
+                    G3_core += np.cos(k * Rij / Rc) * func(Rij)
+            G3.append(G3_core)
     
     return G3
 
@@ -1231,7 +1176,7 @@ def calculate_G4(crystal, cutoff_f='Cosine', Rc=6.5, eta=2, lamBda=1, zeta=1):
     return G4
 
 
-def G4_derivative(crystal, cutoff_f='Cosine', 
+def G4_derivative(crystal, i, element, ni, cutoff_f='Cosine', 
                   Rc=6.5, eta=2, lamBda=1, zeta=1, p=1, q=0):
     """
     Calculate the derivative of the G4 symmetry function.
@@ -1271,71 +1216,80 @@ def G4_derivative(crystal, cutoff_f='Cosine',
     else:
         raise NotImplementedError('Unknown cutoff functional: %s' %cutoff_f)
         
-    # Get core atoms information
-    n_core = crystal.num_sites
+    # Get positions of core atoms
     core_cartesians = crystal.cart_coords
+    Ri = core_cartesians[i]
+
+    # Their neighbors within the cutoff radius
+    elements = crystal.symbol_set
+    elements = list(itertools.combinations_with_replacement(elements, 2))
     
-    # Get neighbors information
-    neighbors = crystal.get_all_neighbors(Rc)
+    counts = range(len(ni))
     
     G4D = []
+    for e in eta:
+        for z in zeta:
+            for l in lamBda:
+                for elem in elements:
+                    g4D = 0
+                    for j in counts:
+                        for k in counts[(j+1):]:
+                            n1 = ni[j][0].species_string
+                            n2 = ni[k][0].species_string
+                            if (elem[0] == n1 and elem[1] == n2) or \
+                                (elem[1] == n1 and elem[0] == n2):
+                                Rj = ni[j][0].coords
+                                Rk = ni[k][0].coords
+                                
+                                Rij_vector = Rj - Ri
+                                Rij = np.linalg.norm(Rij_vector)
+                                
+                                Rik_vector = Rk - Ri
+                                Rik = np.linalg.norm(Rik_vector)
+                                
+                                Rjk_vector = Rk - Rj
+                                Rjk = np.linalg.norm(Rjk_vector)
+                                
+                                cos_ijk = np.dot(Rij_vector, Rik_vector)/ Rij / Rik
+                                dcos_ijk = dcos_dRpq(i, ni[j][2], ni[k][2], Ri, Rj, Rk, p, q)
+                                
+                                cutoff = func(Rij) * func(Rik) * func(Rjk)
+                                cutoff_Rik_Rjk = func(Rik) * func(Rjk)
+                                cutoff_Rij_Rjk = func(Rij) * func(Rjk)
+                                cutoff_Rij_Rik = func(Rij) * func(Rik)
+                                
+                                cutoff_Rij_derivative = func.derivative(Rij) * \
+                                                        dRab_dRpq(i, ni[j][2], Ri, Rj, p, q)
+                                cutoff_Rik_derivative = func.derivative(Rik) * \
+                                                        dRab_dRpq(i, ni[k][2], Ri, Rk, p, q)
+                                cutoff_Rjk_derivative = func.derivative(Rjk) * \
+                                                        dRab_dRpq(ni[j][2], ni[k][2], Rj, Rk, p, q)
+                                
+                                lamBda_term = 1. + l * cos_ijk
+                                
+                                first_term = l * z * dcos_ijk
+                                first_term += (-2. * e * lamBda_term / (Rc ** 2)) * \
+                                                (Rij * dRab_dRpq(i, ni[j][2], Ri, Rj, p, q) + 
+                                                 Rik * dRab_dRpq(i, ni[k][2], Ri, Rk, p, q) +
+                                                 Rjk * dRab_dRpq(ni[j][2], ni[k][2], Rj, Rk, p, q))
+                                first_term *= cutoff
+                                
+                                second_term = cutoff_Rij_derivative * cutoff_Rik_Rjk + \
+                                                    cutoff_Rik_derivative * cutoff_Rij_Rjk + \
+                                                    cutoff_Rjk_derivative * cutoff_Rij_Rik
+                                second_term *= lamBda_term
+                                
+                                term = first_term + second_term
+                                term *= lamBda_term ** (z - 1.)
+                                term *= np.exp(-e * (Rij ** 2. + Rik ** 2. + Rjk ** 2.) /
+                                               Rc ** 2.)
+                                
+                                g4D += term
+                                
+                    g4D *= 2. ** (1. - z)
 
-    for i in range(n_core):
-        G4D_core = 0.0
-        for j in range(len(neighbors[i])-1):
-            for k in range(j+1, len(neighbors[i])):
-                Ri = core_cartesians[i]
-                Rj = neighbors[i][j][0].coords
-                Rk = neighbors[i][k][0].coords
-                
-                Rij_vector = Rj - Ri
-                Rij = np.linalg.norm(Rij_vector)
-                
-                Rik_vector = Rk - Ri
-                Rik = np.linalg.norm(Rik_vector)
-                
-                Rjk_vector = Rk - Rj
-                Rjk = np.linalg.norm(Rjk_vector)
-                
-                cos_ijk = np.dot(Rij_vector, Rik_vector)/ Rij / Rik
-                dcos_ijk = dcos_dRpq(i, j, k, Ri, Rj, Rk, p, q)
-                
-                cutoff = func(Rij) * func(Rik) * func(Rjk)
-                cutoff_Rik_Rjk = func(Rik) * func(Rjk)
-                cutoff_Rij_Rjk = func(Rij) * func(Rjk)
-                cutoff_Rij_Rik = func(Rij) * func(Rik)
-                
-                cutoff_Rij_derivative = func.derivative(Rij) * \
-                                        dRab_dRpq(i, j, Ri, Rj, p, q)
-                cutoff_Rik_derivative = func.derivative(Rik) * \
-                                        dRab_dRpq(i, k, Ri, Rk, p, q)
-                cutoff_Rjk_derivative = func.derivative(Rjk) * \
-                                        dRab_dRpq(j, k, Rj, Rk, p, q)
-
-                lamBda_term = 1 + lamBda * cos_ijk
-                
-                first_term = lamBda * zeta * dcos_ijk
-                first_term += -2 * zeta * lamBda_term / Rc ** 2 * \
-                                (Rij * dRab_dRpq(i, j, Ri, Rj, p, q) + 
-                                 Rik * dRab_dRpq(i, k, Ri, Rk, p, q) +
-                                 Rjk * dRab_dRpq(j, k, Rj, Rk, p, q))
-                first_term *= cutoff
-                
-                second_term = cutoff_Rij_derivative * cutoff_Rik_Rjk + \
-                                    cutoff_Rik_derivative * cutoff_Rij_Rjk + \
-                                    cutoff_Rjk_derivative * cutoff_Rij_Rik                
-                second_term *= lamBda_term
-                
-                term = first_term + second_term
-                term *= lamBda_term ** (zeta - 1)
-                term *= np.exp(-eta * (Rij ** 2. + Rik ** 2. + Rjk ** 2.) /
-                               Rc ** 2.)
-                
-                G4D_core += term
-
-        G4D_core *= 2. ** (1. - zeta)
-        G4D.append(G4D_core)
-        
+                    G4D.append(g4D)
+                            
     return G4D
     
 
@@ -1426,7 +1380,7 @@ def calculate_G5(crystal, cutoff_f='Cosine', Rc=6.5, eta=2, lamBda=1, zeta=1):
     return G5
 
 
-def G5_derivative(crystal, cutoff_f='Cosine', 
+def G5_derivative(crystal, i, element, ni, cutoff_f='Cosine', 
                   Rc=6.5, eta=2, lamBda=1, zeta=1, p=1, q=0):
     """
     Calculate the derivative of the G5 symmetry function.
@@ -1465,72 +1419,87 @@ def G5_derivative(crystal, cutoff_f='Cosine',
     else:
         raise NotImplementedError('Unknown cutoff functional: %s' %cutoff_f)
         
-    # Get core atoms information
-    n_core = crystal.num_sites
+    # Get positions of core atoms
     core_cartesians = crystal.cart_coords
+    Ri = core_cartesians[i]
+
+    # Their neighbors within the cutoff radius
+    elements = crystal.symbol_set
+    elements = list(itertools.combinations_with_replacement(elements, 2))
     
-    # Get neighbors information
-    neighbors = crystal.get_all_neighbors(Rc)
+    counts = range(len(ni))
     
     G5D = []
-
-    for i in range(n_core):
-        G5D_core = 0.0
-        for j in range(len(neighbors[i])-1):
-            for k in range(j+1, len(neighbors[i])):
-                Ri = core_cartesians[i]
-                Rj = neighbors[i][j][0].coords
-                Rk = neighbors[i][k][0].coords
-                
-                Rij_vector = Rj - Ri
-                Rik_vector = Rk - Ri
-                Rij = np.linalg.norm(Rij_vector)
-                Rik = np.linalg.norm(Rik_vector)
-                
-                cos_ijk = np.dot(Rij_vector, Rik_vector)/ Rij / Rik
-                dcos_ijk = dcos_dRpq(i, j, k, Ri, Rj, Rk, p, q)
-                
-                cutoff = func(Rij) * func(Rik)
-                cutoff_Rij_derivative = func.derivative(Rij) * \
-                                        dRab_dRpq(i, j, Ri, Rj, p, q)
-                cutoff_Rik_derivative = func.derivative(Rik) * \
-                                        dRab_dRpq(i, k, Ri, Rk, p, q)
-
-                lamBda_term = 1 + lamBda * cos_ijk
-                
-                first_term = -2 * eta / Rc ** 2 * lamBda_term * \
-                                (Rij * dRab_dRpq(i, j, Ri, Rj, p, q) + 
-                                 Rik * dRab_dRpq(i, k, Ri, Rk, p, q))
-                first_term += lamBda * zeta * dcos_ijk
-                first_term *= cutoff
-                
-                second_term = lamBda_term * \
-                                (cutoff_Rij_derivative * func(Rik) + 
-                                 cutoff_Rik_derivative * func(Rij))
+    for e in eta:
+        for z in zeta:
+            for l in lamBda:
+                for elem in elements:
+                    g5D = 0
+                    for j in counts:
+                        for k in counts[(j+1):]:
+                            n1 = ni[j][0].species_string
+                            n2 = ni[k][0].species_string
+                            if (elem[0] == n1 and elem[1] == n2) or \
+                                (elem[1] == n1 and elem[0] == n2):
+                                Rj = ni[j][0].coords
+                                Rk = ni[k][0].coords
                                 
-                term = first_term + second_term
-                term *= lamBda_term ** (zeta - 1)
-                term *= np.exp(-eta * (Rij ** 2. + Rik ** 2.) /
-                               Rc ** 2.)
+                                Rij_vector = Rj - Ri
+                                Rik_vector = Rk - Ri
+                                Rij = np.linalg.norm(Rij_vector)
+                                Rik = np.linalg.norm(Rik_vector)
                                 
-                G5D_core += term
-
-        G5D_core *= 2. ** (1. - zeta)
-        G5D.append(G5D_core)
+                                cos_ijk = np.dot(Rij_vector, Rik_vector) / Rij / Rik
+                                dcos_ijk = dcos_dRpq(i, ni[j][2], ni[k][2], Ri, Rj, Rk, p, q)
+                                
+                                cutoff = func(Rij) * func(Rik)
+                                cutoff_Rij_derivative = func.derivative(Rij) * \
+                                                        dRab_dRpq(i, ni[j][2], Ri, Rj, p, q)
+                                cutoff_Rik_derivative = func.derivative(Rik) * \
+                                                        dRab_dRpq(i, ni[k][2], Ri, Rk, p, q)
+                
+                                lamBda_term = 1. + l * cos_ijk
+                                
+                                first_term = -2 * e / Rc ** 2 * lamBda_term * \
+                                                (Rij * dRab_dRpq(i, ni[j][2], Ri, Rj, p, q) + 
+                                                 Rik * dRab_dRpq(i, ni[k][2], Ri, Rk, p, q))
+                                first_term += l * z * dcos_ijk
+                                first_term *= cutoff
+                                
+                                second_term = lamBda_term * \
+                                                (cutoff_Rij_derivative * func(Rik) + 
+                                                 cutoff_Rik_derivative * func(Rij))
+                                                
+                                term = first_term + second_term
+                                term *= lamBda_term ** (z - 1.)
+                                term *= np.exp(-e * (Rij ** 2. + Rik ** 2.) /
+                                               Rc ** 2.)
+                                                
+                                g5D += term
+            
+                    g5D *= 2. ** (1. - z)
+                    G5D.append(g5D)
         
     return G5D
 
 
-crystal = Structure.from_file('POSCARs/POSCAR-NaCl')
+#crystal = Structure.from_file('../POSCARs/POSCAR-NaCl')
+#
+#sym_params = {'G2': {'eta': np.logspace(np.log10(0.05), 
+#                                         np.log10(5.), num=4)}}
+#                'G5': {'eta': [0.005],
+#                        'zeta': [1., 4.],
+#                        'lamBda': [1., -1.]}}
 
-sym_params = {'G2': {'eta': np.logspace(np.log10(0.05), 
-                                         np.log10(5.), num=4)}, 
-                'G5': {'eta': [0.005],
-                        'zeta': [1., 4.],
-                        'lamBda': [1., -1.]}}
+#gauss = gaussian(crystal, sym_params, derivative=True)
+#print(gauss.G2_derivative)
 
-gauss = Gaussian(crystal, sym_params)
-print(gauss.G)
-for i in gauss.G_parameters:
-    print(i)
-print(gauss.Gs)
+
+#    def get_statistics(self, Gs):
+#        Gs_mean = np.mean(Gs, axis=0)
+#        Gs_std = np.std(Gs, axis=0)
+#        Gs_skew = skew(Gs, axis=0)
+#        Gs_kurtosis = kurtosis(Gs, axis=0)
+#        Gs_covariance = np.cov(Gs.T)
+#
+#        return None
