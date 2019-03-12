@@ -21,8 +21,7 @@ class Gaussian:
     """
     def __init__(self, crystal, symmetry_parameters, derivative=False):
         self.crystal = crystal
-        self.symmetry_parameters = symmet                self.G_types.append(key)
-ry_parameters
+        self.symmetry_parameters = symmetry_parameters
 
         self.G1_keywords = ['Rc', 'functional']
         self.G2_keywords = ['eta', 'Rc', 'Rs', 'functional']
@@ -1603,7 +1602,7 @@ def G5_prime(crystal, i, ep_type, ni, functional='Cosine',
 # Test run
 from pymatgen.core.structure import Structure
 
-crystal = Structure.from_file('../datasets/POSCARs/POSCAR-NaCl')
+crystal = Structure.from_file('POSCARs/POSCAR-NaCl')
 
 sym_params = {'G3': {'kappa': np.logspace(np.log10(0.05), 
                                          np.log10(5.), num=4),
@@ -1615,3 +1614,4 @@ sym_params = {'G3': {'kappa': np.logspace(np.log10(0.05),
 g = Gaussian(crystal, sym_params, derivative=True)
 
 descriptor = g.Gs # all symmetry calculation of G3 and G4
+print(descriptor)
