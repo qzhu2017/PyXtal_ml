@@ -8,6 +8,7 @@ import itertools
 class Gaussian:
     """
     Get the all the desired symmetry functions.
+
     Parameters
     ----------
     crystal: object
@@ -20,7 +21,8 @@ class Gaussian:
     """
     def __init__(self, crystal, symmetry_parameters, derivative=False):
         self.crystal = crystal
-        self.symmetry_parameters = symmetry_parameters
+        self.symmetry_parameters = symmet                self.G_types.append(key)
+ry_parameters
 
         self.G1_keywords = ['Rc', 'functional']
         self.G2_keywords = ['eta', 'Rc', 'Rs', 'functional']
@@ -353,6 +355,7 @@ class Gaussian:
     def get_parameters(self, G_type, params):
         """
         Function to get symmetry functions parameters: eta, zeta, etc.
+
         Returns
         -------
         Return an array of arrays of parameters.
@@ -537,8 +540,10 @@ def dRab_dRpq(a, b, Ra, Rb, p, q):
     """
     Calculate the derivative of the norm of position vector R_{ab} with
     respect to coordinate x, y, or z denoted by q of atom with index p.
+
     See Eq. 14c of the supplementary information of Khorshidi, Peterson,
     CPC(2016).
+
     Parameters
     ----------
     a : int
@@ -553,6 +558,7 @@ def dRab_dRpq(a, b, Ra, Rb, p, q):
         Index of the atom force is acting on.
     q : int
         Direction of force. x = 0, y = 1, and z = 2.
+
     Returns
     -------
     the derivative of pair atoms w.r.t. one of the atom in q direction.
@@ -571,8 +577,10 @@ def dRab_dRpq_vector(a, b, p, q):
     """
     Calculate the derivative of the position vector R_{ab} with
     respect to coordinate x, y, or z denoted by q of atom with index p.
+
     See Eq. 14d of the supplementary information of Khorshidi, Peterson,
     CPC(2016).
+
     Parameters
     ----------
     a : int
@@ -583,6 +591,7 @@ def dRab_dRpq_vector(a, b, p, q):
         Index of the atom force is acting on.
     q : int
         Direction of force. x = 0, y = 1, and z = 2.
+
     Returns
     -------
     list of float
@@ -654,9 +663,11 @@ This script provides three cutoff functionals:
     1. Cosine
     2. Polynomial
     3. Hyperbolic Tangent
+
 All cutoff functionals have an 'Rc' attribute which is the cutoff radius;
 The Rc is used to calculate the neighborhood attribute. The functional will
 return zero if the radius is beyond Rc.
+
 This script is adopted from AMP:
     https://bitbucket.org/andrewpeterson/amp/src/2865e75a199a?at=master
 """
@@ -722,6 +733,7 @@ class Polynomial(object):
     Amp: A modular approach to machine learning in atomistic simulations. 
     Computer Physics Communications, 207, 310-324.
     (see eq. 9)
+
     Args:
         gamma(float): the polynomial power.
         Rc(float): the cutoff radius.
@@ -779,6 +791,7 @@ class TangentH(object):
     Constructing high‐dimensional neural network potentials: A tutorial review. 
     International Journal of Quantum Chemistry, 115(16), 1032-1050.
     (see eq. 7)
+
     Args:
         Rc(float): the cutoff radius.
     """
@@ -840,6 +853,7 @@ def G1(crystal, i, e_type, functional='Cosine', Rc=6.5):
     Behler, J. (2015). Constructing high‐dimensional neural network 
     potentials: A tutorial review. 
     International Journal of Quantum Chemistry, 115(16), 1032-1050.
+
     Parameters
     ----------
     crystal: object
@@ -908,6 +922,7 @@ def G1_prime(crystal, i, e_type, ni, functional='Cosine', Rc=6.5, p=1, q=0):
         The atom that the force is acting on.
     q: int
         Direction of force.
+
     Returns
     -------
     G1p: float
@@ -951,6 +966,7 @@ def G2(crystal, i, e_type, functional='Cosine', Rc=6.5, eta=2, Rs=0.0):
     Behler, J. (2015). Constructing high‐dimensional neural network 
     potentials: A tutorial review. 
     International Journal of Quantum Chemistry, 115(16), 1032-1050.
+
     Parameters
     ----------
     crystal: object
@@ -969,6 +985,7 @@ def G2(crystal, i, e_type, functional='Cosine', Rc=6.5, eta=2, Rs=0.0):
     Rs: float
         Determine the shift from the center of the Gaussian.
         Default value is zero.
+
     Returns
     -------
     G2: float
@@ -1198,6 +1215,7 @@ def G4(crystal, i, ep_type, functional='Cosine',
     
     G4 function is an angular function utilizing the cosine funtion of the
     angle theta_ijk centered at atom i.
+
     One can refer to equation 8 in:
     Behler, J. (2011). Atom-centered symmetry functions for constructing 
     high-dimensional neural network potentials. 
@@ -1314,6 +1332,7 @@ def G4_prime(crystal, i, ep_type, ni, functional='Cosine',
         The atom that the force is acting on.
     q: int
         Direction of force.
+
     Returns
     -------
     G4p: float
@@ -1403,6 +1422,7 @@ def G5(crystal, i, ep_type, functional='Cosine',
     angle theta_ijk centered at atom i. The difference between G5 and G4 is 
     that G5 does not depend on the Rjk value. Hence, the G5 will generate a 
     greater value after the summation compared to G4.
+
     One can refer to equation 9 in:
     Behler, J. (2011). Atom-centered symmetry functions for constructing 
     high-dimensional neural network potentials. 
@@ -1512,6 +1532,7 @@ def G5_prime(crystal, i, ep_type, ni, functional='Cosine',
         The atom that the force is acting on.
     q: int
         Direction of force.
+
     Returns
     -------
     G5p: float
