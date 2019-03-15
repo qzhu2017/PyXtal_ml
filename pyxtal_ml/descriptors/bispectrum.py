@@ -397,3 +397,4 @@ if __name__ == "__main__":
     in_arr = np.zeros([2*jmax+1]*5)
     x = populate_cg_array(jmax, in_arr)
     print(in_arr)
+    #cg test
