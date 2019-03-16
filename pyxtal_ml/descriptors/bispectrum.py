@@ -6,8 +6,6 @@ from angular_momentum import CG, wigner_D
 from optparse import OptionParser
 import numba
 
-@numba.njit(numba.f8(numba.f8, numba.f8),
-            cache=True, nogil=True, fastmath=True)
 def cosine_cutoff(r, rc):
 
     if r > rc:
@@ -18,7 +16,7 @@ def cosine_cutoff(r, rc):
 
 
 @numba.njit(numba.void(numba.i8, numba.f8[:,:,:,:,:]),
-            cache=True, nogil=True, fastmath=True)
+            cache=True, nogil=True, fastmath=False)
 def populate_cg_array(j_max, in_arr):
     '''
     Populate a 5-D array with the Clebsch-Gordon coupling coefficients
@@ -82,7 +80,7 @@ def populate_cg_array(j_max, in_arr):
 
 @numba.njit(numba.c16(numba.i8, numba.i8, numba.i8,
                       numba.f8, numba.f8, numba.f8),
-            cache=True, fastmath=True, nogil=True)
+            cache=True, fastmath=False, nogil=True)
 def U(j, m, m_prime, psi, theta, phi):
     '''
     Computes the 4-D hyperspherical harmonic given the three angular coordinates
@@ -103,7 +101,7 @@ def U(j, m, m_prime, psi, theta, phi):
 
 @numba.njit(numba.c16(numba.i8, numba.i8, numba.i8,
                       numba.f8[:,:], numba.f8[:], numba.f8[:]),
-            cache=True, fastmath=True, nogil=True)
+            cache=True, fastmath=False, nogil=True)
 def compute_C(j, mp, m, hypersphere_coords, rbf_vals, cutoff_vals):
     '''
     Computes the inner product of the 4-D hyperspherical harmonics
@@ -125,7 +123,7 @@ def compute_C(j, mp, m, hypersphere_coords, rbf_vals, cutoff_vals):
 
 @numba.njit(numba.void(numba.i8, numba.c16[:,:,:], numba.f8[:,:],
                        numba.f8[:], numba.f8[:]),
-            cache=True, fastmath=True, nogil=True)
+            cache=True, fastmath=False, nogil=True)
 def populate_C_array(jmax, in_arr, hypersphere_coords, rbf_vals, cutoff_vals):
     '''
     Populates the array of the inner products from compute_C
@@ -155,8 +153,8 @@ def populate_C_array(jmax, in_arr, hypersphere_coords, rbf_vals, cutoff_vals):
 
 @numba.njit(numba.void(numba.i8, numba.f8[:,:,:,:,:],
                        numba.c16[:,:,:], numba.c16[:,:,:,:,:]),
-            cache=True, fastmath=True, nogil=True)
-def compute_z_array(jmax, cgs, cs, in_arr):
+            cache=True, fastmath=False, nogil=True)
+def populate_z_array(jmax, cgs, cs, in_arr):
     '''
     Precomputes the last two sums in the bispectrum
 
@@ -176,7 +174,7 @@ def compute_z_array(jmax, cgs, cs, in_arr):
     cs = cs
 
     for j1 in range(size):
-        for j2 in range(j1+1):
+        for j2 in range(size):
             js = np.arange(j1-j2, min(twojmax, j1+j2) + 1, 2)
             for j in js:
                 mbs = np.arange(0, j/2 + 1, 1)
@@ -203,7 +201,7 @@ def compute_z_array(jmax, cgs, cs, in_arr):
 
 @numba.njit(numba.void(numba.i8, numba.c16[:,:,:],
                        numba.c16[:,:,:,:,:], numba.c16[:,:,:]),
-            cache=True, nogil=True, fastmath=True)
+            cache=True, nogil=True, fastmath=False)
 def compute_bispectrum(jmax, cs, zs, in_arr):
     '''
     Computes the bispectrum
@@ -236,7 +234,8 @@ class Bispectrum(object):
     def __init__(self, crystal, j_max=5, cutoff_radius=6.5, symmetrize=True, CG_coefs=None):
 
         # populate private attributes
-        self._j_max = j_max
+        self._jmax = j_max
+        self._size = 2*jmax+1
 
         # symmetrize structure option
         if symmetrize:
@@ -256,21 +255,18 @@ class Bispectrum(object):
         them in an attribute.
         '''
         # neighbor calculation
-        neighbors = crystal.get_all_neighbors(cutoff_radius)
-        hypersphere_coords = []  # psi, theta, phi angles
-        AN = []  # atomic numbers of sites
-        cutoff_vals = [] # cutoff function values (radial component)
-        for index, site in enumerate(crystal):
-            '''
-            first dimension corresponds to site,
-            second dimension corresponds to neighbor
-            third dimension corresponds to coordinates / values
-            '''
-            hypersphere_coords.append([])
-            AN.append([])
-            cutoff_vals.append([])
+        self._neighbors = crystal.get_all_neighbors(cutoff_radius)
+        max_size = 0
+        for neighbors in self._neighbors:
+            if max_size < len(neighbors):
+                max_size = len(neighbors)
 
-            for neighbor in neighbors[index]:
+        hypersphere_coords = np.zeros([len(self._neighbors), max_size, 3])  # psi, theta, phi angles
+        AN = np.zeros([len(self._neighbors), max_size])  # atomic numbers of sites
+        cutoff_vals = np.zeros([len(self._neighbors), max_size]) # cutoff function values (radial component)
+        for index, site in enumerate(crystal):
+
+            for i, neighbor in enumerate(self._neighbors[index]):
                 '''
                 Each neighbor in neighbors is a tuple of length 2
 
@@ -313,66 +309,40 @@ class Bispectrum(object):
                     phi = 0.
 
                 # [index] corresponds to a periodic site
-                hypersphere_coords[index].append([psi, theta, phi])
-                AN[index].append([neighbor[0].specie.number])
+                hypersphere_coords[index, i, :] = [psi, theta, phi]
+                AN[index, i] = neighbor[0].specie.number
 
                 # eventually we may want to consider different symmetry functions
-                cutoff_vals[index].append([cosine_cutoff(r, cutoff_radius)])
+                cutoff_vals[index, i] = cosine_cutoff(r, cutoff_radius)
 
         # populate the attributes
-        self.hypersphere_coords = np.array(hypersphere_coords)
-        self.atomic_numbers = np.array(AN)
-        self.cutoff_vals = np.array(cutoff_vals)
-        self.CGs = CG_coefs
+        self._hypersphere_coords = hypersphere_coords
+        self._rbf_vals = AN
+        self._cutoff_vals = cutoff_vals
+        self._CGs = CG_coefs
 
-    def _calculate_B(self, j1, j2, j, site, site_neighbors):
-        '''
-        Calculates the bispectrum coefficients associated with
-        atomic site in a crystal structure
+    def precompute_arrays(self):
+        neigh_size = len(self._neighbors)
+        self._cs = np.zeros([neigh_size] + [self._size]*3, dtype=np.complex128)
+        self._zs = np.zeros([neigh_size] + [self._size]*5, dtype=np.complex128)
+        self._bis = np.zeros([neigh_size] + [self._size]*3, dtype=np.complex128)
+        for i in range(neigh_size):
+            populate_C_array(self._jmax, self._cs[i,:,:,:], self._hypersphere_coords[i,:,:],
+                                np.array(self._rbf_vals[i,:]), np.array(self._cutoff_vals[i,:]))
+            populate_z_array(self._jmax, self._CGs, self._cs[i], self._zs[i])
+            compute_bispectrum(self._jmax, self._cs[i], self._zs[i], self._bis[i])
 
-        Args:
-            j1: index for first summnation
-            j2: index for second summnation
-            j: index of spherical harmonic expansion
-            site: pymatgen site for central atom
-            site_neighbors: pymatgen site neighbor list
-                corresponding to the central atom
+    def get_descr(self):
+        self.precompute_arrays()
 
-        Returns:
-            Bispectrum coefficients: a list of floats
-        '''
-        # itiate the variable
-        B = 0.
-        # compute the set of free integer parameters
-        mvals = self._m_values(j)
-        # iterate over two free integer sets
-        for m in mvals:
-            for m_prime in mvals:
-                # see calculate c
-                c = self._calculate_c(j, m_prime, m, site, site_neighbors)
-                # assign new integer parameters, related to m and m prime
-                m1bound = min(j1, m + j2)
-                m_prime1_bound = min(j1, m_prime + j2)
-                m1 = max(-j1, m-j2)
-                '''
-                Iterate over a set of half integer values depending on the free
-                integer parameters m and m_prime
-                '''
-                while m1 < (m1bound + 0.5):
-                    m_prime1 = max(-j1, m_prime - j2)
-                    while m_prime1 < (m_prime1_bound + 0.5):
-                        c1 = self._calculate_c(j1, m_prime1, m1, site,
-                                               site_neighbors)
-                        c2 = self._calculate_c(j2, m_prime-m_prime1, m-m1, site,
-                                               site_neighbors)
+        for i, bis in enumerate(self._bis):
+            if i == 0:
+                bispectrum = np.ndarray.flatten(bis)
 
-                        B += float(CG(j1, m1, j2, m-m1, j, m)) * \
-                            float(CG(j1, m_prime1, j2, m_prime-m_prime1, j, m_prime)) * \
-                            np.conjugate(c) * c1 * c2
-                        m_prime1 += 1
-                    m1 += 1
+            else:
+                bispectrum = np.vstack([bispectrum, np.ndarray.flatten(bis)])
 
-        return B
+        return np.array(bispectrum, dtype=np.float64)
 
 
 
@@ -389,12 +359,12 @@ if __name__ == "__main__":
     else:
         fileformat = 'poscar'
 
-    #test = Structure.from_file(options.structure)
+    test = Structure.from_file(options.structure)
 
-    #f = Bispectrum(test, j_max=1, cutoff_radius=6.5)
-    #print(f.bispectrum)
     jmax = 1
     in_arr = np.zeros([2*jmax+1]*5)
-    x = populate_cg_array(jmax, in_arr)
-    print(in_arr)
-    #cg test
+    populate_cg_array(jmax, in_arr)
+
+    f = Bispectrum(test, j_max=jmax, cutoff_radius=6.5, CG_coefs=in_arr)
+    bis = f.get_descr()
+    print(bis)
