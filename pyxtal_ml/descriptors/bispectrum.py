@@ -196,8 +196,6 @@ def populate_z_array(jmax, cgs, cs, in_arr):
                                 mb2 = (2 * mb - j - (2* mb1 - j1) + j2) / 2
                                 sumb1 += cgs[int(j1),int(j2),int(j),int(mb1),int(mb2)] * cs[int(j1),int(ma1),int(mb1)] * cs[int(j2),int(ma2),int(mb2)]
 
-                            if sumb1 == 0:
-                                print('issues in sumb1')
 
                             zs[int(j1),int(j2),int(j),int(ma),int(mb)] += sumb1*cgs[int(j1),int(j2),int(j),int(ma1),int(ma2)]
 
@@ -364,7 +362,7 @@ if __name__ == "__main__":
 
     test = Structure.from_file(options.structure)
 
-    jmax = 1
+    jmax = 5
     in_arr = np.zeros([2*jmax+1]*5)
     populate_cg_array(jmax, in_arr)
 
