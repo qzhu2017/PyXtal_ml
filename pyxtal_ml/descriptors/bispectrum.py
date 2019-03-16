@@ -16,7 +16,7 @@ def cosine_cutoff(r, rc):
 
 
 @numba.njit(numba.void(numba.i8, numba.f8[:,:,:,:,:]),
-            cache=True, nogil=True, fastmath=False)
+            cache=True, nogil=True, fastmath=True)
 def populate_cg_array(j_max, in_arr):
     '''
     Populate a 5-D array with the Clebsch-Gordon coupling coefficients
@@ -80,7 +80,7 @@ def populate_cg_array(j_max, in_arr):
 
 @numba.njit(numba.c16(numba.i8, numba.i8, numba.i8,
                       numba.f8, numba.f8, numba.f8),
-            cache=True, fastmath=False, nogil=True)
+            cache=True, fastmath=True, nogil=True)
 def U(j, m, m_prime, psi, theta, phi):
     '''
     Computes the 4-D hyperspherical harmonic given the three angular coordinates
@@ -101,7 +101,7 @@ def U(j, m, m_prime, psi, theta, phi):
 
 @numba.njit(numba.c16(numba.i8, numba.i8, numba.i8,
                       numba.f8[:,:], numba.f8[:], numba.f8[:]),
-            cache=True, fastmath=False, nogil=True)
+            cache=True, fastmath=True, nogil=True)
 def compute_C(j, mp, m, hypersphere_coords, rbf_vals, cutoff_vals):
     '''
     Computes the inner product of the 4-D hyperspherical harmonics
@@ -123,7 +123,7 @@ def compute_C(j, mp, m, hypersphere_coords, rbf_vals, cutoff_vals):
 
 @numba.njit(numba.void(numba.i8, numba.c16[:,:,:], numba.f8[:,:],
                        numba.f8[:], numba.f8[:]),
-            cache=True, fastmath=False, nogil=True)
+            cache=True, fastmath=True, nogil=True)
 def populate_C_array(jmax, in_arr, hypersphere_coords, rbf_vals, cutoff_vals):
     '''
     Populates the array of the inner products from compute_C
@@ -153,7 +153,7 @@ def populate_C_array(jmax, in_arr, hypersphere_coords, rbf_vals, cutoff_vals):
 
 @numba.njit(numba.void(numba.i8, numba.f8[:,:,:,:,:],
                        numba.c16[:,:,:], numba.c16[:,:,:,:,:]),
-            cache=True, fastmath=False, nogil=True)
+            cache=True, fastmath=True, nogil=True)
 def populate_z_array(jmax, cgs, cs, in_arr):
     '''
     Precomputes the last two sums in the bispectrum
@@ -174,7 +174,7 @@ def populate_z_array(jmax, cgs, cs, in_arr):
     cs = cs
 
     for j1 in range(size):
-        for j2 in range(size):
+        for j2 in range(j1+1):
             js = np.arange(j1-j2, min(twojmax, j1+j2) + 1, 2)
             for j in js:
                 mbs = np.arange(0, j/2 + 1, 1)
@@ -201,7 +201,7 @@ def populate_z_array(jmax, cgs, cs, in_arr):
 
 @numba.njit(numba.void(numba.i8, numba.c16[:,:,:],
                        numba.c16[:,:,:,:,:], numba.c16[:,:,:]),
-            cache=True, nogil=True, fastmath=False)
+            cache=True, nogil=True, fastmath=True)
 def compute_bispectrum(jmax, cs, zs, in_arr):
     '''
     Computes the bispectrum
@@ -365,6 +365,13 @@ if __name__ == "__main__":
     in_arr = np.zeros([2*jmax+1]*5)
     populate_cg_array(jmax, in_arr)
 
+    import time
+    start = time.time()
     f = Bispectrum(test, j_max=jmax, cutoff_radius=6.5, CG_coefs=in_arr)
     bis = f.get_descr()
+    end = time.time()
+
     print(bis)
+    print('Computing the bispectrum of ', options.structure,
+          ' with pre computed clebsch gordon coefficients takes: ',
+          end-start, 'seconds')
