@@ -7,7 +7,9 @@ from optparse import OptionParser
 import numba
 
 def cosine_cutoff(r, rc):
-
+    '''
+    Only cutoff function implemented this far
+    '''
     if r > rc:
         return 0.
 
@@ -136,10 +138,19 @@ def populate_C_array(jmax, in_arr, hypersphere_coords, rbf_vals, cutoff_vals):
         cutoff_vals: 1-D array of cutoff function values
 
     note that these arrays should be the same length
+
+    We map the inner product arguments to array indeces using the following relations
+
+    J -> J/2
+
+    Mn -> Mn - J/2
+
     '''
 
+    #array size
     twojmax = 2*jmax
     size = twojmax + 1
+    #reference to input array
     cs = in_arr
 
     for j in range(size):
@@ -164,14 +175,21 @@ def populate_z_array(jmax, cgs, cs, in_arr):
         cs: 3D array of the inner products of the 4-D hyperspherical
             harmonics, radial basis function, and cutoff function
         in_arr: 5-D array for sums
+
+    We map the sum arguments to array indeces using the following relations
+
+    Z(J1, M1, J2, M2, J, M)
+
+    Jn -> Jn/2
+
+    Mn -> Mn - Jn/2
+
 '''
 
 
     twojmax = 2*jmax
     size = twojmax + 1
     zs = in_arr
-    cgs = cgs
-    cs = cs
 
     for j1 in range(size):
         for j2 in range(j1+1):
@@ -215,22 +233,28 @@ def compute_bispectrum(jmax, cs, zs, in_arr):
         zs: 5-D array of pre computed sums (see SNAP)
     '''
 
+    indices = [[0,0,0], [1,0,0], [1,1,2], [2,0,2], [2,2,2]]
     twojmax = 2*jmax
     size = twojmax + 1
     bis = in_arr
 
     for j1 in range(size):
         for j2 in range(j1+1):
+            if j2 > j1:
+                continue
             js = np.arange(np.abs(j1-j2), min(twojmax, j1+j2) + 1, 2)
             for j in js:
-                if j1 > j or j2 > j1:
+                if j1 > j:
                     continue
                 mbs = np.arange(0, j/2 + 1, 1)
                 for mb in mbs:
                     for ma in range(j+1):
                         c = cs[int(j),int(mb),int(ma)]
-                        bis[int(j1),int(j2),int(j)] += c.conjugate()*zs[int(j1),int(j2),int(j),int(mb),int(ma)]
-
+                        z = zs[int(j1),int(j2),int(j),int(mb),int(ma)]
+                        #if [int(j1), int(j2), int(j)] in indices:
+                         #   print('c = ',c, 'z = ', z)
+                        bis[int(j1),int(j2),int(j)] += c.conjugate()*z
+    #print('\n\n')
 
 class Bispectrum(object):
 
