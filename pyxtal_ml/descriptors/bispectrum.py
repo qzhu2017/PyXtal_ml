@@ -194,9 +194,12 @@ def populate_z_array(jmax, cgs, cs, in_arr):
 
                             for mb1 in mb1s:
                                 mb2 = (2 * mb - j - (2* mb1 - j1) + j2) / 2
-                                sumb1 += cgs[int(j1),int(mb1),int(j2),int(mb2),int(j)] * cs[int(j1),int(ma1),int(mb1)] * cs[int(j2),int(ma2),int(mb2)]
+                                sumb1 += cgs[int(j1),int(j2),int(j),int(mb1),int(mb2)] * cs[int(j1),int(ma1),int(mb1)] * cs[int(j2),int(ma2),int(mb2)]
 
-                            zs[int(j1),int(j2),int(j),int(ma),int(mb)] += sumb1*cgs[int(j1),int(ma1),int(j2),int(ma2),int(j)]
+                            if sumb1 == 0:
+                                print('issues in sumb1')
+
+                            zs[int(j1),int(j2),int(j),int(ma),int(mb)] += sumb1*cgs[int(j1),int(j2),int(j),int(ma1),int(ma2)]
 
 
 @numba.njit(numba.void(numba.i8, numba.c16[:,:,:],
@@ -226,7 +229,7 @@ def compute_bispectrum(jmax, cs, zs, in_arr):
                 for mb in mbs:
                     for ma in range(j+1):
                         c = cs[int(j),int(ma),int(mb)]
-                        bis[int(j1),int(j2),int(j)] += 2*c.conjugate()*zs[int(j1),int(j2),int(j),int(ma),int(mb)]
+                        bis[int(j1),int(j2),int(j)] += c.conjugate()*zs[int(j1),int(j2),int(j),int(ma),int(mb)]
 
 
 class Bispectrum(object):
