@@ -340,12 +340,13 @@ class Bispectrum(object):
 
         for i, bis in enumerate(self._bis):
             if i == 0:
-                bispectrum = np.ndarray.flatten(bis)
+                bispectrum = np.ndarray.flatten(bis[np.nonzero(bis)])
 
             else:
-                bispectrum = np.vstack([bispectrum, np.ndarray.flatten(bis)])
+                bispectrum = np.vstack([bispectrum, np.ndarray.flatten(bis[np.nonzero(bis)])])
 
-        return np.array(bispectrum, dtype=np.float64)
+        bispectrum = np.array(bispectrum, dtype=np.float64)
+        return bispectrum
 
 
 
@@ -376,5 +377,5 @@ if __name__ == "__main__":
 
     print(bis)
     print('Computing the bispectrum of ', options.structure,
-          ' with pre computed clebsch gordon coefficients takes: ',
+          'with jmax = ', jmax, 'with pre computed clebsch gordon coefficients takes: ',
           end-start, 'seconds')
