@@ -220,14 +220,16 @@ def compute_bispectrum(jmax, cs, zs, in_arr):
     bis = in_arr
 
     for j1 in range(size):
-        for j2 in range(size):
+        for j2 in range(j1+1):
             js = np.arange(np.abs(j1-j2), min(twojmax, j1+j2) + 1, 2)
             for j in js:
+                if j1 > j or j2 > j1:
+                    continue
                 mbs = np.arange(0, j/2 + 1, 1)
                 for mb in mbs:
                     for ma in range(j+1):
-                        c = cs[int(j),int(ma),int(mb)]
-                        bis[int(j1),int(j2),int(j)] += c.conjugate()*zs[int(j1),int(j2),int(j),int(ma),int(mb)]
+                        c = cs[int(j),int(mb),int(ma)]
+                        bis[int(j1),int(j2),int(j)] += c.conjugate()*zs[int(j1),int(j2),int(j),int(mb),int(ma)]
 
 
 class Bispectrum(object):
@@ -362,7 +364,7 @@ if __name__ == "__main__":
 
     test = Structure.from_file(options.structure)
 
-    jmax = 5
+    jmax = 1
     in_arr = np.zeros([2*jmax+1]*5)
     populate_cg_array(jmax, in_arr)
 
