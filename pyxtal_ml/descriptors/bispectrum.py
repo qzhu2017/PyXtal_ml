@@ -251,10 +251,10 @@ def compute_bispectrum(jmax, cs, zs, in_arr):
                     for ma in range(j+1):
                         c = cs[int(j),int(mb),int(ma)]
                         z = zs[int(j1),int(j2),int(j),int(mb),int(ma)]
-                        #if [int(j1), int(j2), int(j)] in indices:
-                         #   print('c = ',c, 'z = ', z)
+                        if [int(j1), int(j2), int(j)] in indices:
+                            print('c = ',c, 'z = ', z)
                         bis[int(j1),int(j2),int(j)] += c.conjugate()*z
-    #print('\n\n')
+    print('\n\n')
 
 class Bispectrum(object):
 
@@ -381,21 +381,32 @@ if __name__ == "__main__":
                       help="crystal from file, cif or poscar, REQUIRED",
                       metavar="crystal")
 
+
+    parser.add_option("-r", "--rcut", dest="rcut", default=6.5, type=float,
+                      help="cutoff for neighbor calcs, default: 2.0"
+                     )
+
+    parser.add_option("-j", "--jmax", dest="jmax", default=1, type=int,
+                      help="jmax, default: 3"
+                     )
+
     (options, args) = parser.parse_args()
+
     if options.structure.find('cif') > 0:
         fileformat = 'cif'
     else:
         fileformat = 'poscar'
 
     test = Structure.from_file(options.structure)
+    jmax = options.jmax
+    rcut = options.rcut
 
-    jmax = 1
     in_arr = np.zeros([2*jmax+1]*5)
     populate_cg_array(jmax, in_arr)
 
     import time
     start = time.time()
-    f = Bispectrum(test, j_max=jmax, cutoff_radius=6.5, CG_coefs=in_arr)
+    f = Bispectrum(test, j_max=jmax, cutoff_radius=rcut, CG_coefs=in_arr)
     bis = f.get_descr()
     end = time.time()
 
