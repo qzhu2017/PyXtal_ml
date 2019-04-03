@@ -196,7 +196,8 @@ def populate_z_array(jmax, cgs, cs, in_arr):
             js = np.arange(j1-j2, min(twojmax, j1+j2) + 1, 2)
             for j in js:
                 mbs = np.arange(0, j/2 + 1, 1)
-                for mb in mbs:
+                mb = 0
+                while 2*mb <= j:
                     for ma in range(j+1):
                         ma1s = np.arange(max(0, (2*ma-j-j2+j1)/2),
                                          min(j1, (2*ma-j+j2+j1)/2) + 1,
@@ -216,6 +217,7 @@ def populate_z_array(jmax, cgs, cs, in_arr):
 
 
                             zs[int(j1),int(j2),int(j),int(ma),int(mb)] += sumb1*cgs[int(j1),int(j2),int(j),int(ma1),int(ma2)]
+                    mb += 1
 
 
 @numba.njit(numba.void(numba.i8, numba.c16[:,:,:],
@@ -240,21 +242,33 @@ def compute_bispectrum(jmax, cs, zs, in_arr):
 
     for j1 in range(size):
         for j2 in range(j1+1):
-            if j2 > j1:
-                continue
             js = np.arange(np.abs(j1-j2), min(twojmax, j1+j2) + 1, 2)
             for j in js:
                 if j1 > j:
                     continue
                 mbs = np.arange(0, j/2 + 1, 1)
-                for mb in mbs:
+                mb = 0
+                while 2*mb <= j:
                     for ma in range(j+1):
                         c = cs[int(j),int(mb),int(ma)]
                         z = zs[int(j1),int(j2),int(j),int(mb),int(ma)]
-                        if [int(j1), int(j2), int(j)] in indices:
-                            print('c = ',c, 'z = ', z)
+                        #if [int(j1), int(j2), int(j)] in indices:
+                            #print('c = ',c, 'z = ', z)
                         bis[int(j1),int(j2),int(j)] += c.conjugate()*z
-    print('\n\n')
+                    mb += 1
+
+                if int(j)%2 == 0:
+                    mb = int(j/2)
+                    for ma in range(mb+1):
+                        bis[int(j1),int(j2),int(j)] += cs[int(j),int(ma),int(mb)] *\
+                                zs[int(j1),int(j2),int(j),int(ma),int(mb)]
+
+                        if ma == mb:
+                            bis[int(j1),int(j2),int(j)] *= 0.5
+
+                if j != 0 and j != 1:
+                    bis[int(j1),int(j2),int(j)] *= 2.0
+    #print('\n\n')
 
 class Bispectrum(object):
 
@@ -354,8 +368,8 @@ class Bispectrum(object):
         self._zs = np.zeros([neigh_size] + [self._size]*5, dtype=np.complex128)
         self._bis = np.zeros([neigh_size] + [self._size]*3, dtype=np.complex128)
         for i in range(neigh_size):
-            populate_C_array(self._jmax, self._cs[i,:,:,:], self._hypersphere_coords[i,:,:],
-                                np.array(self._rbf_vals[i,:]), np.array(self._cutoff_vals[i,:]))
+            populate_C_array(self._jmax, self._cs[i], self._hypersphere_coords[i],
+                                np.array(self._rbf_vals[i]), np.array(self._cutoff_vals[i]))
             populate_z_array(self._jmax, self._CGs, self._cs[i], self._zs[i])
             compute_bispectrum(self._jmax, self._cs[i], self._zs[i], self._bis[i])
 
@@ -411,6 +425,8 @@ if __name__ == "__main__":
     end = time.time()
 
     print(bis)
+    print(np.nonzero(f._bis[0]))
+    print(f._bis[0,1,0,1])
     print('Computing the bispectrum of ', options.structure,
           'with jmax = ', jmax, 'with pre computed clebsch gordon coefficients takes: ',
           end-start, 'seconds')
