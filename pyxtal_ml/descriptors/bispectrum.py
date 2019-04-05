@@ -277,8 +277,6 @@ class Bispectrum(object):
 
     def __init__(self, crystal, j_max=5, cutoff_radius=6.5, symmetrize=True, CG_coefs=None):
 
-        if j_max > 6:
-            raise NotImplementedError('Issues in LLVM Compiler integer overflow in factorial calculations for jmax greater than 6')
         # populate private attributes
         self._jmax = j_max
         self._size = 2*jmax+1

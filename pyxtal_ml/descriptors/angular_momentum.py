@@ -2,12 +2,12 @@ import numpy as np
 from optparse import OptionParser
 import numba
 
-@numba.njit(numba.i8(numba.i8), cache=True, nogil=True, fastmath=True)
+@numba.njit(numba.f8(numba.i8), cache=True, nogil=True, fastmath=True)
 def factorial(n):
 
     n = int(round(n))
 
-    fac_arr = [1,
+    fac_arr = np.array([1,
   1,
   2,
   6,
@@ -28,7 +28,7 @@ def factorial(n):
   6.402373705728e+15,
   1.21645100408832e+17,
   2.43290200817664e+18,
-  5.10909421717094e+19,
+  5.10909421717094*10**19,
   1.12400072777761e+21,
   2.5852016738885e+22,
   6.20448401733239e+23,
@@ -174,7 +174,7 @@ def factorial(n):
   3.28721858553429e+293,
   5.42391066613159e+295,
   9.00369170577843e+297,
-  1.503616514865e+300]
+  1.503616514865e+300], dtype=np.float64)
 
     return fac_arr[n]
 
