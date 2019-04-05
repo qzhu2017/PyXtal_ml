@@ -104,7 +104,7 @@ def U(j, m, m_prime, psi, theta, phi):
 @numba.njit(numba.c16(numba.i8, numba.i8, numba.i8,
                       numba.f8[:,:], numba.f8[:], numba.f8[:]),
             cache=True, fastmath=True, nogil=True)
-def compute_C(j, mp, m, hypersphere_coords, rbf_vals, cutoff_vals):
+def compute_C(j, m, mp, hypersphere_coords, rbf_vals, cutoff_vals):
     '''
     Computes the inner product of the 4-D hyperspherical harmonics
     radial basis function values and cutoff function values
@@ -184,7 +184,7 @@ def populate_z_array(jmax, cgs, cs, in_arr):
 
     Mn -> Mn - Jn/2
 
-'''
+    '''
 
 
     twojmax = 2*jmax
@@ -214,6 +214,9 @@ def populate_z_array(jmax, cgs, cs, in_arr):
                             for mb1 in mb1s:
                                 mb2 = (2 * mb - j - (2* mb1 - j1) + j2) / 2
                                 sumb1 += cgs[int(j1),int(j2),int(j),int(mb1),int(mb2)] * cs[int(j1),int(ma1),int(mb1)] * cs[int(j2),int(ma2),int(mb2)]
+                                #if j1 == 8 and j2 == 8 and j == 8 and ma == 0 and mb == 4:
+                                 #   print(cgs[int(j1),int(j2),int(j),int(mb1),int(mb2)])
+                                    #print(sumb1)
 
 
                             zs[int(j1),int(j2),int(j),int(ma),int(mb)] += sumb1*cgs[int(j1),int(j2),int(j),int(ma1),int(ma2)]
@@ -235,7 +238,7 @@ def compute_bispectrum(jmax, cs, zs, in_arr):
         zs: 5-D array of pre computed sums (see SNAP)
     '''
 
-    indices = [[0,0,0], [1,0,0], [1,1,2], [2,0,2], [2,2,2]]
+    indices = [[0,0,0], [1,0,1], [1,1,2], [2,0,2], [2,2,2]]
     twojmax = 2*jmax
     size = twojmax + 1
     bis = in_arr
@@ -246,14 +249,15 @@ def compute_bispectrum(jmax, cs, zs, in_arr):
             for j in js:
                 if j1 > j:
                     continue
+                #print(j1, j2, j)
                 mbs = np.arange(0, j/2 + 1, 1)
                 mb = 0
                 while 2*mb <= j:
                     for ma in range(j+1):
-                        c = cs[int(j),int(mb),int(ma)]
-                        z = zs[int(j1),int(j2),int(j),int(mb),int(ma)]
+                        c = cs[int(j),int(ma),int(mb)]
+                        z = zs[int(j1),int(j2),int(j),int(ma),int(mb)]
                         #if [int(j1), int(j2), int(j)] in indices:
-                            #print('c = ',c, 'z = ', z)
+                         #   print('c = ',c, 'z = ', z)
                         bis[int(j1),int(j2),int(j)] += c.conjugate()*z
                     mb += 1
 
@@ -266,9 +270,8 @@ def compute_bispectrum(jmax, cs, zs, in_arr):
                         if ma == mb:
                             bis[int(j1),int(j2),int(j)] *= 0.5
 
-                if j != 0 and j != 1:
-                    bis[int(j1),int(j2),int(j)] *= 2.0
     #print('\n\n')
+
 
 class Bispectrum(object):
 
@@ -425,8 +428,10 @@ if __name__ == "__main__":
     end = time.time()
 
     print(bis)
-    print(np.nonzero(f._bis[0]))
-    print(f._bis[0,1,0,1])
     print('Computing the bispectrum of ', options.structure,
           'with jmax = ', jmax, 'with pre computed clebsch gordon coefficients takes: ',
           end-start, 'seconds')
+    #print(np.argwhere(np.isnan(f._bis[0])))
+    #print(np.argwhere(np.isnan(f._cs[0])))
+    #print(np.argwhere(np.isnan(f._zs[0])))
+    print(np.argwhere(np.isnan(in_arr)))

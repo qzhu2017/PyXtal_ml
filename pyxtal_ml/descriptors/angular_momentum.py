@@ -5,7 +5,7 @@ import numba
 @numba.njit(numba.i8(numba.i8), cache=True, nogil=True, fastmath=True)
 def factorial(n):
 
-    n = int(n)
+    n = int(round(n))
 
     fac_arr = [1,
   1,
@@ -211,23 +211,30 @@ def CG(j1, m1, j2, m2, j3, m3):
     '''
     if m3 != m1 + m2:
         return 0
-    vmin = int(np.array([-j1 + j2 + m3, -j1 + m1, 0]).max())
-    vmax = int(np.array([j2 + j3 + m1, j3 - j1 + j2, j3 + m3]).min())
+    else:
+        tmp0 = factorial(j1+j2+j3+1)
+        tmp1 = factorial(j1+m1) * factorial(j1-m1)
+        tmp2 = factorial(j2+m2) * factorial(j2-m2)
+        tmp3 = factorial(j3+m3) * factorial(j3-m3)
+        tmp4 = factorial(j1+j2-j3) * factorial(j1-j2+j3) * factorial(-j1+j2+j3)
 
-    C = np.sqrt((2.0 * j3 + 1.0) * factorial(j3 + j1 - j2) *
-                factorial(j3 - j1 + j2) * factorial(j1 + j2 - j3) *
-                factorial(j3 + m3) * factorial(j3 - m3) /
-                (factorial(j1 + j2 + j3 + 1) *
-                 factorial(j1 - m1) * factorial(j1 + m1) *
-                 factorial(j2 - m2) * factorial(j2 + m2)))
-    S = 0
-    for v in range(vmin, vmax + 1):
-        S += (-1.0) ** (v + j2 + m2) / factorial(v) * \
-            factorial(j2 + j3 + m1 - v) * factorial(j1 - m1 + v) / \
-            factorial(j3 - j1 + j2 - v) / factorial(j3 + m3 - v) / \
-            factorial(v + j1 - j2 - m3)
-    C = C * S
-    return C
+        sqrtarg = (tmp1/tmp0*tmp2*tmp3*tmp4) * (2*j3 + 1)
+        sqrtres = np.sqrt(sqrtarg)
+
+        vmin = max((j1+m2-j3, j2-m1-j3, 0))
+        vmax = min((j2+m2, j1-m1, j1+j2-j3))
+
+        vs = np.arange(vmin, vmax+1, 1)
+        sumres = 0
+        for v in vs:
+            value = factorial(v) * factorial(j1+j2-j3-v) * factorial(j1-m1-v) \
+                    * factorial(j2+m2-v) * factorial(j3-j2+m1+v) * factorial(j3-j1-m2+v)
+
+            sumres += (-1)**(v) / value
+
+        result = sqrtres*sumres
+
+    return result
 
 @numba.njit(numba.f8(numba.f8, numba.f8, numba.f8, numba.f8),
             cache=True, nogil=True, fastmath=True)
@@ -299,11 +306,14 @@ def wigner_D(J, M, MP, alpha, beta, gamma):
     return np.exp(-M*alpha*1j)*wigner_d(beta, J, M, MP)*np.exp(-MP*gamma*1j)
 
 
+@numba.njit(numba.f8(numba.f8, numba.f8, numba.f8,
+                     numba.f8, numba.f8, numba.f8),
+            cache=True, nogil=True, fastmath=True)
 def wigner_3j(j1, m1, j2, m2, j3, m3):
     if m3 != m1 + m2:
         return 0
-    vmin = int(np.max([-j1 + j2 + m3, -j1 + m1, 0]))
-    vmax = int(np.min([j2 + j3 + m1, j3 - j1 + j2, j3 + m3]))
+    vmin = int(max(-j1 + j2 + m3, -j1 + m1, 0))
+    vmax = int(min(j2 + j3 + m1, j3 - j1 + j2, j3 + m3))
 
     C = np.sqrt((2.0 * j3 + 1.0) * factorial(j3 + j1 - j2) *
                 factorial(j3 - j1 + j2) * factorial(j1 + j2 - j3) *
