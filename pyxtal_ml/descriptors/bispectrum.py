@@ -112,7 +112,7 @@ def compute_C(j, m, mp, hypersphere_coords, rbf_vals, cutoff_vals):
     Args:
         j, mp, m:  indeces for 4-D hyperspherical harmonics
     '''
-    dot = 0
+    dot = U(j, m, mp, 0, 0, 0)
     for i in range(len(hypersphere_coords)):
         psi = hypersphere_coords[i,0]
         theta = hypersphere_coords[i,1]
@@ -260,6 +260,7 @@ def compute_bispectrum(jmax, cs, zs, in_arr):
                          #   print('c = ',c, 'z = ', z)
                         bis[int(j1),int(j2),int(j)] += c.conjugate()*z
                     mb += 1
+
 
                 if int(j)%2 == 0:
                     mb = int(j/2)
