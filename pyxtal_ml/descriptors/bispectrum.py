@@ -2,7 +2,7 @@ from pymatgen.core.structure import Structure
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.core.periodic_table import Element, Specie
 import numpy as np
-from angular_momentum import CG, wigner_D
+from pyxtal_ml.descriptors.angular_momentum import CG, wigner_D
 from optparse import OptionParser
 import numba
 

@@ -1,9 +1,8 @@
 import numpy as np
 from itertools import product
-from pyxtal_ml.descriptors.angular_momentum import wigner_3j
+from pyxtal_ml.descriptors.angular_momentum import wigner_3j, sph_harm
 from pymatgen.core.structure import Structure
 from pymatgen.analysis.local_env import get_neighbors_of_site_with_index
-from scipy.special import sph_harm
 from optparse import OptionParser
 
 def _qlm(site, neighbors, l, mvals):
@@ -54,7 +53,7 @@ def _qlm(site, neighbors, l, mvals):
             calculate the spherical harmonic associated with
             the neighbor and add to q
             '''
-            q[i] += sph_harm(m, l, phi, theta)
+            q[i] += sph_harm(l, m, theta, phi)
     # normalize by number of neighbors
     return q / neighbors_count
 

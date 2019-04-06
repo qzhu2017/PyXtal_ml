@@ -5,7 +5,6 @@ from pymatgen.core.structure import Structure, IStructure
 from pymatgen.core.periodic_table import Element, Specie
 from pymatgen.core.bonds import get_bond_length
 from pymatgen.analysis.local_env import get_neighbors_of_site_with_index
-from scipy.special import sph_harm
 from monty.serialization import loadfn
 import os.path as op
 from optparse import OptionParser
