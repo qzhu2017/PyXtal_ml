@@ -8,7 +8,14 @@ import numba
 
 def cosine_cutoff(r, rc):
     '''
-    Only cutoff function implemented this far
+    Only radial cutoff function implemented this far.
+    ensures that the cutoff function goes smoothly to zero at the cutoff value
+
+    args:
+        r:  corresponds to the radial component of a spherical/hyperspherical vector valued function
+            double
+
+        rc:  cutoff radius, double
     '''
     if r > rc:
         return 0.
@@ -38,7 +45,7 @@ def populate_cg_array(j_max, in_arr):
     args:
         j_max: specify the degree of bispectrum calculation
 
-        in_arr: supplied array to insert CG coefficients
+        in_arr: supplied 5-D array to insert CG coefficients
     '''
     # initiate a 5-d array with size 2*j_max+1
     twojmax = 2*j_max
@@ -46,11 +53,10 @@ def populate_cg_array(j_max, in_arr):
     cgs = in_arr
     # index j1 and j2 from 0 to 2jmax
     for j1 in range(size):
-        for j2 in range(size):
+        for j2 in range(j1+1):
             # there exists a symmetry for j given by this array
             js = np.arange(np.abs(j1-j2), min(twojmax, j1+j2) + 1, 2)
             for j in js:
-
                 # index the sum from 0 to j1
                 for m1 in range(j1+1):
                     aa2 = 2 * m1 - j1
@@ -86,7 +92,17 @@ def populate_cg_array(j_max, in_arr):
 def U(j, m, m_prime, psi, theta, phi):
     '''
     Computes the 4-D hyperspherical harmonic given the three angular coordinates
-    and indeces
+    and indices
+
+    args:
+        j:  free integer parameter, used to index arrays, corresponds to free half integral/
+            integral constants used for calculation, int
+
+        m, mp:  free integer parameter, used to index arrays, cooresponds to free half integral/
+            integral constants used for calculation, int
+
+    returns:
+        the 4-D hyperspherical harmonic (wigner_U) function, complex
     '''
     j = j/2
     m = m - j
@@ -107,10 +123,13 @@ def U(j, m, m_prime, psi, theta, phi):
 def compute_C(j, m, mp, hypersphere_coords, rbf_vals, cutoff_vals):
     '''
     Computes the inner product of the 4-D hyperspherical harmonics
-    radial basis function values and cutoff function values
+    and a function on the 3-sphere
 
     Args:
-        j, mp, m:  indeces for 4-D hyperspherical harmonics
+        j, m, mp:  indeces for 4-D hyperspherical harmonics, int
+
+    returns:
+        the innerproduct of a defined function on the 3-sphere, complex
     '''
     dot = U(j, m, mp, 0, 0, 0)
     for i in range(len(hypersphere_coords)):
@@ -131,11 +150,11 @@ def populate_C_array(jmax, in_arr, hypersphere_coords, rbf_vals, cutoff_vals):
     Populates the array of the inner products from compute_C
 
     args:
-        jmax: degree of bispectrum calculation
-        in_arr: reference to array to populate
-        hypersphere_coords: 2-D array of psis, thetas, phis from 4-d spherical coordinate system
-        rbf_vals: 1-D array of radial basis function values
-        cutoff_vals: 1-D array of cutoff function values
+        jmax: degree of bispectrum calculation, int
+        in_arr: reference to array to populate, complex, 3-D
+        hypersphere_coords: 2-D array of psis, thetas, phis from 4-d spherical coordinate system, float
+        rbf_vals: 1-D array of function values on the 3 sphere, float
+        cutoff_vals: 1-D array of cutoff function values on the 3 sphere, float
 
     note that these arrays should be the same length
 
@@ -170,11 +189,11 @@ def populate_z_array(jmax, cgs, cs, in_arr):
     Precomputes the last two sums in the bispectrum
 
     args:
-        jmax: degree of bispectrum
-        cgs:  5-D array of clebsch gordon coefficients
+        jmax: degree of bispectrum, int
+        cgs:  5-D array of clebsch gordon coefficients, float
         cs: 3D array of the inner products of the 4-D hyperspherical
-            harmonics, radial basis function, and cutoff function
-        in_arr: 5-D array for sums
+            harmonics, function, and cutoff function, complex
+        in_arr: 5-D array for sums, complex
 
     We map the sum arguments to array indeces using the following relations
 
@@ -184,6 +203,7 @@ def populate_z_array(jmax, cgs, cs, in_arr):
 
     Mn -> Mn - Jn/2
 
+    Z = CG2 * sum(C1*C2*CG1)
     '''
 
 
@@ -214,9 +234,6 @@ def populate_z_array(jmax, cgs, cs, in_arr):
                             for mb1 in mb1s:
                                 mb2 = (2 * mb - j - (2* mb1 - j1) + j2) / 2
                                 sumb1 += cgs[int(j1),int(j2),int(j),int(mb1),int(mb2)] * cs[int(j1),int(ma1),int(mb1)] * cs[int(j2),int(ma2),int(mb2)]
-                                #if j1 == 8 and j2 == 8 and j == 8 and ma == 0 and mb == 4:
-                                 #   print(cgs[int(j1),int(j2),int(j),int(mb1),int(mb2)])
-                                    #print(sumb1)
 
 
                             zs[int(j1),int(j2),int(j),int(ma),int(mb)] += sumb1*cgs[int(j1),int(j2),int(j),int(ma1),int(ma2)]
@@ -228,17 +245,16 @@ def populate_z_array(jmax, cgs, cs, in_arr):
             cache=True, nogil=True, fastmath=True)
 def compute_bispectrum(jmax, cs, zs, in_arr):
     '''
-    Computes the bispectrum
+    Computes the bispectrum given pre computed C arrays and Z arrays
 
     args:
-        jmax: degree of bispectrum
-        cs: 3D array of precomued inner products of
-            hyperspherical harmonics, radial basis function,
-            and cutoff function
-        zs: 5-D array of pre computed sums (see SNAP)
+        jmax: degree of bispectrum, int
+        cs: 3D array of precomtued inner products of
+            hyperspherical harmonics, function,
+            and cutoff function, complex
+        zs: 5-D array of pre computed sums, complex
     '''
 
-    indices = [[0,0,0], [1,0,1], [1,1,2], [2,0,2], [2,2,2]]
     twojmax = 2*jmax
     size = twojmax + 1
     bis = in_arr
@@ -249,29 +265,25 @@ def compute_bispectrum(jmax, cs, zs, in_arr):
             for j in js:
                 if j1 > j:
                     continue
-                #print(j1, j2, j)
                 mbs = np.arange(0, j/2 + 1, 1)
                 mb = 0
                 while 2*mb <= j:
                     for ma in range(j+1):
                         c = cs[int(j),int(ma),int(mb)]
                         z = zs[int(j1),int(j2),int(j),int(ma),int(mb)]
-                        #if [int(j1), int(j2), int(j)] in indices:
-                         #   print('c = ',c, 'z = ', z)
                         bis[int(j1),int(j2),int(j)] += c.conjugate()*z
                     mb += 1
 
-
+                # special treatment of even j indices
                 if int(j)%2 == 0:
                     mb = int(j/2)
-                    for ma in range(mb+1):
+                    for ma in range(mb):
                         bis[int(j1),int(j2),int(j)] += cs[int(j),int(ma),int(mb)] *\
                                 zs[int(j1),int(j2),int(j),int(ma),int(mb)]
 
-                        if ma == mb:
-                            bis[int(j1),int(j2),int(j)] *= 0.5
-
-    #print('\n\n')
+                    ma = mb
+                    bis[int(j1),int(j2),int(j)] += 0.5*cs[int(j),int(ma),int(mb)] *\
+                            zs[int(j1),int(j2),int(j),int(ma),int(mb)]
 
 
 class Bispectrum(object):
@@ -432,7 +444,4 @@ if __name__ == "__main__":
     print('Computing the bispectrum of ', options.structure,
           'with jmax = ', jmax, 'with pre computed clebsch gordon coefficients takes: ',
           end-start, 'seconds')
-    #print(np.argwhere(np.isnan(f._bis[0])))
-    #print(np.argwhere(np.isnan(f._cs[0])))
-    #print(np.argwhere(np.isnan(f._zs[0])))
-    print(np.argwhere(np.isnan(in_arr)))
+
