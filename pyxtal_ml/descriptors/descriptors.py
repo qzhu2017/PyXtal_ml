@@ -11,10 +11,8 @@ from pyxtal_ml.descriptors.RDF import RDF
 from pyxtal_ml.descriptors.ADF import ADF
 from pyxtal_ml.descriptors.chem import Chem
 from pyxtal_ml.descriptors.charge import Charge
-from pyxtal_ml.descriptors.DDF import DDF
 from pyxtal_ml.descriptors.prdf import PRDF
 from pyxtal_ml.descriptors.voronoi_descriptors import Voronoi_Descriptors
-from pyxtal_ml.descriptors.crystal_graph import crystalgraph
 from pyxtal_ml.descriptors.bond_order_params import steinhardt_params
 from pyxtal_ml.descriptors.power_spectrum import power_spectrum
 from pyxtal_ml.descriptors.C_bispectrum import C_Bispectrum
@@ -57,10 +55,6 @@ class descriptor:
                     self.descriptor['ADF'] = ADF(self.struc).all
                     self.descriptor['ADF'] = self.apply_feature_scaling_array(
                         self.descriptor['ADF'])
-                elif lib == 'DDF':
-                    self.descriptor['DDF'] = DDF(self.struc).DDF
-                    self.descriptor['DDF'] = self.apply_feature_scaling_array(
-                        self.descriptor['DDF'])
                 elif lib == 'Chem':
                     self.descriptor['Chem'] = Chem(self.struc).chem_stats
                 elif lib == 'Charge':
@@ -72,9 +66,6 @@ class descriptor:
                     self.descriptor['PRDF'] = PRDF(self.struc).PRDF
                     self.descriptor['PRDF'] = self.apply_feature_scaling_array(
                         self.descriptor['PRDF'])
-                elif lib == 'cg':
-                    self.descriptor['cg'] = crystalgraph(
-                        self.struc).crystal_graph
                 elif lib == 'bond_order':
                     self.descriptor['bond_order'] = steinhardt_params(
                         self.struc).params
@@ -94,8 +85,6 @@ class descriptor:
                     self.descriptor['RDF'] = RDF(self.struc).RDF[1, :]
                 elif lib == 'ADF':
                     self.descriptor['ADF'] = ADF(self.struc).all
-                elif lib == 'DDF':
-                    self.descriptor['DDF'] = DDF(self.struc).DDF
                 elif lib == 'Chem':
                     self.descriptor['Chem'] = Chem(self.struc).chem_stats
                 elif lib == 'Charge':
@@ -105,9 +94,6 @@ class descriptor:
                         self.struc).all()
                 elif lib == 'PRDF':
                     self.descriptor['PRDF'] = PRDF(self.struc).PRDF
-                elif lib == 'cg':
-                    self.descriptor['cg'] = crystalgraph(
-                        self.struc).crystal_graph
                 elif lib == 'bond_order':
                     self.descriptor['bond_order'] = steinhardt_params(
                         self.struc).params
@@ -175,7 +161,7 @@ class descriptor:
 
         keys0, self.feature_counting = self.sort_features(keys0)
 
-        non_stats_keys = ['RDF', 'ADF', 'DDF', 'PRDF', 'cg', 'Voronoi', 'covariance']
+        non_stats_keys = ['RDF', 'ADF', 'PRDF', 'Voronoi', 'covariance']
         arr = []
         for key in keys0:
             if len(self.descriptor[key]) == 0:
