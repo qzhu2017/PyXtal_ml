@@ -15,7 +15,7 @@ from pyxtal_ml.descriptors.prdf import PRDF
 from pyxtal_ml.descriptors.voronoi_descriptors import Voronoi_Descriptors
 from pyxtal_ml.descriptors.bond_order_params import steinhardt_params
 from pyxtal_ml.descriptors.power_spectrum import power_spectrum
-from pyxtal_ml.descriptors.C_bispectrum import C_Bispectrum
+from pyxtal_ml.descriptors.bispectrum import Bispectrum
 from pyxtal_ml.descriptors.stats import descriptor_stats
 from pyxtal_ml.descriptors.Element import element_attributes
 
@@ -73,8 +73,8 @@ class descriptor:
                     self.descriptor['power_spectrum'] = power_spectrum(
                         self.struc).Power_spectrum
                 elif lib == 'bispectrum':
-                    self.descriptor['bispectrum'] = C_Bispectrum(
-                        self.struc).bispectrum
+                    f = Bispectrum(self.struc)
+                    self.descriptor['bispectrum'] = f.get_descr()
                 elif lib == 'element':
                     self.descriptor['element'] = element_attributes(
                         self.struc).properties
@@ -101,8 +101,8 @@ class descriptor:
                     self.descriptor['power_spectrum'] = power_spectrum(
                         self.struc).Power_spectrum
                 elif lib == 'bispectrum':
-                    self.descriptor['bispectrum'] = C_Bispectrum(
-                        self.struc).bispectrum
+                    f = Bispectrum(self.struc)
+                    self.descriptor['bispectrum'] = f.get_descr()
                 elif lib == 'element':
                     self.descriptor['element'] = element_attributes(
                         self.struc).properties
@@ -233,7 +233,7 @@ if __name__ == "__main__":
         fileformat = 'poscar'
 
     test = Structure.from_file(options.structure)
-    des = descriptor(test, 'bond_order+bispectrum+covariance')
+    des = descriptor(test, 'bispectrum')
     for lib in des.libs:
         print(lib, len(des.descriptor[lib]))
     print(des.merge())

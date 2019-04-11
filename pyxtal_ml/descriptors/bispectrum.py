@@ -292,7 +292,7 @@ class Bispectrum(object):
 
         # populate private attributes
         self._jmax = j_max
-        self._size = 2*jmax+1
+        self._size = 2*j_max+1
 
         # symmetrize structure option
         if symmetrize:
@@ -376,7 +376,13 @@ class Bispectrum(object):
         self._hypersphere_coords = hypersphere_coords
         self._rbf_vals = AN
         self._cutoff_vals = cutoff_vals
-        self._CGs = CG_coefs
+        if CG_coefs == None:
+
+            self._CGs = np.zeros([self._size]*5, dtype=np.float64)
+            populate_cg_array(self._jmax, self._CGs)
+
+        else:
+            self._CGs = CG_coefs
 
     def precompute_arrays(self):
         neigh_size = len(self._neighbors)
@@ -436,11 +442,11 @@ if __name__ == "__main__":
 
     import time
     start = time.time()
-    f = Bispectrum(test, j_max=jmax, cutoff_radius=rcut, CG_coefs=in_arr)
+    f = Bispectrum(test, j_max=jmax, cutoff_radius=rcut, CG_coefs=None)
     bis = f.get_descr()
     end = time.time()
 
-    print(bis)
+    print(bis, np.shape(bis))
     print('Computing the bispectrum of ', options.structure,
           'with jmax = ', jmax, 'with pre computed clebsch gordon coefficients takes: ',
           end-start, 'seconds')
