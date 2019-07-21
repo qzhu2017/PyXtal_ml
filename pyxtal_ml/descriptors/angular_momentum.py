@@ -236,9 +236,9 @@ def CG(j1, m1, j2, m2, j3, m3):
 
     return result
 
-@numba.njit(numba.f8(numba.f8, numba.f8, numba.f8, numba.f8),
+@numba.njit(numba.f8(numba.f8, numba.f8, numba.f8, numba.f8, numba.b1),
             cache=True, nogil=True, fastmath=True)
-def wigner_d(beta, J, M, MP):
+def wigner_d(beta, J, M, MP, derivative):
     '''
     Small Wigner d function
     Ref:  Quantum theory of angular momentum D.A. Varshalovich 1988
@@ -267,17 +267,22 @@ def wigner_d(beta, J, M, MP):
 
     d = 0
     for k in range(n_max+1):
-        d += ((-1)**(k) * np.cos(beta/2)**(M+MP+2*k) * np.sin(beta/2)**(2*J-M-MP-2*k) /
-              factorial(k) / factorial(J-M-k) / factorial(J-MP-k) / factorial(M+MP+k))
+        temp = ((-1)**(k) * np.cos(beta/2)**(M+MP+2*k) * np.sin(beta/2)**(2*J-M-MP-2*k) /
+                 factorial(k) / factorial(J-M-k) / factorial(J-MP-k) / factorial(M+MP+k))
+
+        if derivative == True:
+            temp *= ((2*J-M-MP-2*k)/np.tan(beta/2) - (M+MP+2*k)*np.tan(beta/2))
+
+        d += temp
 
     d *= constant
 
     return d
 
 @numba.njit(numba.c16(numba.f8, numba.f8, numba.f8,
-                      numba.f8, numba.f8, numba.f8),
+                      numba.f8, numba.f8, numba.f8, numba.b1),
             cache=True, fastmath=True, nogil=True)
-def wigner_D(J, M, MP, alpha, beta, gamma):
+def wigner_D(J, M, MP, alpha, beta, gamma, derivative):
     '''
     Large Wigner D function
     Ref:  Quantum theory of angular momentum D.A. Varshalovich 1988
@@ -303,7 +308,8 @@ def wigner_D(J, M, MP, alpha, beta, gamma):
     Returns:
         the wigner_D matrix element for a defined rotation
         '''
-    return np.exp(-M*alpha*1j)*wigner_d(beta, J, M, MP)*np.exp(-MP*gamma*1j)
+
+    return np.exp(-M*alpha*1j)*wigner_d(beta, J, M, MP, derivative=derivative)*np.exp(-MP*gamma*1j)
 
 
 @numba.njit(numba.f8(numba.f8, numba.f8, numba.f8,
@@ -316,5 +322,5 @@ def wigner_3j(j1, m1, j2, m2, j3, m3):
 @numba.njit(numba.c16(numba.f8, numba.f8, numba.f8, numba.f8), cache=True,
             nogil=True, fastmath=True)
 def sph_harm(l, m, theta, phi):
-    sph_harm = np.sqrt((2*l+1)/(4*np.pi)) * wigner_D(l,0,-m,0,theta,phi)
+    sph_harm = np.sqrt((2*l+1)/(4*np.pi)) * wigner_D(l,0,-m,0,theta,phi, False)
     return sph_harm
